@@ -1,0 +1,102 @@
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+export interface ChatMessage {
+  response: string;
+  intent: string;
+  decision?: "APPROVE" | "REQUIRE_APPROVAL" | "DENY";
+  payment?: {
+    recipient: string;
+    amount: string;
+    token: string;
+    reason: string;
+    memory_references: string[];
+    tx_hash?: string;
+    status?: string;
+  };
+  memory_stored: string[];
+}
+
+export interface Memory {
+  key: string;
+  category: string;
+  value: Record<string, unknown>;
+}
+
+export interface Goal {
+  name: string;
+  target: number;
+  current: number;
+  progress: number;
+}
+
+export interface Payment {
+  id: string;
+  recipient: string;
+  amount: string;
+  token: string;
+  decision: string;
+  reason: string;
+  tx_hash?: string;
+  status: string;
+  memory_references: string[];
+  timestamp: string;
+}
+
+export interface VaultInfo {
+  balance: number;
+  daily_remaining: number;
+  max_per_transaction: number;
+  daily_limit: number;
+}
+
+async function fetchAPI<T>(path: string, options?: RequestInit): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options?.headers,
+    },
+  });
+
+  if (!res.ok) {
+    const error = await res.text();
+    throw new Error(`API error: ${res.status} - ${error}`);
+  }
+
+  return res.json();
+}
+
+export const api = {
+  // Chat
+  chat: (message: string) =>
+    fetchAPI<ChatMessage>("/chat", {
+      method: "POST",
+      body: JSON.stringify({ message }),
+    }),
+
+  // Memory
+  getMemory: (category?: string) =>
+    fetchAPI<Memory[]>(`/memory${category ? `?category=${category}` : ""}`),
+
+  // Rules
+  getRules: () => fetchAPI<Record<string, unknown>[]>("/rules"),
+  setRule: (type: string, value: string) =>
+    fetchAPI("/rules", {
+      method: "POST",
+      body: JSON.stringify({ type, value }),
+    }),
+
+  // Goals
+  getGoals: () => fetchAPI<Goal[]>("/goals"),
+  createGoal: (name: string, target: number) =>
+    fetchAPI<Goal>("/goals", {
+      method: "POST",
+      body: JSON.stringify({ name, target }),
+    }),
+
+  // Payments
+  getPayments: () => fetchAPI<Payment[]>("/payments"),
+
+  // Vault
+  getVault: () => fetchAPI<VaultInfo>("/vault"),
+};
