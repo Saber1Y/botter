@@ -1,6 +1,6 @@
 import { AppLayout } from "@/components/AppLayout";
 
-export default function GroupLayout({
+export default function AppGroupLayout({
   children,
 }: {
   children: React.ReactNode;

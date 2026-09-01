@@ -146,7 +146,7 @@ export default function OverviewPage() {
         </h2>
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
           <a
-            href="/chat"
+            href="/app/chat"
             className="text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
           >
             "Can I spend $200 this weekend?" →

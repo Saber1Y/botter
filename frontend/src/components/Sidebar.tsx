@@ -5,11 +5,11 @@ import { usePathname } from "next/navigation";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 const navItems = [
-  { href: "/", label: "Overview", icon: "◈" },
-  { href: "/chat", label: "AI CFO", icon: "⬡" },
-  { href: "/memory", label: "Memory", icon: "◎" },
-  { href: "/goals", label: "Goals", icon: "◇" },
-  { href: "/payments", label: "Payments", icon: "≡" },
+  { href: "/app", label: "Overview", icon: "◈" },
+  { href: "/app/chat", label: "AI CFO", icon: "⬡" },
+  { href: "/app/memory", label: "Memory", icon: "◎" },
+  { href: "/app/goals", label: "Goals", icon: "◇" },
+  { href: "/app/payments", label: "Payments", icon: "≡" },
 ];
 
 export function Sidebar() {
