@@ -22,6 +22,7 @@ import {
   CreditCard,
   Lock,
   Eye,
+  Mic,
 
   Sparkles,
   Globe,
@@ -228,6 +229,22 @@ function HeroChatMockup() {
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/* Voice input bar */}
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.9, duration: 0.4 }}
+            className="flex items-center gap-2 border-t border-border pt-3"
+          >
+            <div className="flex flex-1 items-center gap-2 rounded-xl border border-border bg-muted/40 px-3 py-2 text-[11px] text-muted-foreground">
+              <Mic className="h-3 w-3 text-accent/60" />
+              Talk or type your instruction...
+            </div>
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent text-white shadow-md shadow-accent/20">
+              <Mic className="h-4 w-4" />
+            </div>
+          </motion.div>
         </div>
       </div>
     </motion.div>
@@ -697,9 +714,9 @@ export default function LandingPage() {
               variants={fadeUp}
               className="mb-8 max-w-md text-[15px] leading-relaxed text-muted-foreground"
             >
-              Set the rules once. Pact remembers them across sessions, makes
-              decisions using your financial context, and executes approved
-              actions onchain.
+              Type or speak your financial instructions. Pact remembers them
+              across sessions, makes decisions using your financial context, and
+              executes approved actions onchain.
             </motion.p>
 
             <motion.div variants={fadeUp} className="mb-8 flex flex-wrap gap-3">
@@ -722,7 +739,7 @@ export default function LandingPage() {
               variants={fadeIn}
               className="flex flex-wrap items-center gap-4 text-[11px] text-muted-foreground"
             >
-              {["Sibyl Memory", "Base", "AI-native", "Non-custodial"].map(
+              {["Sibyl Memory", "Base", "AI-native", "Voice input", "Non-custodial"].map(
                 (item) => (
                   <span key={item} className="flex items-center gap-1.5">
                     <span className="h-1 w-1 rounded-full bg-accent/50" />
@@ -932,7 +949,8 @@ export default function LandingPage() {
           </h2>
           <p className="mx-auto max-w-md text-[15px] text-muted-foreground">
             A complete financial interface powered by persistent memory and
-            onchain execution.
+            onchain execution. Type or speak, and the AI CFO responds with what
+            it remembers.
           </p>
         </motion.div>
 
