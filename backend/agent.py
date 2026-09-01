@@ -1,8 +1,9 @@
 """LLM Agent for Pact - orchestrates the memory -> reasoning -> policy loop."""
 import json
+import asyncio
 import hashlib
 import time
-from openai import AsyncOpenAI
+from openai import AsyncOpenAI, APIError, APIConnectionError, RateLimitError
 from config import get_settings
 from memory import MemoryUnavailable, memory
 from policy import Decision, PaymentRequest, MemoryContext, PolicyDecision, evaluate_payment
@@ -91,21 +92,35 @@ User message: {message}
 
 Respond with a JSON object containing your intent, response, and any actions to take."""
 
-        # Call LLM
-        response = await self.client.chat.completions.create(
-            model=self.model,
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": user_prompt},
-            ],
-            response_format={"type": "json_object"},
-            temperature=0.3,
-        )
+        # Call LLM with retries - free-tier upstreams (e.g. Nvidia on
+        # OpenRouter) occasionally return overloaded errors or empty content.
+        max_attempts = 3
+        for attempt in range(1, max_attempts + 1):
+            if attempt > 1:
+                await asyncio.sleep(1.5 * attempt)
+            try:
+                response = await self.client.chat.completions.create(
+                    model=self.model,
+                    messages=[
+                        {"role": "system", "content": SYSTEM_PROMPT},
+                        {"role": "user", "content": user_prompt},
+                    ],
+                    response_format={"type": "json_object"},
+                    temperature=0.3,
+                )
+            except (APIError, APIConnectionError, RateLimitError):
+                if attempt == max_attempts:
+                    raise
+                continue
 
-        # Parse response
-        content = response.choices[0].message.content if response.choices else None
-        if not content:
-            raise RuntimeError("LLM returned an empty response")
+            # Parse response
+            content = response.choices[0].message.content if response.choices else None
+            if not content:
+                if attempt == max_attempts:
+                    raise RuntimeError("LLM returned an empty response")
+                continue
+            break
+
         agent_response = json.loads(content)
 
         # Process intent
