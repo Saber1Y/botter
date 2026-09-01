@@ -1,0 +1,12 @@
+{
+  "name": "pact",
+  "private": true,
+  "description": "Pact - Your money. Your rules. Remembered.",
+  "scripts": {
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && uvicorn main:app --reload",
+    "build": "cd frontend && npm run build",
+    "test:contracts": "cd contracts && forge test",
+    "deploy:contracts": "cd contracts && forge script script/PactVault.s.sol --rpc-url base_sepolia --broadcast --verify"
+  }
+}
