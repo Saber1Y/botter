@@ -17,6 +17,7 @@ from uuid import uuid4
 from typing import Any, Optional
 
 from sibyl_memory_client import MemoryClient
+from sibyl_memory_client.exceptions import NotFoundError
 
 
 class MemoryUnavailable(RuntimeError):
@@ -375,12 +376,22 @@ class PactMemory:
         return sorted(sessions, key=lambda session: session.get("updated_at", 0), reverse=True)
 
     def touch_chat_session(self, wallet: str, session_id: str) -> None:
-        """Update the last-used timestamp for a chat session."""
+        """Create or update the last-used timestamp for a chat session."""
         client = self._client(wallet)
-        entity = client.get_entity("chat_sessions", session_id)
+        try:
+            entity = client.get_entity("chat_sessions", session_id)
+        except NotFoundError:
+            entity = None
         if entity:
             body = {**entity.get("body", {}), "updated_at": time.time()}
-            self._required(lambda: client.set_entity("chat_sessions", session_id, body))
+        else:
+            now = time.time()
+            body = {
+                "name": "New conversation",
+                "created_at": now,
+                "updated_at": now,
+            }
+        self._required(lambda: client.set_entity("chat_sessions", session_id, body))
 
     def delete_chat_session(self, wallet: str, session_id: str) -> None:
         """Delete a session and all chat messages assigned to it."""
