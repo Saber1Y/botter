@@ -136,7 +136,7 @@ export default function MemoryPage() {
               value={
                 rule.value.type === "spending_limit"
                   ? `$${rule.value.value} per transaction`
-                  : rule.value.value
+                  : String(rule.value.value)
               }
               source="You"
             />
@@ -165,7 +165,7 @@ export default function MemoryPage() {
               category="Payment"
               label={`${pay.value.recipient} - $${pay.value.amount}`}
               value={`Status: ${pay.value.status}${
-                pay.value.tx_hash ? ` | Tx: ${pay.value.tx_hash.slice(0, 10)}...` : ""
+                pay.value.tx_hash ? ` | Tx: ${String(pay.value.tx_hash).slice(0, 10)}...` : ""
               }`}
             />
           ))}
