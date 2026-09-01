@@ -1,36 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Pact frontend
 
-## Getting Started
+Next.js (App Router) frontend for Pact — an AI CFO with persistent Sibyl memory and onchain payments on Base Sepolia.
 
-First, run the development server:
+## Getting started
 
 ```bash
+npm install
+cp .env.example .env.local   # edit the four NEXT_PUBLIC_ values
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000 and connect a Base Sepolia wallet.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Environment variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variable | Purpose |
+| --- | --- |
+| `NEXT_PUBLIC_API_URL` | Backend API URL (defaults to `http://localhost:8000`) |
+| `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` | WalletConnect project ID |
+| `NEXT_PUBLIC_BASE_SEPOLIA_RPC` | Base Sepolia RPC URL |
+| `NEXT_PUBLIC_VAULT_FACTORY_ADDRESS` | Factory used by the vault deploy button |
 
-## Learn More
+These are compile-time (`NEXT_PUBLIC_`) variables, so they are baked into the production bundle at build time. On Vercel set them in the project dashboard (root directory `frontend`, Next.js preset) and redeploy.
 
-To learn more about Next.js, take a look at the following resources:
+## Routes
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `/` — landing page (hero mockup, product, memory, security).
+- `/app` — dashboard: vault balance, budget, goal, activity, deploy/fund banner.
+- `/app/chat` — AI CFO chat with typed or spoken input, chat history, sessions, message editing.
+- `/app/memory` — rules, goals, and past decisions.
+- `/app/goals` — goal create / list / delete.
+- `/app/payments` — payment decisions, filters, and approve-from-UI for `REQUIRE_APPROVAL`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Voice input
 
-## Deploy on Vercel
+The chat page has a mic button that uses the browser's Web Speech API (`useSpeechRecognition` in `src/hooks/useSpeechRecognition.ts`).
+It works in Chrome, Edge, and Safari without any dependency or API key, and places the transcript in the message box for review before sending.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Scripts
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run dev      # development server
+npm run build    # production build
+npm run start    # serve the production build
+npm run lint     # eslint
+```
+
+## Errors and states
+
+The app surfaces clear states for a missing wallet, connecting, wrong network, Sibyl outage (autonomous decisions pause), typing, and failed payments.
+"Sibyl memory is unavailable" appears in orange when the backend reports memory down, and the chat input disables rather than making decisions blind.

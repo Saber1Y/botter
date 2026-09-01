@@ -7,7 +7,7 @@ Pact asks the opposite question: what if the agent remembered your rules, your g
 On Base Sepolia, in USDC, with each user's money isolated in a vault they own and the agent's spending bounded by limits the contract enforces on every single call.
 No model ever touches your spending key. Pact reasons in your memory, and only signs the exact, policy-verified payments your vault authorizes.
 
-Live frontend: `http://localhost:3000` (Next.js) · Contracts on Base Sepolia.
+Live frontend: https://pact-gules.vercel.app · Live backend: https://pact-production-e5c0.up.railway.app · Contracts on Base Sepolia.
 
 [The one rule ↗](#the-one-rule--never-a-spending-key) · [Architecture ↗](#architecture) · [Component by component ↗](#component-by-component) · [What's real vs pending ↗](#whats-real-vs-pending--the-honesty-table) · [Run it locally ↗](#run-it-locally)
 
@@ -59,6 +59,10 @@ Open http://localhost:3000, connect with RainbowKit, and tell Pact:
 "I'm saving $2,000 for a MacBook" — then "you can spend up to $100 without asking" — then "pay 0xAlice 60 USDC".
 Watch the payment get remembered, checked against your rules, approved, and executed from your vault.
 
+You can also use the hosted preview — no local setup: open https://pact-gules.vercel.app, connect to Base Sepolia, and your chat is served by the live backend at https://pact-production-e5c0.up.railway.app with Sibyl memory persisted on a Railway volume.
+
+Both the chat box and the landing page let you type or speak. Voice input uses your browser's built-in speech recognition (Chrome, Edge, or Safari; no extra dependency), so you can say "pay sixty USDC to 0xAlice" and Pact fills the message box for you.
+
 ## Screenshots
 
 Landing · hero:
@@ -99,6 +103,8 @@ Six surfaces, each backed by the same memory → reason → policy loop.
 Paste a financial instruction and Pact reasons over your remembered context before it acts.
 The chat returns a structured verdict, quotes the memory it used, and executes approved payments from your vault — all from a natural-language instruction.
 
+You can type your instruction or speak it. The chat page has a built-in voice button (browser Web Speech API) that transcribes what you say into the message box, so you can talk your finances instead of typing them.
+
 Real flow, from the code:
 
 ```
@@ -110,6 +116,7 @@ PAYMENT intent: recipient 0xAlice, amount 60, merchant Acme
 ```
 
 The verdict is a pure function of memory + request + vault state. It is deterministic and testable.
+This exact loop has been run live end-to-end on Base Sepolia: a goal was stored, recalled in a new session, a $10 payment was held for approval, approved, executed onchain, and verified by its transaction hash.
 
 ### Persistent memory
 
@@ -304,15 +311,15 @@ The honest table — what is genuinely working, run against real infrastructure,
 | Per-user `PactVault` + `VaultFactory` contracts | Real — deployed, 31 Foundry tests passing |
 | Deposit / withdraw / agent set / limits set | Real — 16 PactVault tests |
 | Factory CREATE2, vault count, getVault | Real — 15 VaultFactory tests |
+| Live hosted deployments | Real — Vercel frontend + Railway backend, CORS configured, `/health` verified |
+| Onchain `pay()` execution from the flow | Real — verified live on Base Sepolia: goal stored → recalled in a fresh session → $10 payment held for approval → approved → executed onchain (tx `0x588f6937e18e400a6a12ba7dda2f6c4e4255e964df43740cc03de5528f6bba38`) → vault balance updated |
+| Voice input in chat | Real — browser Web Speech API, no extra dependency |
 | Vault deploy from UI (wagmi `writeContract`) | Real code, not yet exercised in a full live run |
-| Onchain `pay()` execution from the UI flow | Structural code, NOT yet verified end-to-end live with a funded vault |
-| The full spend→receipt loop with a real USDC transfer | Pending live proof — a user vault funded + executed has not been fully exercised on mainnet |
 | CI for the backend Python and frontend TypeScript | Not yet established |
 
 The contracts are deployed and fully unit-tested.
-The backend and frontend are real and run.
-What is honestly still to be proven is the one continuous live walk: deploy a vault from the UI, fund it, ask the AI CFO to pay, and watch the receipt land on BaseScan.
-Until then, no claim of a working onchain payment is made.
+The backend and frontend are real, are deployed live, and the full spend→receipt loop (store goal, recall it, hold a payment, approve it, execute onchain, verify the receipt) has been exercised against Base Sepolia.
+What is still honestly pending is the one continuous live walk performed entirely from the browser UI on a fresh machine, plus the vault-deploy-from-UI click and wallet-signed deposit. Until that whole walk is recorded, no claim is made that every onchain action is exercised via the UI.
 
 ## Tests
 
@@ -329,7 +336,8 @@ forge build
 forge test      # 31 passed
 ```
 
-The backend policy and executor are Python; there is no pytest suite yet, and the frontend has no test runner yet — both are open contributions (see Roadmap).
+The backend policy engine has a pytest suite (`backend/test_policy.py` — 5 passing) covering the deterministic verdicts.
+The frontend has no test runner yet — both points are open contributions (see Roadmap).
 
 ## Run it locally
 
@@ -360,7 +368,7 @@ With the agent key unset, the reasoning and verdict flow still runs; only onchai
 ```bash
 cd frontend
 npm install
-cp .env.local.example .env.local   # edit walletconnect id, api url, factory
+cp .env.example .env.local   # edit walletconnect id, api url, factory
 npm run dev
 ```
 
@@ -411,30 +419,36 @@ cd contracts
 The deploy script generates and persists the agent keypair (`backend/.agent_key`), deploys `VaultFactory` via Foundry with CREATE2, and writes the factory address into both backend and frontend env files.
 Then users deploy their own vault from the UI (calls `factory.createVault()`), deposit USDC, and the AI CFO executes payments from each user's vault.
 
+### Deploy the backend to Railway
+
+The backend runs as a persistent FastAPI service (from `backend/`), which the current architecture needs for a durable Sibyl database and a server-side executor.
+The repository includes a `backend/railpack.json` so Railway's Railpack builder detects Python 3.12 and starts `uvicorn main:app` on `$PORT`.
+
+Set the service root directory to `/backend`, attach a volume mounted at `/data`, and configure:
+`SIBYL_DB_PATH=/data/memory.db`, `FRONTEND_URL=<your-frontend-url>` (the CORS origin — the app is single-origin), `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_MODEL`, `BASE_SEPOLIA_RPC`, `VAULT_FACTORY_ADDRESS`, `USDC_CONTRACT_ADDRESS`, and `AGENT_PRIVATE_KEY`.
+
+Fund the agent address (`0xd37d192ceeB27517e5Bc87499c64d0420E9d88e5`) with a small amount of Base Sepolia ETH so approved payments can be broadcast; without gas, reasoning and verdicts still work but no onchain `pay()` happens.
+
+Verify `/health`, `/memory/status?wallet=0x...`, `/vault/status?wallet=0x...`, and `/chat` against the public URL before wiring up the frontend.
+
 ### Deploy the frontend to Vercel
 
-The frontend can be deployed to Vercel as a Next.js project.
+The frontend (from `frontend/`) is deployed to Vercel as a Next.js project; the current build is live at https://pact-gules.vercel.app.
 
-Set the Vercel project root directory to `frontend`.
-
-Use the `frontend` framework preset `Next.js`.
+Set the Vercel project root directory to `frontend` and use the `Next.js` framework preset.
 
 Configure these Vercel environment variables for Preview and Production:
 
 | Variable | Value |
 | --- | --- |
-| `NEXT_PUBLIC_API_URL` | Public HTTPS URL of the deployed Pact backend |
+| `NEXT_PUBLIC_API_URL` | Public HTTPS URL of the deployed Pact backend (e.g. `https://pact-production-e5c0.up.railway.app`) |
 | `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` | WalletConnect project ID |
-| `NEXT_PUBLIC_BASE_SEPOLIA_RPC` | Base Sepolia RPC URL |
-| `NEXT_PUBLIC_VAULT_FACTORY_ADDRESS` | Deployed VaultFactory address |
+| `NEXT_PUBLIC_BASE_SEPOLIA_RPC` | Base Sepolia RPC URL (`https://sepolia.base.org`) |
+| `NEXT_PUBLIC_VAULT_FACTORY_ADDRESS` | Deployed VaultFactory address (`0xC128677e4853401e88723968f636B3A5ea3b14dD`) |
 
 Do not set `NEXT_PUBLIC_API_URL` to `localhost` in Vercel.
 
-The backend must be deployed separately as a persistent service because the current Sibyl local database and transaction executor are not suitable for a Vercel-only frontend deployment.
-
-Recommended backend requirements are persistent Sibyl storage, a server-only `AGENT_PRIVATE_KEY`, Base Sepolia gas for the relayer, CORS access for the Vercel domain, and an HTTPS API URL.
-
-After deploying the backend, verify `/health`, `/memory/status`, `/vault/status`, and `/chat` against its public URL before deploying the frontend.
+After deploying, verify the built bundle references the backend URL (it compiles `process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"`), then confirm the backend's CORS header echoes your Vercel origin.
 
 Deploy from the repository root with the Vercel CLI after linking the project:
 
@@ -476,12 +490,11 @@ frontend/      Next.js (App Router), wagmi, RainbowKit
 - OpenRouter — free LLM access for the AI CFO.
 
 **Roadmap**
-- Prove the full live loop end-to-end: deploy vault from UI → fund → AI CFO pays → receipt on BaseScan.
-- Add a pytest suite for `policy.py` and `memory.py`, and a Vitest suite for `lib/api.ts`.
-- Approval UX in the frontend for `REQUIRE_APPROVAL` decisions (today the verdict is surfaced, not confirmed in-UI).
-- Withdraw and agent / limits management UI (the contract methods exist; the UI only shows deploy/fund today).
+- Record the full live walk from a fresh browser: deploy vault from UI → fund → AI CFO pays → receipt on BaseScan (the backend flow is proven; the UI-only walk on a clean machine is next).
+- Add a Vitest suite for `lib/api.ts` and extend the pytest suite to memory and executor.
+- Withdraw and agent / limits management UI (the contract methods exist; the UI shows deploy/fund and approval today).
 - Sendgrid / Discord alert when a payment executes.
-- A hosted live deployment of the backend.
+- Swap the local Sibyl volume store for a hosted Sibyl endpoint so memory survives anywhere.
 
 ## Disclaimer & license
 
