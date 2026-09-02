@@ -69,12 +69,13 @@ contract PactVault {
     // --- Constructor ---
 
     constructor(
+        address _owner,
         address _usdc,
         address _agent,
         uint256 _maxPerTransaction,
         uint256 _dailyLimit
     ) {
-        owner = msg.sender;
+        owner = _owner;
         agent = _agent;
         usdc = IERC20(_usdc);
         maxPerTransaction = _maxPerTransaction;

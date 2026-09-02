@@ -61,6 +61,7 @@ contract PactVaultTest is Test {
 
         vm.prank(owner);
         vault = new PactVault(
+            owner,
             address(usdc),
             agent,
             MAX_PER_TX,
