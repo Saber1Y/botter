@@ -84,3 +84,14 @@ class VaultInfoResponse(BaseModel):
     daily_remaining: float
     max_per_transaction: float
     daily_limit: float
+    owner: Optional[str] = None
+    agent: Optional[str] = None
+
+
+class VaultStatusResponse(BaseModel):
+    has_vault: bool
+    vault_address: Optional[str] = None
+    balance: Optional[float] = None
+    daily_remaining: Optional[float] = None
+    max_per_transaction: Optional[float] = None
+    daily_limit: Optional[float] = None

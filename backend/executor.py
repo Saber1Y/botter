@@ -1,4 +1,4 @@
-"""Payment executor for Base Sepolia transactions."""
+"""Payment executor for per-user Base Sepolia vaults."""
 from web3 import Web3
 from eth_account import Account
 from config import get_settings
@@ -68,48 +68,87 @@ VAULT_ABI = [
     },
 ]
 
+# VaultFactory ABI (for looking up user vaults)
+FACTORY_ABI = [
+    {
+        "inputs": [{"name": "user", "type": "address"}],
+        "name": "getVault",
+        "outputs": [{"name": "", "type": "address"}],
+        "stateMutability": "view",
+        "type": "function",
+    },
+    {
+        "inputs": [],
+        "name": "vaultCount",
+        "outputs": [{"name": "", "type": "uint256"}],
+        "stateMutability": "view",
+        "type": "function",
+    },
+]
+
 
 class PaymentExecutor:
-    """Handles onchain payment execution on Base Sepolia."""
+    """Handles onchain payment execution on Base Sepolia per-user vaults."""
 
     def __init__(self):
         settings = get_settings()
         self.w3 = Web3(Web3.HTTPProvider(settings.base_sepolia_rpc))
-        self.vault_address = Web3.to_checksum_address(settings.vault_contract_address)
         self.agent_account = Account.from_key(settings.agent_private_key)
-        self.vault = self.w3.eth.contract(
-            address=self.vault_address,
-            abi=VAULT_ABI,
-        )
+        self.usdc_address = settings.usdc_contract_address
 
-    def get_vault_balance(self) -> float:
-        """Get the vault's USDC balance."""
-        balance = self.vault.functions.getBalance().call()
+        # Factory contract (for vault lookup)
+        factory_addr = Web3.to_checksum_address(settings.vault_factory_address)
+        self.factory = self.w3.eth.contract(address=factory_addr, abi=FACTORY_ABI)
+
+    def get_user_vault(self, wallet: str) -> str | None:
+        """Look up a user's vault address from the factory."""
+        try:
+            vault_addr = self.factory.functions.getVault(
+                Web3.to_checksum_address(wallet)
+            ).call()
+            if vault_addr == "0x0000000000000000000000000000000000000000":
+                return None
+            return vault_addr
+        except Exception:
+            return None
+
+    def has_vault(self, wallet: str) -> bool:
+        """Check if a user has a deployed vault."""
+        return self.get_user_vault(wallet) is not None
+
+    def get_vault_balance(self, vault_address: str) -> float:
+        """Get a vault's USDC balance."""
+        vault = self._get_vault_contract(vault_address)
+        balance = vault.functions.getBalance().call()
         return balance / 1e6  # USDC has 6 decimals
 
-    def get_daily_remaining(self) -> float:
-        """Get remaining daily budget."""
-        remaining = self.vault.functions.getDailyRemaining().call()
+    def get_daily_remaining(self, vault_address: str) -> float:
+        """Get remaining daily budget for a vault."""
+        vault = self._get_vault_contract(vault_address)
+        remaining = vault.functions.getDailyRemaining().call()
         return remaining / 1e6
 
-    def get_vault_info(self) -> dict:
-        """Get full vault info."""
+    def get_vault_info(self, vault_address: str) -> dict:
+        """Get full vault info for a specific vault."""
+        vault = self._get_vault_contract(vault_address)
         return {
-            "balance": self.get_vault_balance(),
-            "daily_remaining": self.get_daily_remaining(),
-            "max_per_transaction": self.vault.functions.maxPerTransaction().call() / 1e6,
-            "daily_limit": self.vault.functions.dailyLimit().call() / 1e6,
-            "owner": self.vault.functions.owner().call(),
-            "agent": self.vault.functions.agent().call(),
+            "balance": self.get_vault_balance(vault_address),
+            "daily_remaining": self.get_daily_remaining(vault_address),
+            "max_per_transaction": vault.functions.maxPerTransaction().call() / 1e6,
+            "daily_limit": vault.functions.dailyLimit().call() / 1e6,
+            "owner": vault.functions.owner().call(),
+            "agent": vault.functions.agent().call(),
         }
 
     def execute_payment(
         self,
+        vault_address: str,
         recipient: str,
         amount: float,
         payment_id: str,
     ) -> dict:
-        """Execute a payment on Base Sepolia."""
+        """Execute a payment from a user's vault on Base Sepolia."""
+        vault = self._get_vault_contract(vault_address)
 
         # Convert to USDC units (6 decimals)
         amount_wei = int(amount * 1e6)
@@ -118,7 +157,7 @@ class PaymentExecutor:
         payment_id_bytes = Web3.to_bytes(text=payment_id)
 
         # Build transaction
-        tx = self.vault.functions.pay(
+        tx = vault.functions.pay(
             Web3.to_checksum_address(recipient),
             amount_wei,
             payment_id_bytes,
@@ -145,6 +184,13 @@ class PaymentExecutor:
             "recipient": recipient,
             "amount": amount,
         }
+
+    def _get_vault_contract(self, vault_address: str):
+        """Get a Web3 contract instance for a specific vault."""
+        return self.w3.eth.contract(
+            address=Web3.to_checksum_address(vault_address),
+            abi=VAULT_ABI,
+        )
 
 
 # Singleton instance (lazy initialization)

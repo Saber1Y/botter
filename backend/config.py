@@ -11,7 +11,7 @@ class Settings(BaseSettings):
 
     # Base Sepolia
     base_sepolia_rpc: str = "https://sepolia.base.org"
-    vault_contract_address: str = "0x0000000000000000000000000000000000000000"
+    vault_factory_address: str = "0x0000000000000000000000000000000000000000"
     agent_private_key: str = ""
     usdc_contract_address: str = "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
 

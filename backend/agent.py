@@ -66,12 +66,14 @@ class PactAgent:
         memory_ctx = memory.get_memory_context(wallet)
         context = self._build_memory_context(memory_ctx)
 
-        # Get vault info
+        # Get vault info for this user
         try:
             executor = get_executor()
-            vault_balance = executor.get_vault_balance()
+            vault_addr = executor.get_user_vault(wallet)
+            vault_balance = executor.get_vault_balance(vault_addr) if vault_addr else 0
         except Exception:
             vault_balance = 0
+            vault_addr = None
 
         # Build conversation context
         memory_summary = memory.format_for_llm(wallet)
@@ -187,34 +189,39 @@ Respond with a JSON object containing your intent, response, and any actions to 
 
             # Execute if approved
             if policy_decision.decision == Decision.APPROVE:
-                try:
-                    executor = get_executor()
-                    payment_id = hashlib.sha256(
-                        f"{wallet}_{request.recipient}_{request.amount}".encode()
-                    ).hexdigest()[:32]
-
-                    tx_result = executor.execute_payment(
-                        recipient=request.recipient,
-                        amount=float(request.amount),
-                        payment_id=payment_id,
-                    )
-
-                    result["payment"]["tx_hash"] = tx_result["tx_hash"]
-                    result["payment"]["status"] = tx_result["status"]
-
-                    # Record in COLD journal
-                    memory.record_payment(
-                        wallet,
-                        recipient=request.recipient,
-                        amount=request.amount,
-                        token=request.token,
-                        decision="approved",
-                        tx_hash=tx_result["tx_hash"],
-                        merchant=merchant,
-                    )
-                except Exception as e:
+                if not vault_addr:
                     result["payment"]["status"] = "error"
-                    result["payment"]["error"] = str(e)
+                    result["payment"]["error"] = "No vault deployed. Deploy a vault first."
+                else:
+                    try:
+                        executor = get_executor()
+                        payment_id = hashlib.sha256(
+                            f"{wallet}_{request.recipient}_{request.amount}".encode()
+                        ).hexdigest()[:32]
+
+                        tx_result = executor.execute_payment(
+                            vault_address=vault_addr,
+                            recipient=request.recipient,
+                            amount=float(request.amount),
+                            payment_id=payment_id,
+                        )
+
+                        result["payment"]["tx_hash"] = tx_result["tx_hash"]
+                        result["payment"]["status"] = tx_result["status"]
+
+                        # Record in COLD journal
+                        memory.record_payment(
+                            wallet,
+                            recipient=request.recipient,
+                            amount=request.amount,
+                            token=request.token,
+                            decision="approved",
+                            tx_hash=tx_result["tx_hash"],
+                            merchant=merchant,
+                        )
+                    except Exception as e:
+                        result["payment"]["status"] = "error"
+                        result["payment"]["error"] = str(e)
 
             # Record rejected/required decision in COLD journal too
             if policy_decision.decision != Decision.APPROVE:

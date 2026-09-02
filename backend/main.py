@@ -16,6 +16,7 @@ from schemas import (
     MemoryResponse,
     RuleSetRequest,
     VaultInfoResponse,
+    VaultStatusResponse,
 )
 
 
@@ -223,14 +224,45 @@ async def get_payments(wallet: str = "0x0000000000000000000000000000000000000000
 
 # --- Vault Endpoints ---
 
-@app.get("/vault", response_model=VaultInfoResponse)
-async def get_vault_info():
-    """Get vault information."""
+@app.get("/vault/status", response_model=VaultStatusResponse)
+async def get_vault_status(wallet: str):
+    """Check if a user has a deployed vault and get its status."""
     try:
         from executor import get_executor
         executor = get_executor()
-        info = executor.get_vault_info()
+        vault_addr = executor.get_user_vault(wallet)
+
+        if not vault_addr:
+            return VaultStatusResponse(has_vault=False)
+
+        info = executor.get_vault_info(vault_addr)
+        return VaultStatusResponse(
+            has_vault=True,
+            vault_address=vault_addr,
+            balance=info["balance"],
+            daily_remaining=info["daily_remaining"],
+            max_per_transaction=info["max_per_transaction"],
+            daily_limit=info["daily_limit"],
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/vault", response_model=VaultInfoResponse)
+async def get_vault_info(wallet: str):
+    """Get vault information for a specific user."""
+    try:
+        from executor import get_executor
+        executor = get_executor()
+        vault_addr = executor.get_user_vault(wallet)
+
+        if not vault_addr:
+            raise HTTPException(status_code=404, detail="No vault found. Deploy a vault first.")
+
+        info = executor.get_vault_info(vault_addr)
         return VaultInfoResponse(**info)
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
