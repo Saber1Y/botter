@@ -2,6 +2,20 @@
 
 import { useState, useRef, useEffect } from "react";
 import { api, ChatMessage } from "@/lib/api";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Send,
+  Bot,
+  User,
+  CheckCircle2,
+  AlertTriangle,
+  XCircle,
+  ExternalLink,
+  Loader2,
+  Brain,
+  Sparkles,
+  ArrowRight,
+} from "lucide-react";
 
 interface Message {
   role: "user" | "assistant";
@@ -14,70 +28,87 @@ function DecisionCard({ data }: { data: ChatMessage }) {
 
   const isApproved = data.decision === "APPROVE";
   const isPending = data.decision === "REQUIRE_APPROVAL";
+  const Icon = isApproved ? CheckCircle2 : isPending ? AlertTriangle : XCircle;
 
   return (
-    <div className="mt-3 bg-zinc-800/50 border border-zinc-700/50 rounded-lg p-4">
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-xs font-medium text-zinc-400">
-          Payment Request
-        </span>
-        <span
-          className={`text-xs px-2 py-0.5 rounded-full ${
-            isApproved
-              ? "bg-green-500/10 text-green-400"
-              : isPending
-                ? "bg-amber-500/10 text-amber-400"
-                : "bg-red-500/10 text-red-400"
-          }`}
-        >
-          {data.decision}
-        </span>
-      </div>
-
-      <div className="flex items-center justify-between mb-3">
-        <div>
-          <div className="text-sm text-zinc-200">{data.payment.recipient}</div>
-          <div className="text-xs text-zinc-500">{data.payment.token}</div>
+    <motion.div
+      initial={{ opacity: 0, y: 8, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] as const }}
+      className="mt-3 overflow-hidden rounded-xl border border-border bg-card"
+    >
+      <div className="p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <span className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
+            <Sparkles className="h-3 w-3 text-accent" />
+            Payment Request
+          </span>
+          <span
+            className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-medium ${
+              isApproved
+                ? "bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200"
+                : isPending
+                  ? "bg-amber-50 text-amber-600 ring-1 ring-amber-200"
+                  : "bg-red-50 text-red-600 ring-1 ring-red-200"
+            }`}
+          >
+            <Icon className="h-3 w-3" />
+            {data.decision}
+          </span>
         </div>
-        <div className="text-lg font-semibold text-zinc-100">
-          ${data.payment.amount}
+
+        <div className="mb-3 flex items-center justify-between">
+          <div>
+            <div className="text-[13px] font-medium text-foreground">{data.payment.recipient}</div>
+            <div className="text-[11px] text-muted-foreground">{data.payment.token}</div>
+          </div>
+          <div className="text-lg font-semibold text-foreground">
+            ${data.payment.amount}
+          </div>
         </div>
-      </div>
 
-      {data.payment.reason && (
-        <div className="text-xs text-zinc-400 mb-3 p-2 bg-zinc-900/50 rounded">
-          <span className="text-zinc-500">Why:</span> {data.payment.reason}
-        </div>
-      )}
-
-      {data.payment.tx_hash && (
-        <a
-          href={`https://sepolia.basescan.org/tx/${data.payment.tx_hash}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-xs text-blue-400 hover:text-blue-300"
-        >
-          View on BaseScan →
-        </a>
-      )}
-
-      {data.payment.memory_references &&
-        data.payment.memory_references.length > 0 && (
-          <div className="mt-2 flex items-center gap-1.5">
-            <span className="text-xs text-zinc-500">🧠 Used</span>
-            <span className="text-xs text-zinc-400">
-              {data.payment.memory_references.length} memories
-            </span>
+        {data.payment.reason && (
+          <div className="mb-3 rounded-lg bg-muted px-3 py-2">
+            <p className="text-[11px] text-muted-foreground">{data.payment.reason}</p>
           </div>
         )}
-    </div>
+
+        <div className="flex items-center gap-3">
+          {data.payment.tx_hash && (
+            <a
+              href={`https://sepolia.basescan.org/tx/${data.payment.tx_hash}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 text-[11px] text-accent hover:text-accent/80 transition-colors"
+            >
+              <ExternalLink className="h-3 w-3" />
+              View on BaseScan
+            </a>
+          )}
+          {data.payment.memory_references && data.payment.memory_references.length > 0 && (
+            <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+              <Brain className="h-3 w-3" />
+              {data.payment.memory_references.length} memories used
+            </span>
+          )}
+        </div>
+      </div>
+    </motion.div>
   );
 }
+
+const suggestions = [
+  "Pay Acme $60",
+  "Set my spending limit to $100",
+  "I'm saving $2,000 for a MacBook",
+  "What are my current rules?",
+];
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -89,6 +120,7 @@ export default function ChatPage() {
 
     const userMessage = input.trim();
     setInput("");
+    setError(null);
     setMessages((prev) => [...prev, { role: "user", content: userMessage }]);
     setLoading(true);
 
@@ -98,12 +130,13 @@ export default function ChatPage() {
         ...prev,
         { role: "assistant", content: response.response, data: response },
       ]);
-    } catch (error) {
+    } catch (err) {
+      setError("Failed to get response. Please check your connection and try again.");
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          content: "Sorry, I encountered an error. Please try again.",
+          content: "I encountered an error processing your request. Please try again.",
         },
       ]);
     } finally {
@@ -113,71 +146,128 @@ export default function ChatPage() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="p-4 border-b border-zinc-800">
-        <h1 className="text-lg font-semibold text-zinc-100">AI CFO</h1>
-        <p className="text-xs text-zinc-500">
-          Ask Pact anything about your finances
-        </p>
+      <div className="flex items-center justify-between border-b border-border px-6 py-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10 ring-1 ring-accent/20">
+            <Bot className="h-4 w-4 text-accent" />
+          </div>
+          <div>
+            <h1 className="text-[14px] font-semibold text-foreground">AI CFO</h1>
+            <p className="text-[11px] text-muted-foreground">Ask Pact anything about your finances</p>
+          </div>
+        </div>
+        {loading && (
+          <div className="flex items-center gap-1.5 text-[11px] text-accent/70">
+            <Loader2 className="h-3 w-3 animate-spin" />
+            Thinking...
+          </div>
+        )}
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full text-center">
-            <div className="text-4xl mb-4 opacity-20">⬡</div>
-            <div className="text-zinc-400 mb-2">
-              What can I help you with?
-            </div>
-            <div className="space-y-2">
-              {[
-                "Pay Acme $60",
-                "Set my spending limit to $100",
-                "I'm saving $2,000 for a MacBook",
-                "What are my current rules?",
-              ].map((suggestion) => (
-                <button
-                  key={suggestion}
-                  onClick={() => setInput(suggestion)}
-                  className="block text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
-                >
-                  &ldquo;{suggestion}&rdquo;
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {messages.map((msg, i) => (
-          <div
-            key={i}
-            className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-          >
-            <div
-              className={`max-w-[80%] rounded-xl px-4 py-3 ${
-                msg.role === "user"
-                  ? "bg-zinc-800 text-zinc-100"
-                  : "bg-zinc-900 border border-zinc-800 text-zinc-200"
-              }`}
+      <div className="flex-1 overflow-y-auto px-6 py-4">
+        <AnimatePresence mode="popLayout">
+          {messages.length === 0 && (
+            <motion.div
+              key="empty"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              className="flex flex-col items-center justify-center h-full text-center"
             >
-              <div className="text-sm whitespace-pre-wrap">{msg.content}</div>
-              {msg.data && <DecisionCard data={msg.data} />}
-            </div>
-          </div>
-        ))}
-
-        {loading && (
-          <div className="flex justify-start">
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3">
-              <div className="text-sm text-zinc-500 animate-pulse">
-                Thinking...
+              <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-accent/10 ring-1 ring-accent/20">
+                <Brain className="h-6 w-6 text-accent/60" />
               </div>
-            </div>
-          </div>
-        )}
+              <p className="mb-1 text-[15px] font-medium text-foreground/60">What can I help you with?</p>
+              <p className="mb-6 text-[12px] text-muted-foreground">I remember your rules and goals across sessions</p>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {suggestions.map((suggestion) => (
+                  <button
+                    key={suggestion}
+                    onClick={() => setInput(suggestion)}
+                    className="group flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-3 text-left text-[13px] text-muted-foreground transition-all hover:shadow-md hover:shadow-accent/5 hover:border-accent/20 hover:text-foreground"
+                  >
+                    <Sparkles className="h-3 w-3 text-accent/40 group-hover:text-accent/60 transition-colors" />
+                    {suggestion}
+                    <ArrowRight className="ml-auto h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          )}
 
+          {messages.map((msg, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] as const }}
+              className={`mb-4 flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+            >
+              <div
+                className={`flex items-start gap-2.5 max-w-[85%] ${
+                  msg.role === "user" ? "flex-row-reverse" : ""
+                }`}
+              >
+                <div
+                  className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${
+                    msg.role === "user"
+                      ? "bg-muted ring-1 ring-border"
+                      : "bg-accent/10 ring-1 ring-accent/20"
+                  }`}
+                >
+                  {msg.role === "user" ? (
+                    <User className="h-3 w-3 text-muted-foreground" />
+                  ) : (
+                    <Bot className="h-3 w-3 text-accent" />
+                  )}
+                </div>
+                <div
+                  className={`rounded-2xl px-4 py-3 ${
+                    msg.role === "user"
+                      ? "rounded-br-md bg-accent text-[13px] text-white"
+                      : "rounded-bl-md bg-card border border-border text-[13px] text-foreground shadow-sm"
+                  }`}
+                >
+                  <div className="whitespace-pre-wrap">{msg.content}</div>
+                  {msg.data && <DecisionCard data={msg.data} />}
+                </div>
+              </div>
+            </motion.div>
+          ))}
+
+          {loading && (
+            <motion.div
+              key="loading"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-4 flex justify-start"
+            >
+              <div className="flex items-start gap-2.5">
+                <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent/10 ring-1 ring-accent/20">
+                  <Bot className="h-3 w-3 text-accent" />
+                </div>
+                <div className="rounded-2xl rounded-bl-md bg-card border border-border px-4 py-3 shadow-sm">
+                  <div className="flex items-center gap-1.5">
+                    <div className="h-1.5 w-1.5 rounded-full bg-accent/40 animate-bounce [animation-delay:0ms]" />
+                    <div className="h-1.5 w-1.5 rounded-full bg-accent/40 animate-bounce [animation-delay:150ms]" />
+                    <div className="h-1.5 w-1.5 rounded-full bg-accent/40 animate-bounce [animation-delay:300ms]" />
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="p-4 border-t border-zinc-800">
+      {error && (
+        <div className="mx-6 mb-2 flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-[11px] text-red-600 ring-1 ring-red-200">
+          <AlertTriangle className="h-3 w-3" />
+          {error}
+        </div>
+      )}
+
+      <div className="border-t border-border px-6 py-4">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -190,15 +280,15 @@ export default function ChatPage() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask Pact anything..."
-            className="flex-1 bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-zinc-600"
+            className="flex-1 rounded-xl border border-border bg-card px-4 py-2.5 text-[13px] text-foreground placeholder-muted-foreground transition-all focus:outline-none focus:border-accent/30 focus:ring-2 focus:ring-accent/10"
             disabled={loading}
           />
           <button
             type="submit"
             disabled={loading || !input.trim()}
-            className="bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 text-zinc-100 px-4 py-2.5 rounded-lg text-sm transition-colors"
+            className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-white transition-all hover:bg-indigo-500 disabled:opacity-30 disabled:hover:bg-accent"
           >
-            →
+            <Send className="h-4 w-4" />
           </button>
         </form>
       </div>

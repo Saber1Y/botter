@@ -5,8 +5,29 @@ import Link from "next/link";
 import Image from "next/image";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
+import {
+  ArrowRight,
+  Shield,
+  Brain,
+  CheckCircle2,
+  AlertTriangle,
+  XCircle,
+  Target,
+  Settings,
+  CreditCard,
+  Lock,
+  Eye,
+  ExternalLink,
+  Sparkles,
+  Globe,
+  ShieldCheck,
+  EyeOff,
+  FileCheck,
+  ChevronRight,
+  Clock,
+} from "lucide-react";
 
-/* ─── Animation Variants (typed for framer-motion 13) ─── */
+/* ─── Animation Variants ─── */
 const fadeUp = {
   hidden: { opacity: 0, y: 32 },
   visible: {
@@ -21,26 +42,8 @@ const fadeIn = {
   visible: { opacity: 1, transition: { duration: 0.6 } },
 };
 
-const scaleIn = {
-  hidden: { opacity: 0, scale: 0.95 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] as const },
-  },
-};
-
 const stagger = {
   visible: { transition: { staggerChildren: 0.08 } },
-};
-
-const slideRight = {
-  hidden: { opacity: 0, x: -24 },
-  visible: {
-    opacity: 1,
-    x: 0,
-    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] as const },
-  },
 };
 
 const slideLeft = {
@@ -68,19 +71,19 @@ function HeroChatMockup() {
 
   return (
     <motion.div variants={slideLeft} initial="hidden" animate="visible" className="relative">
-      <div className="absolute -inset-8 rounded-3xl bg-emerald-500/[0.03] blur-3xl" />
-      <div className="relative overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0c0c0c] shadow-2xl shadow-black/50">
+      <div className="absolute -inset-8 rounded-3xl bg-accent/[0.04] blur-3xl" />
+      <div className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-xl shadow-black/[0.04]">
         {/* Title bar */}
-        <div className="flex items-center gap-2 border-b border-white/[0.06] px-4 py-3">
+        <div className="flex items-center gap-2 border-b border-border px-4 py-3">
           <div className="flex gap-1.5">
-            <div className="h-2.5 w-2.5 rounded-full bg-white/10" />
-            <div className="h-2.5 w-2.5 rounded-full bg-white/10" />
-            <div className="h-2.5 w-2.5 rounded-full bg-white/10" />
+            <div className="h-2.5 w-2.5 rounded-full bg-border" />
+            <div className="h-2.5 w-2.5 rounded-full bg-border" />
+            <div className="h-2.5 w-2.5 rounded-full bg-border" />
           </div>
-          <span className="ml-2 text-[11px] font-medium tracking-wide text-white/30">Pact AI CFO</span>
+          <span className="ml-2 text-[11px] font-medium tracking-wide text-muted-foreground">Pact AI CFO</span>
           <div className="ml-auto flex items-center gap-1.5">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-            <span className="text-[10px] text-emerald-500/70">Active</span>
+            <span className="text-[10px] text-emerald-600">Active</span>
           </div>
         </div>
 
@@ -92,7 +95,7 @@ function HeroChatMockup() {
             transition={{ delay: 0.2, duration: 0.4 }}
             className="flex justify-end"
           >
-            <div className="max-w-[75%] rounded-2xl rounded-br-md bg-white/[0.07] px-4 py-2.5 text-[13px] text-white/90">
+            <div className="max-w-[75%] rounded-2xl rounded-br-md bg-accent px-4 py-2.5 text-[13px] text-white">
               Pay Acme $150
             </div>
           </motion.div>
@@ -104,11 +107,11 @@ function HeroChatMockup() {
             transition={{ delay: 0.6, duration: 0.4 }}
             className="flex gap-2.5"
           >
-            <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 ring-1 ring-emerald-500/20">
-              <div className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+            <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent/10 ring-1 ring-accent/20">
+              <Sparkles className="h-3 w-3 text-accent" />
             </div>
             <div className="max-w-[80%] space-y-3">
-              <div className="rounded-2xl rounded-bl-md bg-white/[0.04] px-4 py-3 text-[13px] leading-relaxed text-white/70">
+              <div className="rounded-2xl rounded-bl-md bg-muted px-4 py-3 text-[13px] leading-relaxed text-foreground/80">
                 I remember your $100 automatic spending limit. This payment requires your approval.
               </div>
 
@@ -118,22 +121,22 @@ function HeroChatMockup() {
                     initial={{ opacity: 0, y: 8, scale: 0.98 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] as const }}
-                    className="overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.02]"
+                    className="overflow-hidden rounded-xl border border-border bg-card shadow-sm"
                   >
                     <div className="p-4">
                       <div className="mb-3 flex items-start justify-between">
                         <div>
-                          <p className="text-[13px] font-medium text-white/90">Acme Software</p>
-                          <p className="text-[11px] text-white/30">Subscription renewal</p>
+                          <p className="text-[13px] font-medium text-foreground">Acme Software</p>
+                          <p className="text-[11px] text-muted-foreground">Subscription renewal</p>
                         </div>
                         <div className="text-right">
-                          <p className="text-base font-semibold text-white/90">$150</p>
-                          <p className="text-[11px] text-white/30">USDC</p>
+                          <p className="text-base font-semibold text-foreground">$150</p>
+                          <p className="text-[11px] text-muted-foreground">USDC</p>
                         </div>
                       </div>
 
-                      <div className="mb-3 rounded-lg bg-white/[0.03] px-3 py-2">
-                        <p className="text-[11px] text-white/40">
+                      <div className="mb-3 rounded-lg bg-muted px-3 py-2">
+                        <p className="text-[11px] text-muted-foreground">
                           Above your $100 autonomous spending limit
                         </p>
                       </div>
@@ -150,18 +153,18 @@ function HeroChatMockup() {
                               initial={{ opacity: 0, scale: 0.9 }}
                               animate={{ opacity: 1, scale: 1 }}
                               transition={{ delay: 0.1 }}
-                              className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-1 text-[10px] font-medium text-emerald-400/80 ring-1 ring-emerald-500/20"
+                              className="inline-flex items-center gap-1 rounded-full bg-accent/10 px-2.5 py-1 text-[10px] font-medium text-accent ring-1 ring-accent/20"
                             >
-                              <span className="h-1 w-1 rounded-full bg-emerald-400" />
+                              <span className="h-1 w-1 rounded-full bg-accent" />
                               $100 spending limit
                             </motion.span>
                             <motion.span
                               initial={{ opacity: 0, scale: 0.9 }}
                               animate={{ opacity: 1, scale: 1 }}
                               transition={{ delay: 0.2 }}
-                              className="inline-flex items-center gap-1 rounded-full bg-blue-500/10 px-2.5 py-1 text-[10px] font-medium text-blue-400/80 ring-1 ring-blue-500/20"
+                              className="inline-flex items-center gap-1 rounded-full bg-purple-50 px-2.5 py-1 text-[10px] font-medium text-purple-600 ring-1 ring-purple-200"
                             >
-                              <span className="h-1 w-1 rounded-full bg-blue-400" />
+                              <span className="h-1 w-1 rounded-full bg-purple-500" />
                               Acme = trusted
                             </motion.span>
                           </motion.div>
@@ -169,10 +172,10 @@ function HeroChatMockup() {
                       </AnimatePresence>
 
                       <div className="flex gap-2">
-                        <button className="flex-1 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-[12px] font-medium text-white/50 transition-all hover:bg-white/[0.06] hover:text-white/70">
+                        <button className="flex-1 rounded-lg border border-border bg-muted px-3 py-2 text-[12px] font-medium text-muted-foreground transition-all hover:bg-border/50 hover:text-foreground">
                           Reject
                         </button>
-                        <button className="flex-1 rounded-lg bg-emerald-500 px-3 py-2 text-[12px] font-medium text-black transition-all hover:bg-emerald-400 hover:shadow-lg hover:shadow-emerald-500/20">
+                        <button className="flex-1 rounded-lg bg-accent px-3 py-2 text-[12px] font-medium text-white transition-all hover:bg-indigo-500 hover:shadow-lg hover:shadow-accent/20">
                           Approve
                         </button>
                       </div>
@@ -191,13 +194,11 @@ function HeroChatMockup() {
                 animate={{ opacity: 1, y: 0 }}
                 className="flex gap-2.5"
               >
-                <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 ring-1 ring-emerald-500/20">
-                  <div className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent/10 ring-1 ring-accent/20">
+                  <Sparkles className="h-3 w-3 text-accent" />
                 </div>
-                <div className="flex items-center gap-2 rounded-2xl rounded-bl-md bg-emerald-500/[0.08] px-4 py-2.5 text-[13px] text-emerald-400 ring-1 ring-emerald-500/20">
-                  <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                  </svg>
+                <div className="flex items-center gap-2 rounded-2xl rounded-bl-md bg-emerald-50 px-4 py-2.5 text-[13px] text-emerald-700 ring-1 ring-emerald-200">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
                   Executed on Base
                 </div>
               </motion.div>
@@ -213,20 +214,20 @@ function HeroChatMockup() {
 function DashboardMockup() {
   return (
     <motion.div variants={fadeUp} className="mx-auto w-full max-w-5xl">
-      <div className="overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0c0c0c] shadow-2xl shadow-black/50">
+      <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-xl shadow-black/[0.04]">
         {/* Top bar */}
-        <div className="flex items-center justify-between border-b border-white/[0.06] px-6 py-4">
+        <div className="flex items-center justify-between border-b border-border px-6 py-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10 ring-1 ring-emerald-500/20">
-              <span className="text-xs font-bold text-emerald-400">P</span>
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10 ring-1 ring-accent/20">
+              <Sparkles className="h-4 w-4 text-accent" />
             </div>
             <div>
-              <p className="text-sm font-medium text-white/90">Pact Dashboard</p>
-              <p className="text-[11px] text-white/30">Base Sepolia</p>
+              <p className="text-sm font-medium text-foreground">Pact Dashboard</p>
+              <p className="text-[11px] text-muted-foreground">Base Sepolia</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <span className="rounded-full bg-emerald-500/10 px-2.5 py-1 text-[10px] font-medium text-emerald-400 ring-1 ring-emerald-500/20">
+            <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-medium text-emerald-600 ring-1 ring-emerald-200">
               Synced
             </span>
           </div>
@@ -236,33 +237,42 @@ function DashboardMockup() {
           {/* Left: Stats */}
           <div className="p-6">
             <div className="mb-6 grid grid-cols-2 gap-3">
-              <div className="rounded-xl border border-white/[0.04] bg-white/[0.02] p-4">
-                <p className="mb-1 text-[10px] font-medium uppercase tracking-widest text-white/25">Vault</p>
-                <p className="text-2xl font-bold tracking-tight text-white/90">$482.40</p>
-                <p className="mt-0.5 text-[10px] text-white/20">USDC on Base</p>
+              <div className="rounded-xl border border-border bg-muted/50 p-4">
+                <div className="mb-2 flex items-center gap-1.5">
+                  <CreditCard className="h-3 w-3 text-muted-foreground" />
+                  <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">Vault</p>
+                </div>
+                <p className="text-2xl font-bold tracking-tight text-foreground">$482.40</p>
+                <p className="mt-0.5 text-[10px] text-muted-foreground">USDC on Base</p>
               </div>
-              <div className="rounded-xl border border-white/[0.04] bg-white/[0.02] p-4">
-                <p className="mb-1 text-[10px] font-medium uppercase tracking-widest text-white/25">Budget left</p>
-                <p className="text-2xl font-bold tracking-tight text-white/90">$73</p>
-                <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/[0.06]">
-                  <div className="h-full w-[36%] rounded-full bg-emerald-500" />
+              <div className="rounded-xl border border-border bg-muted/50 p-4">
+                <div className="mb-2 flex items-center gap-1.5">
+                  <Settings className="h-3 w-3 text-muted-foreground" />
+                  <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">Budget left</p>
+                </div>
+                <p className="text-2xl font-bold tracking-tight text-foreground">$73</p>
+                <div className="mt-2 h-1 overflow-hidden rounded-full bg-border">
+                  <div className="h-full w-[36%] rounded-full bg-accent" />
                 </div>
               </div>
             </div>
 
             {/* Goal */}
-            <div className="mb-6 rounded-xl border border-white/[0.04] bg-white/[0.02] p-4">
+            <div className="mb-6 rounded-xl border border-border bg-muted/50 p-4">
               <div className="mb-2 flex items-center justify-between">
-                <p className="text-[10px] font-medium uppercase tracking-widest text-white/25">Active goal</p>
-                <span className="rounded-full bg-blue-500/10 px-2 py-0.5 text-[9px] font-medium text-blue-400 ring-1 ring-blue-500/20">
+                <div className="flex items-center gap-1.5">
+                  <Target className="h-3 w-3 text-muted-foreground" />
+                  <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">Active goal</p>
+                </div>
+                <span className="rounded-full bg-accent/10 px-2 py-0.5 text-[9px] font-medium text-accent ring-1 ring-accent/20">
                   72%
                 </span>
               </div>
-              <p className="mb-3 text-sm font-medium text-white/80">MacBook Pro</p>
-              <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
-                <div className="h-full w-[72%] rounded-full bg-gradient-to-r from-blue-500 to-blue-400" />
+              <p className="mb-3 text-sm font-medium text-foreground">MacBook Pro</p>
+              <div className="h-1.5 overflow-hidden rounded-full bg-border">
+                <div className="h-full w-[72%] rounded-full bg-gradient-to-r from-accent to-indigo-400" />
               </div>
-              <div className="mt-2 flex justify-between text-[10px] text-white/25">
+              <div className="mt-2 flex justify-between text-[10px] text-muted-foreground">
                 <span>$1,440 saved</span>
                 <span>$2,000 target</span>
               </div>
@@ -270,70 +280,67 @@ function DashboardMockup() {
 
             {/* Memory chips */}
             <div className="space-y-2">
-              <p className="text-[10px] font-medium uppercase tracking-widest text-white/25">Active rules</p>
+              <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">Active rules</p>
               {[
-                { label: "$100 auto-approve limit", color: "emerald" },
-                { label: "Acme = trusted", color: "blue" },
-                { label: "Save 30% of income", color: "purple" },
+                { label: "$100 auto-approve limit", color: "bg-accent" },
+                { label: "Acme = trusted", color: "bg-purple-500" },
+                { label: "Save 30% of income", color: "bg-blue-500" },
               ].map((rule, i) => (
-                <div key={i} className="flex items-center gap-2 rounded-lg bg-white/[0.02] px-3 py-2">
-                  <span className={`h-1.5 w-1.5 rounded-full bg-${rule.color}-500`} />
-                  <span className="text-[11px] text-white/40">{rule.label}</span>
+                <div key={i} className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2">
+                  <span className={`h-1.5 w-1.5 rounded-full ${rule.color}`} />
+                  <span className="text-[11px] text-muted-foreground">{rule.label}</span>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Divider */}
-          <div className="hidden bg-white/[0.04] md:block" />
+          <div className="hidden bg-border md:block" />
 
           {/* Right: Activity */}
           <div className="p-6">
-            <p className="mb-4 text-[10px] font-medium uppercase tracking-widest text-white/25">Recent activity</p>
+            <p className="mb-4 text-[10px] font-medium uppercase tracking-widest text-muted-foreground">Recent activity</p>
             <div className="space-y-2">
               {[
-                { name: "Acme Software", amount: "$42", status: "Auto-approved", time: "2m ago", color: "emerald" },
-                { name: "Vercel", amount: "$20", status: "Auto-approved", time: "1h ago", color: "emerald" },
-                { name: "Acme Software", amount: "$150", status: "Approval required", time: "3h ago", color: "amber" },
-                { name: "Linear", amount: "$8", status: "Auto-approved", time: "5h ago", color: "emerald" },
-                { name: "Figma", amount: "$15", status: "Rejected", time: "1d ago", color: "red" },
+                { name: "Acme Software", amount: "$42", status: "Auto-approved", time: "2m ago", color: "text-emerald-600", Icon: CheckCircle2 },
+                { name: "Vercel", amount: "$20", status: "Auto-approved", time: "1h ago", color: "text-emerald-600", Icon: CheckCircle2 },
+                { name: "Acme Software", amount: "$150", status: "Approval required", time: "3h ago", color: "text-amber-600", Icon: AlertTriangle },
+                { name: "Linear", amount: "$8", status: "Auto-approved", time: "5h ago", color: "text-emerald-600", Icon: CheckCircle2 },
+                { name: "Figma", amount: "$15", status: "Rejected", time: "1d ago", color: "text-red-600", Icon: XCircle },
               ].map((tx, i) => (
                 <div
                   key={i}
-                  className="flex items-center justify-between rounded-lg border border-white/[0.04] bg-white/[0.01] px-3.5 py-3 transition-colors hover:bg-white/[0.03]"
+                  className="flex items-center justify-between rounded-lg border border-border bg-muted/30 px-3.5 py-3 transition-colors hover:bg-muted/60"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/[0.04]">
-                      <span className="text-[11px] font-semibold text-white/30">{tx.name[0]}</span>
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-border/50">
+                      <span className="text-[11px] font-semibold text-muted-foreground">{tx.name[0]}</span>
                     </div>
                     <div>
-                      <p className="text-[12px] font-medium text-white/70">{tx.name}</p>
-                      <p className="text-[10px] text-white/20">{tx.time}</p>
+                      <p className="text-[12px] font-medium text-foreground">{tx.name}</p>
+                      <p className="text-[10px] text-muted-foreground">{tx.time}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className={`text-[10px] font-medium ${
-                      tx.color === "emerald" ? "text-emerald-400/70" :
-                      tx.color === "amber" ? "text-amber-400/70" :
-                      "text-red-400/70"
-                    }`}>
+                    <span className={`flex items-center gap-1 text-[10px] font-medium ${tx.color}`}>
+                      <tx.Icon className="h-3 w-3" />
                       {tx.status}
                     </span>
-                    <span className="text-[12px] font-medium text-white/60">{tx.amount}</span>
+                    <span className="text-[12px] font-medium text-muted-foreground">{tx.amount}</span>
                   </div>
                 </div>
               ))}
             </div>
 
             {/* AI insight */}
-            <div className="mt-4 rounded-xl border border-emerald-500/10 bg-emerald-500/[0.03] p-3.5">
+            <div className="mt-4 rounded-xl border border-accent/10 bg-accent/5 p-3.5">
               <div className="flex items-start gap-2.5">
-                <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/10">
-                  <div className="h-1 w-1 rounded-full bg-emerald-400" />
+                <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/10">
+                  <Sparkles className="h-2.5 w-2.5 text-accent" />
                 </div>
                 <div>
-                  <p className="text-[11px] font-medium text-emerald-400/80">AI Insight</p>
-                  <p className="mt-0.5 text-[11px] leading-relaxed text-white/30">
+                  <p className="text-[11px] font-medium text-accent">AI Insight</p>
+                  <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">
                     You&apos;re $73 under your weekly autonomous budget. Acme is within normal range.
                   </p>
                 </div>
@@ -375,7 +382,7 @@ function Badge({ children }: { children: React.ReactNode }) {
   return (
     <motion.div
       variants={fadeIn}
-      className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/[0.06] bg-white/[0.03] px-4 py-1.5 text-[11px] font-medium tracking-wide text-white/40"
+      className="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-muted/50 px-4 py-1.5 text-[11px] font-medium tracking-wide text-muted-foreground"
     >
       {children}
     </motion.div>
@@ -386,9 +393,9 @@ function Badge({ children }: { children: React.ReactNode }) {
 function StepCard({ number, title, description }: { number: string; title: string; description: string }) {
   return (
     <motion.div variants={fadeUp} className="relative group">
-      <div className="mb-3 text-[11px] font-medium tracking-widest text-emerald-500/60">{number}</div>
-      <h3 className="mb-2 text-lg font-semibold tracking-tight text-white/90">{title}</h3>
-      <p className="text-[13px] leading-relaxed text-white/35">{description}</p>
+      <div className="mb-3 text-[11px] font-medium tracking-widest text-accent">{number}</div>
+      <h3 className="mb-2 text-lg font-semibold tracking-tight text-foreground">{title}</h3>
+      <p className="text-[13px] leading-relaxed text-muted-foreground">{description}</p>
     </motion.div>
   );
 }
@@ -398,11 +405,11 @@ function FeatureCard({ number, title, description }: { number: string; title: st
   return (
     <motion.div
       variants={fadeUp}
-      className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-7 transition-all hover:border-white/[0.1] hover:bg-white/[0.03]"
+      className="rounded-2xl border border-border bg-card p-7 transition-all hover:shadow-lg hover:shadow-black/[0.04]"
     >
-      <div className="mb-3 text-[11px] font-medium tracking-widest text-emerald-500/60">{number}</div>
-      <h3 className="mb-2 text-lg font-semibold tracking-tight text-white/90">{title}</h3>
-      <p className="text-[13px] leading-relaxed text-white/35">{description}</p>
+      <div className="mb-3 text-[11px] font-medium tracking-widest text-accent">{number}</div>
+      <h3 className="mb-2 text-lg font-semibold tracking-tight text-foreground">{title}</h3>
+      <p className="text-[13px] leading-relaxed text-muted-foreground">{description}</p>
     </motion.div>
   );
 }
@@ -412,11 +419,11 @@ function MemoryCard({ icon, label, example }: { icon: React.ReactNode; label: st
   return (
     <motion.div
       variants={fadeUp}
-      className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5 transition-all hover:border-white/[0.1] hover:bg-white/[0.03]"
+      className="rounded-xl border border-border bg-card p-5 transition-all hover:shadow-md hover:shadow-black/[0.03]"
     >
-      <div className="mb-3 text-white/20">{icon}</div>
-      <p className="mb-1 text-[13px] font-medium text-white/70">{label}</p>
-      <p className="text-[12px] text-white/25">{example}</p>
+      <div className="mb-3 text-accent/60">{icon}</div>
+      <p className="mb-1 text-[13px] font-medium text-foreground">{label}</p>
+      <p className="text-[12px] text-muted-foreground">{example}</p>
     </motion.div>
   );
 }
@@ -425,10 +432,10 @@ function MemoryCard({ icon, label, example }: { icon: React.ReactNode; label: st
 function ArchStep({ label, sublabel }: { label: string; sublabel?: string }) {
   return (
     <div className="flex flex-col items-center gap-2">
-      <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.03] text-[11px] font-medium text-white/50">
+      <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-border bg-card text-[11px] font-medium text-muted-foreground shadow-sm">
         {label}
       </div>
-      {sublabel && <p className="text-[10px] text-white/20">{sublabel}</p>}
+      {sublabel && <p className="text-[10px] text-muted-foreground">{sublabel}</p>}
     </div>
   );
 }
@@ -436,10 +443,8 @@ function ArchStep({ label, sublabel }: { label: string; sublabel?: string }) {
 function ArchArrow() {
   return (
     <div className="flex items-center px-1.5">
-      <div className="h-px w-6 bg-white/[0.08] md:w-10" />
-      <svg className="h-3 w-3 text-white/15" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
-      </svg>
+      <div className="h-px w-6 bg-border md:w-10" />
+      <ChevronRight className="h-3 w-3 text-muted-foreground/50" />
     </div>
   );
 }
@@ -451,25 +456,62 @@ export default function LandingPage() {
   const heroY = useTransform(scrollYProgress, [0, 0.15], [0, -40]);
 
   return (
-    <div className="relative min-h-screen">
-      {/* Subtle grid */}
+    <div className="relative min-h-screen overflow-hidden">
+      {/* ─── Background Effects ─── */}
       <div className="pointer-events-none fixed inset-0 z-0">
+        {/* Warm radial gradient */}
         <div
-          className="h-full w-full opacity-[0.015]"
+          className="absolute inset-0"
           style={{
-            backgroundImage:
-              "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)",
-            backgroundSize: "80px 80px",
+            background: "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(99,102,241,0.06) 0%, transparent 60%)",
+          }}
+        />
+        {/* Secondary warm blob */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background: "radial-gradient(circle at 80% 20%, rgba(99,102,241,0.04) 0%, transparent 40%)",
+          }}
+        />
+        {/* Bottom cool accent */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background: "radial-gradient(circle at 20% 80%, rgba(168,85,247,0.03) 0%, transparent 40%)",
+          }}
+        />
+        {/* Subtle dot grid */}
+        <div
+          className="absolute inset-0 opacity-[0.3]"
+          style={{
+            backgroundImage: "radial-gradient(circle, #c8c0b8 0.5px, transparent 0.5px)",
+            backgroundSize: "24px 24px",
+          }}
+        />
+        {/* Floating gradient orb */}
+        <div
+          className="animate-drift absolute left-[10%] top-[20%] h-96 w-96 rounded-full opacity-[0.04]"
+          style={{
+            background: "radial-gradient(circle, #6366f1 0%, transparent 70%)",
+          }}
+        />
+        <div
+          className="animate-drift absolute bottom-[10%] right-[10%] h-80 w-80 rounded-full opacity-[0.03]"
+          style={{
+            background: "radial-gradient(circle, #a855f7 0%, transparent 70%)",
+            animationDelay: "-7s",
           }}
         />
       </div>
 
       {/* ─── Navbar ─── */}
-      <nav className="fixed top-0 z-50 w-full border-b border-white/[0.04] bg-[#050505]/80 backdrop-blur-2xl">
+      <nav className="fixed top-0 z-50 w-full border-b border-border/60 bg-background/70 backdrop-blur-xl">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
           <Link href="/" className="flex items-center gap-2">
-            <Image src="/logo.svg" alt="Pact" width={24} height={24} className="rounded-md" />
-            <span className="text-[15px] font-bold tracking-tight text-white/90">Pact</span>
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/10 ring-1 ring-accent/20">
+              <Image src="/logo.svg" alt="Pact" width={14} height={14} />
+            </div>
+            <span className="text-[15px] font-bold tracking-tight text-foreground">Pact</span>
           </Link>
 
           <div className="hidden items-center gap-7 md:flex">
@@ -477,7 +519,7 @@ export default function LandingPage() {
               <a
                 key={item}
                 href={`#${item.toLowerCase().replace(/ /g, "-")}`}
-                className="text-[13px] text-white/35 transition-colors hover:text-white/70"
+                className="text-[13px] text-muted-foreground transition-colors hover:text-foreground"
               >
                 {item}
               </a>
@@ -489,7 +531,7 @@ export default function LandingPage() {
               href="https://github.com/Saber1Y/Pact"
               target="_blank"
               rel="noreferrer"
-              className="hidden text-[13px] text-white/35 transition-colors hover:text-white/70 md:block"
+              className="hidden text-[13px] text-muted-foreground transition-colors hover:text-foreground md:block"
             >
               Docs
             </a>
@@ -511,25 +553,25 @@ export default function LandingPage() {
             animate="visible"
             className="max-w-xl"
           >
-            <motion.div variants={fadeUp} className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/[0.06] bg-white/[0.03] px-3.5 py-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse-glow" />
-              <span className="text-[11px] font-medium tracking-wide text-white/40">AI-native financial agent</span>
+            <motion.div variants={fadeUp} className="mb-5 inline-flex items-center gap-2 rounded-full border border-border bg-muted/50 px-3.5 py-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse-glow" />
+              <span className="text-[11px] font-medium tracking-wide text-muted-foreground">AI-native financial agent</span>
             </motion.div>
 
             <motion.h1
               variants={fadeUp}
-              className="mb-5 text-[clamp(2.5rem,5vw,4rem)] font-bold leading-[1.05] tracking-tight text-white/95"
+              className="mb-5 text-[clamp(2.5rem,5vw,4rem)] font-bold leading-[1.05] tracking-tight text-foreground"
             >
               Your money.
               <br />
               Your rules.
               <br />
-              <span className="text-emerald-400">Remembered.</span>
+              <span className="text-accent">Remembered.</span>
             </motion.h1>
 
             <motion.p
               variants={fadeUp}
-              className="mb-8 max-w-md text-[15px] leading-relaxed text-white/35"
+              className="mb-8 max-w-md text-[15px] leading-relaxed text-muted-foreground"
             >
               Set the rules once. Pact remembers them across sessions, makes decisions using your
               financial context, and executes approved actions onchain.
@@ -538,25 +580,23 @@ export default function LandingPage() {
             <motion.div variants={fadeUp} className="mb-8 flex flex-wrap gap-3">
               <Link
                 href="/app"
-                className="inline-flex h-11 items-center gap-2 rounded-xl bg-emerald-500 px-5 text-[13px] font-semibold text-black transition-all hover:bg-emerald-400 hover:shadow-lg hover:shadow-emerald-500/20"
+                className="inline-flex h-11 items-center gap-2 rounded-xl bg-accent px-5 text-[13px] font-semibold text-white transition-all hover:bg-indigo-500 hover:shadow-lg hover:shadow-accent/20"
               >
                 Start with Pact
-                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
+                <ArrowRight className="h-3.5 w-3.5" />
               </Link>
               <a
                 href="#how-it-works"
-                className="inline-flex h-11 items-center rounded-xl border border-white/[0.08] bg-white/[0.03] px-5 text-[13px] font-medium text-white/50 transition-all hover:bg-white/[0.06] hover:text-white/70"
+                className="inline-flex h-11 items-center rounded-xl border border-border bg-card px-5 text-[13px] font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
               >
                 See how it works
               </a>
             </motion.div>
 
-            <motion.div variants={fadeIn} className="flex flex-wrap items-center gap-4 text-[11px] text-white/20">
+            <motion.div variants={fadeIn} className="flex flex-wrap items-center gap-4 text-[11px] text-muted-foreground">
               {["Sibyl Memory", "Base", "AI-native", "Non-custodial"].map((item) => (
                 <span key={item} className="flex items-center gap-1.5">
-                  <span className="h-1 w-1 rounded-full bg-white/15" />
+                  <span className="h-1 w-1 rounded-full bg-accent/50" />
                   {item}
                 </span>
               ))}
@@ -574,12 +614,12 @@ export default function LandingPage() {
       <Section id="product">
         <motion.div variants={fadeUp} className="mb-16 text-center">
           <Badge>The Problem</Badge>
-          <h2 className="mb-4 text-[clamp(1.75rem,3.5vw,3rem)] font-bold tracking-tight text-white/90">
+          <h2 className="mb-4 text-[clamp(1.75rem,3.5vw,3rem)] font-bold tracking-tight text-foreground">
             AI can act.
             <br />
             But can it remember?
           </h2>
-          <p className="mx-auto max-w-md text-[15px] text-white/30">
+          <p className="mx-auto max-w-md text-[15px] text-muted-foreground">
             Without memory, every conversation starts from zero. The agent forgets your rules, your
             preferences, and your history.
           </p>
@@ -588,9 +628,10 @@ export default function LandingPage() {
         <div className="grid gap-5 md:grid-cols-2">
           <motion.div
             variants={fadeUp}
-            className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-7"
+            className="rounded-2xl border border-border bg-card p-7"
           >
-            <div className="mb-5 inline-flex items-center gap-1.5 rounded-full bg-red-500/10 px-3 py-1 text-[10px] font-medium text-red-400/80 ring-1 ring-red-500/20">
+            <div className="mb-5 inline-flex items-center gap-1.5 rounded-full bg-red-50 px-3 py-1 text-[10px] font-medium text-red-600 ring-1 ring-red-200">
+              <EyeOff className="h-3 w-3" />
               Without memory
             </div>
             <div className="space-y-3">
@@ -601,10 +642,10 @@ export default function LandingPage() {
                 "Unsafe or incorrect decision",
               ].map((step, i) => (
                 <div key={i} className="flex items-center gap-3">
-                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/[0.04] text-[10px] text-white/20">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] text-muted-foreground">
                     {i + 1}
                   </div>
-                  <p className="text-[13px] text-white/30">{step}</p>
+                  <p className="text-[13px] text-muted-foreground">{step}</p>
                 </div>
               ))}
             </div>
@@ -612,9 +653,10 @@ export default function LandingPage() {
 
           <motion.div
             variants={fadeUp}
-            className="rounded-2xl border border-emerald-500/10 bg-emerald-500/[0.03] p-7"
+            className="rounded-2xl border border-accent/20 bg-accent/5 p-7"
           >
-            <div className="mb-5 inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1 text-[10px] font-medium text-emerald-400/80 ring-1 ring-emerald-500/20">
+            <div className="mb-5 inline-flex items-center gap-1.5 rounded-full bg-accent/10 px-3 py-1 text-[10px] font-medium text-accent ring-1 ring-accent/20">
+              <Eye className="h-3 w-3" />
               With Pact
             </div>
             <div className="space-y-3">
@@ -625,10 +667,10 @@ export default function LandingPage() {
                 "Agent retrieves context, makes correct decision",
               ].map((step, i) => (
                 <div key={i} className="flex items-center gap-3">
-                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-[10px] text-emerald-400/80">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent/10 text-[10px] text-accent">
                     {i + 1}
                   </div>
-                  <p className="text-[13px] text-white/50">{step}</p>
+                  <p className="text-[13px] text-foreground/80">{step}</p>
                 </div>
               ))}
             </div>
@@ -640,10 +682,10 @@ export default function LandingPage() {
       <Section id="memory">
         <motion.div variants={fadeUp} className="mb-14 text-center">
           <Badge>
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            <span className="h-1.5 w-1.5 rounded-full bg-accent" />
             Powered by Sibyl Memory
           </Badge>
-          <h2 className="mb-4 text-[clamp(1.75rem,3.5vw,3rem)] font-bold tracking-tight text-white/90">
+          <h2 className="mb-4 text-[clamp(1.75rem,3.5vw,3rem)] font-bold tracking-tight text-foreground">
             Pact doesn&apos;t just remember your data.
             <br />
             It remembers your decisions.
@@ -658,38 +700,38 @@ export default function LandingPage() {
           className="mb-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
         >
           <MemoryCard
-            icon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>}
+            icon={<Target className="h-5 w-5" />}
             label="Financial goals"
             example="Save $2,000 for a MacBook"
           />
           <MemoryCard
-            icon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>}
+            icon={<Settings className="h-5 w-5" />}
             label="Spending rules"
             example="Auto-approve up to $100"
           />
           <MemoryCard
-            icon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+            icon={<ShieldCheck className="h-5 w-5" />}
             label="Trusted merchants"
             example="Acme Software, Vercel"
           />
           <MemoryCard
-            icon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" /></svg>}
+            icon={<Globe className="h-5 w-5" />}
             label="Preferences"
             example="Prioritize savings over spending"
           />
           <MemoryCard
-            icon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+            icon={<Clock className="h-5 w-5" />}
             label="Past decisions"
             example="Rejected this subscription last month"
           />
           <MemoryCard
-            icon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>}
+            icon={<Lock className="h-5 w-5" />}
             label="Blocked merchants"
             example="Never pay Untrusted Corp"
           />
         </motion.div>
 
-        <motion.p variants={fadeUp} className="mx-auto max-w-md text-center text-[13px] leading-relaxed text-white/25">
+        <motion.p variants={fadeUp} className="mx-auto max-w-md text-center text-[13px] leading-relaxed text-muted-foreground">
           Persistent memory turns a generic agent into an agent that actually knows how you want your
           money handled.
         </motion.p>
@@ -699,7 +741,7 @@ export default function LandingPage() {
       <Section id="how-it-works">
         <motion.div variants={fadeUp} className="mb-14 text-center">
           <Badge>How it works</Badge>
-          <h2 className="mb-4 text-[clamp(1.75rem,3.5vw,3rem)] font-bold tracking-tight text-white/90">
+          <h2 className="mb-4 text-[clamp(1.75rem,3.5vw,3rem)] font-bold tracking-tight text-foreground">
             Remember. Decide. Act.
           </h2>
         </motion.div>
@@ -735,10 +777,10 @@ export default function LandingPage() {
       <Section id="product-showcase">
         <motion.div variants={fadeUp} className="mb-14 text-center">
           <Badge>Product</Badge>
-          <h2 className="mb-4 text-[clamp(1.75rem,3.5vw,3rem)] font-bold tracking-tight text-white/90">
+          <h2 className="mb-4 text-[clamp(1.75rem,3.5vw,3rem)] font-bold tracking-tight text-foreground">
             Your AI CFO, with context.
           </h2>
-          <p className="mx-auto max-w-md text-[15px] text-white/30">
+          <p className="mx-auto max-w-md text-[15px] text-muted-foreground">
             A complete financial interface powered by persistent memory and onchain execution.
           </p>
         </motion.div>
@@ -750,7 +792,7 @@ export default function LandingPage() {
       <Section>
         <motion.div variants={fadeUp} className="mb-14 text-center">
           <Badge>Why Pact</Badge>
-          <h2 className="mb-4 text-[clamp(1.75rem,3.5vw,3rem)] font-bold tracking-tight text-white/90">
+          <h2 className="mb-4 text-[clamp(1.75rem,3.5vw,3rem)] font-bold tracking-tight text-foreground">
             Not a wallet.
             <br />
             Not a chatbot.
@@ -788,7 +830,7 @@ export default function LandingPage() {
       <Section>
         <motion.div variants={fadeUp} className="mb-14 text-center">
           <Badge>Onchain</Badge>
-          <h2 className="mb-4 text-[clamp(1.75rem,3.5vw,3rem)] font-bold tracking-tight text-white/90">
+          <h2 className="mb-4 text-[clamp(1.75rem,3.5vw,3rem)] font-bold tracking-tight text-foreground">
             When Pact acts, it acts onchain.
           </h2>
         </motion.div>
@@ -808,7 +850,7 @@ export default function LandingPage() {
           <ArchStep label="USDC" />
         </motion.div>
 
-        <motion.p variants={fadeUp} className="mx-auto max-w-md text-center text-[13px] leading-relaxed text-white/25">
+        <motion.p variants={fadeUp} className="mx-auto max-w-md text-center text-[13px] leading-relaxed text-muted-foreground">
           Pact combines persistent financial memory with programmable onchain execution. Every action
           is verifiable. Every rule is enforced by smart contracts.
         </motion.p>
@@ -818,12 +860,10 @@ export default function LandingPage() {
             href="https://github.com/Saber1Y/Pact"
             target="_blank"
             rel="noreferrer"
-            className="inline-flex h-11 items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] px-5 text-[13px] font-medium text-white/50 transition-all hover:bg-white/[0.06] hover:text-white/70"
+            className="inline-flex h-11 items-center gap-2 rounded-xl border border-border bg-card px-5 text-[13px] font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
           >
             Explore the architecture
-            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-            </svg>
+            <ExternalLink className="h-3.5 w-3.5" />
           </a>
         </motion.div>
       </Section>
@@ -832,10 +872,10 @@ export default function LandingPage() {
       <Section id="security">
         <motion.div variants={fadeUp} className="mb-14 text-center">
           <Badge>Security</Badge>
-          <h2 className="mb-4 text-[clamp(1.75rem,3.5vw,3rem)] font-bold tracking-tight text-white/90">
+          <h2 className="mb-4 text-[clamp(1.75rem,3.5vw,3rem)] font-bold tracking-tight text-foreground">
             Autonomous doesn&apos;t mean uncontrolled.
           </h2>
-          <p className="mx-auto max-w-md text-[15px] text-white/30">
+          <p className="mx-auto max-w-md text-[15px] text-muted-foreground">
             AI handles context and reasoning. Smart contracts enforce the boundaries.
           </p>
         </motion.div>
@@ -873,15 +913,13 @@ export default function LandingPage() {
             <motion.div
               key={i}
               variants={fadeUp}
-              className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4"
+              className="rounded-xl border border-border bg-card p-4"
             >
               <div className="mb-1.5 flex items-center gap-2">
-                <svg className="h-3.5 w-3.5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                </svg>
-                <p className="text-[13px] font-medium text-white/70">{item.title}</p>
+                <CheckCircle2 className="h-3.5 w-3.5 text-accent" />
+                <p className="text-[13px] font-medium text-foreground">{item.title}</p>
               </div>
-              <p className="text-[12px] text-white/25">{item.desc}</p>
+              <p className="text-[12px] text-muted-foreground">{item.desc}</p>
             </motion.div>
           ))}
         </motion.div>
@@ -895,50 +933,48 @@ export default function LandingPage() {
             <motion.div
               animate={{ y: [-6, 6, -6] }}
               transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute left-[5%] top-[15%] rounded-lg border border-white/[0.06] bg-[#0c0c0c] px-3 py-1.5 text-[10px] text-white/20"
+              className="absolute left-[5%] top-[15%] rounded-lg border border-border bg-card px-3 py-1.5 text-[10px] text-muted-foreground shadow-sm"
             >
               $100 auto limit
             </motion.div>
             <motion.div
               animate={{ y: [5, -5, 5] }}
               transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute right-[8%] top-[25%] rounded-lg border border-white/[0.06] bg-[#0c0c0c] px-3 py-1.5 text-[10px] text-white/20"
+              className="absolute right-[8%] top-[25%] rounded-lg border border-border bg-card px-3 py-1.5 text-[10px] text-muted-foreground shadow-sm"
             >
               MacBook: $2,000
             </motion.div>
             <motion.div
               animate={{ y: [-4, 4, -4] }}
               transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute bottom-[25%] left-[15%] rounded-lg border border-white/[0.06] bg-[#0c0c0c] px-3 py-1.5 text-[10px] text-white/20"
+              className="absolute bottom-[25%] left-[15%] rounded-lg border border-border bg-card px-3 py-1.5 text-[10px] text-muted-foreground shadow-sm"
             >
               Acme: trusted
             </motion.div>
           </div>
 
           <motion.div variants={fadeUp} className="relative text-center">
-            <h2 className="mb-4 text-[clamp(2rem,4vw,3.5rem)] font-bold tracking-tight text-white/90">
+            <h2 className="mb-4 text-[clamp(2rem,4vw,3.5rem)] font-bold tracking-tight text-foreground">
               Give your money an agent
               <br />
               that remembers.
             </h2>
-            <p className="mx-auto mb-8 max-w-sm text-[15px] text-white/30">
+            <p className="mx-auto mb-8 max-w-sm text-[15px] text-muted-foreground">
               Set the rules once. Pact remembers them every time.
             </p>
             <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Link
                 href="/app"
-                className="inline-flex h-11 items-center gap-2 rounded-xl bg-emerald-500 px-5 text-[13px] font-semibold text-black transition-all hover:bg-emerald-400 hover:shadow-lg hover:shadow-emerald-500/20"
+                className="inline-flex h-11 items-center gap-2 rounded-xl bg-accent px-5 text-[13px] font-semibold text-white transition-all hover:bg-indigo-500 hover:shadow-lg hover:shadow-accent/20"
               >
                 Get started
-                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
+                <ArrowRight className="h-3.5 w-3.5" />
               </Link>
               <a
                 href="https://github.com/Saber1Y/Pact"
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex h-11 items-center rounded-xl border border-white/[0.08] bg-white/[0.03] px-5 text-[13px] font-medium text-white/50 transition-all hover:bg-white/[0.06] hover:text-white/70"
+                className="inline-flex h-11 items-center rounded-xl border border-border bg-card px-5 text-[13px] font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
               >
                 View documentation
               </a>
@@ -948,28 +984,30 @@ export default function LandingPage() {
       </Section>
 
       {/* ─── Footer ─── */}
-      <footer className="border-t border-white/[0.04] px-6 py-10">
+      <footer className="border-t border-border px-6 py-10">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-5 md:flex-row">
           <div className="flex items-center gap-2">
-            <Image src="/logo.svg" alt="Pact" width={20} height={20} className="rounded-md" />
-            <span className="text-[13px] font-semibold text-white/30">Pact</span>
+            <div className="flex h-6 w-6 items-center justify-center rounded-md bg-accent/10">
+              <Image src="/logo.svg" alt="Pact" width={12} height={12} />
+            </div>
+            <span className="text-[13px] font-semibold text-muted-foreground">Pact</span>
           </div>
 
-          <div className="flex gap-5 text-[12px] text-white/20">
+          <div className="flex gap-5 text-[12px] text-muted-foreground">
             {["Product", "Memory", "Security", "GitHub"].map((item) => (
               <a
                 key={item}
                 href={item === "GitHub" ? "https://github.com/Saber1Y/Pact" : `#${item.toLowerCase()}`}
                 target={item === "GitHub" ? "_blank" : undefined}
                 rel={item === "GitHub" ? "noreferrer" : undefined}
-                className="transition-colors hover:text-white/40"
+                className="transition-colors hover:text-foreground"
               >
                 {item}
               </a>
             ))}
           </div>
 
-          <p className="text-[11px] text-white/15">
+          <p className="text-[11px] text-muted-foreground/60">
             AI financial autonomy with persistent memory.
           </p>
         </div>

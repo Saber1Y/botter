@@ -2,89 +2,118 @@
 
 import { useEffect, useState } from "react";
 import { api, Payment } from "@/lib/api";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  CheckCircle2,
+  AlertTriangle,
+  XCircle,
+  ExternalLink,
+  Clock,
+  Filter,
+  Loader2,
+  ArrowDownRight,
+  Receipt,
+} from "lucide-react";
 
-function PaymentRow({ payment }: { payment: Payment }) {
+const fadeUp = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] as const } },
+};
+
+const stagger = { visible: { transition: { staggerChildren: 0.05 } } };
+
+function PaymentRow({ payment, isSelected }: { payment: Payment; isSelected: boolean }) {
   const isApproved = payment.decision === "APPROVE";
   const isPending = payment.decision === "REQUIRE_APPROVAL";
+  const Icon = isApproved ? CheckCircle2 : isPending ? AlertTriangle : XCircle;
 
   return (
-    <div className="flex items-center justify-between py-4 border-b border-zinc-800/50 last:border-0">
+    <div
+      className={`flex items-center justify-between border-b border-border py-4 last:border-0 transition-colors ${
+        isSelected ? "bg-accent/5" : "hover:bg-muted/50"
+      }`}
+    >
       <div className="flex items-center gap-4">
         <div
-          className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm ${
+          className={`flex h-10 w-10 items-center justify-center rounded-xl ${
             isApproved
-              ? "bg-green-500/10 text-green-400"
+              ? "bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200"
               : isPending
-                ? "bg-amber-500/10 text-amber-400"
-                : "bg-red-500/10 text-red-400"
+                ? "bg-amber-50 text-amber-600 ring-1 ring-amber-200"
+                : "bg-red-50 text-red-600 ring-1 ring-red-200"
           }`}
         >
-          {isApproved ? "✓" : isPending ? "⚠" : "✗"}
+          <Icon className="h-4 w-4" />
         </div>
         <div>
-          <div className="text-sm font-medium text-zinc-200">
-            {payment.recipient}
-          </div>
-          <div className="text-xs text-zinc-500">
-            {isApproved
-              ? "Auto-approved"
-              : isPending
-                ? "Approved by you"
-                : "Denied"}
+          <div className="text-[13px] font-medium text-foreground">{payment.recipient}</div>
+          <div className="text-[11px] text-muted-foreground">
+            {isApproved ? "Auto-approved" : isPending ? "Approved by you" : "Denied"}
           </div>
         </div>
       </div>
       <div className="text-right">
-        <div className="text-sm font-medium text-zinc-200">
-          -${payment.amount}
+        <div className="flex items-center gap-1">
+          <ArrowDownRight className="h-3 w-3 text-red-400" />
+          <div className="text-[14px] font-semibold text-foreground">${payment.amount}</div>
         </div>
-        <div className="text-xs text-zinc-500">{payment.token}</div>
+        <div className="text-[10px] text-muted-foreground">{payment.token}</div>
       </div>
     </div>
   );
 }
 
 function PaymentDetail({ payment }: { payment: Payment }) {
+  const isApproved = payment.decision === "APPROVE";
+  const isPending = payment.decision === "REQUIRE_APPROVAL";
+  const Icon = isApproved ? CheckCircle2 : isPending ? AlertTriangle : XCircle;
+
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 mb-6">
+    <motion.div
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8 }}
+      className="mb-6 rounded-2xl border border-border bg-card p-6 shadow-sm"
+    >
       <div className="flex items-center justify-between mb-4">
-        <div className="text-lg font-medium text-zinc-100">
-          {payment.recipient}
+        <div className="flex items-center gap-3">
+          <div
+            className={`flex h-10 w-10 items-center justify-center rounded-xl ${
+              isApproved
+                ? "bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200"
+                : isPending
+                  ? "bg-amber-50 text-amber-600 ring-1 ring-amber-200"
+                  : "bg-red-50 text-red-600 ring-1 ring-red-200"
+            }`}
+          >
+            <Icon className="h-5 w-5" />
+          </div>
+          <div>
+            <div className="text-[15px] font-medium text-foreground">{payment.recipient}</div>
+            <div className="text-[11px] text-muted-foreground">{payment.decision}</div>
+          </div>
         </div>
-        <div className="text-2xl font-semibold text-zinc-100">
-          ${payment.amount} {payment.token}
+        <div className="text-right">
+          <div className="text-xl font-bold text-foreground">${payment.amount}</div>
+          <div className="text-[11px] text-muted-foreground">{payment.token}</div>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4 mb-4">
-        <div>
-          <div className="text-xs text-zinc-500 mb-1">Decision</div>
-          <div className="text-sm text-zinc-200">{payment.decision}</div>
+        <div className="rounded-xl bg-muted p-3">
+          <div className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground mb-1">Status</div>
+          <div className="text-[13px] text-foreground">{payment.status}</div>
         </div>
-        <div>
-          <div className="text-xs text-zinc-500 mb-1">Status</div>
-          <div className="text-sm text-zinc-200">{payment.status}</div>
+        <div className="rounded-xl bg-muted p-3">
+          <div className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground mb-1">Decision</div>
+          <div className="text-[13px] text-foreground">{payment.decision}</div>
         </div>
       </div>
 
       {payment.reason && (
-        <div className="mb-4">
-          <div className="text-xs text-zinc-500 mb-1">Reason</div>
-          <div className="text-sm text-zinc-400">{payment.reason}</div>
-        </div>
-      )}
-
-      {payment.tx_hash && (
-        <div className="mb-4">
-          <div className="text-xs text-zinc-500 mb-1">Transaction</div>
-          <a
-            href={`https://sepolia.basescan.org/tx/${payment.tx_hash}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm text-blue-400 hover:text-blue-300 font-mono"
-          >
-            {payment.tx_hash.slice(0, 10)}...{payment.tx_hash.slice(-8)}
-          </a>
+        <div className="mb-4 rounded-xl bg-muted p-3">
+          <div className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground mb-1">Reason</div>
+          <div className="text-[12px] text-muted-foreground">{payment.reason}</div>
         </div>
       )}
 
@@ -93,18 +122,27 @@ function PaymentDetail({ payment }: { payment: Payment }) {
           href={`https://sepolia.basescan.org/tx/${payment.tx_hash}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-block text-xs text-blue-400 hover:text-blue-300"
+          className="inline-flex items-center gap-1.5 text-[12px] text-accent hover:text-accent/80 transition-colors"
         >
-          View on BaseScan →
+          <ExternalLink className="h-3 w-3" />
+          View on BaseScan
         </a>
       )}
-    </div>
+    </motion.div>
   );
 }
+
+const filters = [
+  { key: "all", label: "All" },
+  { key: "approved", label: "Approved" },
+  { key: "pending", label: "Pending" },
+  { key: "denied", label: "Denied" },
+] as const;
 
 export default function PaymentsPage() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "approved" | "pending" | "denied">("all");
   const [selected, setSelected] = useState<Payment | null>(null);
 
@@ -112,7 +150,7 @@ export default function PaymentsPage() {
     api
       .getPayments()
       .then(setPayments)
-      .catch(() => {})
+      .catch(() => setError("Failed to load payments."))
       .finally(() => setLoading(false));
   }, []);
 
@@ -127,59 +165,84 @@ export default function PaymentsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="text-zinc-500">Loading payments...</div>
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-5 w-5 animate-spin text-accent" />
+          <span className="text-[13px] text-muted-foreground">Loading payments...</span>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="p-8 max-w-4xl">
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-zinc-100 mb-1">Payments</h1>
-        <p className="text-zinc-500">
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={stagger}
+      className="p-8 max-w-4xl"
+    >
+      <motion.div variants={fadeUp} className="mb-8">
+        <div className="flex items-center gap-3 mb-1">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10 ring-1 ring-accent/20">
+            <Receipt className="h-4 w-4 text-accent" />
+          </div>
+          <h1 className="text-xl font-bold tracking-tight text-foreground">Payments</h1>
+        </div>
+        <p className="text-[13px] text-muted-foreground ml-11">
           All payments executed by Pact on Base Sepolia.
         </p>
-      </div>
+      </motion.div>
 
-      {selected && <PaymentDetail payment={selected} />}
+      <AnimatePresence>
+        {selected && <PaymentDetail payment={selected} />}
+      </AnimatePresence>
 
-      <div className="flex gap-2 mb-6">
-        {(["all", "approved", "pending", "denied"] as const).map((f) => (
+      {error && (
+        <div className="mb-4 flex items-center gap-2 rounded-xl bg-red-50 px-4 py-3 text-[12px] text-red-600 ring-1 ring-red-200">
+          <AlertTriangle className="h-4 w-4" />
+          {error}
+        </div>
+      )}
+
+      <motion.div variants={fadeUp} className="mb-4 flex items-center gap-1">
+        <Filter className="h-3.5 w-3.5 text-muted-foreground mr-1" />
+        {filters.map((f) => (
           <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-              filter === f
-                ? "bg-zinc-800 text-zinc-100"
-                : "text-zinc-500 hover:text-zinc-300"
+            key={f.key}
+            onClick={() => setFilter(f.key)}
+            className={`rounded-lg px-3 py-1.5 text-[12px] font-medium transition-all ${
+              filter === f.key
+                ? "bg-accent/10 text-accent ring-1 ring-accent/20"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
             }`}
           >
-            {f.charAt(0).toUpperCase() + f.slice(1)}
+            {f.label}
           </button>
         ))}
-      </div>
+      </motion.div>
 
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+      <motion.div variants={fadeUp} className="rounded-2xl border border-border bg-card p-4">
         {filtered.length === 0 ? (
           <div className="text-center py-12">
-            <div className="text-4xl mb-4 opacity-20">≡</div>
-            <div className="text-zinc-400 mb-2">No payments yet</div>
-            <div className="text-sm text-zinc-600">
+            <Clock className="mx-auto mb-3 h-8 w-8 text-muted-foreground/40" />
+            <div className="text-[15px] font-medium text-foreground/40 mb-1">No payments yet</div>
+            <div className="text-[13px] text-muted-foreground">
               Payments will appear here after Pact executes them.
             </div>
           </div>
         ) : (
-          filtered.map((p) => (
-            <button
-              key={p.id}
-              onClick={() => setSelected(selected?.id === p.id ? null : p)}
-              className="w-full text-left"
-            >
-              <PaymentRow payment={p} />
-            </button>
-          ))
+          <motion.div variants={stagger} initial="hidden" animate="visible">
+            {filtered.map((p) => (
+              <button
+                key={p.id}
+                onClick={() => setSelected(selected?.id === p.id ? null : p)}
+                className="w-full text-left"
+              >
+                <PaymentRow payment={p} isSelected={selected?.id === p.id} />
+              </button>
+            ))}
+          </motion.div>
         )}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

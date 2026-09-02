@@ -2,19 +2,41 @@
 
 import { useEffect, useState } from "react";
 import { api, Memory, Goal } from "@/lib/api";
+import { motion } from "framer-motion";
+import {
+  Brain,
+  ShieldCheck,
+  Target,
+  Clock,
+  AlertTriangle,
+  CheckCircle2,
+  Loader2,
+  Database,
+  Sparkles,
+} from "lucide-react";
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] as const } },
+};
+
+const stagger = { visible: { transition: { staggerChildren: 0.05 } } };
 
 function MemorySection({
   title,
+  icon: Icon,
   children,
 }: {
   title: string;
+  icon: React.ElementType;
   children: React.ReactNode;
 }) {
   return (
-    <div className="mb-6">
-      <h3 className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-3">
-        {title}
-      </h3>
+    <div className="mb-8">
+      <div className="mb-3 flex items-center gap-2">
+        <Icon className="h-4 w-4 text-accent/60" />
+        <h3 className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">{title}</h3>
+      </div>
       <div className="space-y-2">{children}</div>
     </div>
   );
@@ -32,19 +54,22 @@ function MemoryCard({
   source?: string;
 }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+    <motion.div
+      variants={fadeUp}
+      className="rounded-xl border border-border bg-card p-4 transition-all hover:shadow-md hover:shadow-black/[0.03]"
+    >
       <div className="flex items-center justify-between mb-1">
-        <div className="text-sm text-zinc-200">{label}</div>
-        <span className="text-xs text-zinc-600">{category}</span>
+        <div className="text-[13px] font-medium text-foreground">{label}</div>
+        <span className="rounded-full bg-muted px-2 py-0.5 text-[9px] font-medium text-muted-foreground">{category}</span>
       </div>
-      <div className="text-sm text-zinc-400">{value}</div>
+      <div className="text-[12px] text-muted-foreground">{value}</div>
       {source && (
         <div className="mt-2 flex items-center gap-1">
-          <span className="text-xs text-green-500/70">✓</span>
-          <span className="text-xs text-zinc-600">Remembered by Pact</span>
+          <CheckCircle2 className="h-3 w-3 text-accent/50" />
+          <span className="text-[10px] text-muted-foreground">Remembered by Pact</span>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }
 
@@ -52,21 +77,31 @@ function GoalCard({ goal }: { goal: Goal }) {
   const progress = (goal.current / goal.target) * 100;
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-      <div className="flex items-center justify-between mb-2">
-        <div className="text-sm font-medium text-zinc-200">{goal.name}</div>
-        <div className="text-xs text-zinc-500">
+    <motion.div
+      variants={fadeUp}
+      className="rounded-xl border border-border bg-card p-5 transition-all hover:shadow-md hover:shadow-black/[0.03]"
+    >
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/10">
+            <Target className="h-3.5 w-3.5 text-accent" />
+          </div>
+          <div className="text-[13px] font-medium text-foreground">{goal.name}</div>
+        </div>
+        <div className="text-[12px] text-muted-foreground">
           ${goal.current} / ${goal.target}
         </div>
       </div>
-      <div className="w-full bg-zinc-800 rounded-full h-1.5 mb-2">
-        <div
-          className="bg-green-500 h-1.5 rounded-full transition-all"
-          style={{ width: `${Math.min(progress, 100)}%` }}
+      <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: `${Math.min(progress, 100)}%` }}
+          transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] as const, delay: 0.3 }}
+          className="h-full rounded-full bg-gradient-to-r from-accent to-indigo-400"
         />
       </div>
-      <div className="text-xs text-zinc-500">{progress.toFixed(0)}% complete</div>
-    </div>
+      <div className="mt-2 text-[10px] text-muted-foreground">{progress.toFixed(0)}% complete</div>
+    </motion.div>
   );
 }
 
@@ -74,6 +109,7 @@ export default function MemoryPage() {
   const [memories, setMemories] = useState<Memory[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -84,6 +120,8 @@ export default function MemoryPage() {
         ]);
         setMemories(m);
         setGoals(g);
+      } catch (err) {
+        setError("Failed to load memories. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -94,7 +132,24 @@ export default function MemoryPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="text-zinc-500">Loading memories...</div>
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-5 w-5 animate-spin text-accent" />
+          <span className="text-[13px] text-muted-foreground">Loading memories...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="flex flex-col items-center gap-3 rounded-2xl border border-red-200 bg-red-50 p-8">
+          <AlertTriangle className="h-5 w-5 text-red-500" />
+          <p className="text-[13px] text-red-600">{error}</p>
+          <button onClick={() => window.location.reload()} className="text-[12px] text-muted-foreground hover:text-foreground transition-colors">
+            Retry
+          </button>
+        </div>
       </div>
     );
   }
@@ -104,16 +159,26 @@ export default function MemoryPage() {
   const paymentMemories = memories.filter((m) => m.category === "payments");
 
   return (
-    <div className="p-8 max-w-4xl">
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-zinc-100 mb-1">Memory</h1>
-        <p className="text-zinc-500">
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={stagger}
+      className="p-8 max-w-4xl"
+    >
+      <motion.div variants={fadeUp} className="mb-8">
+        <div className="flex items-center gap-3 mb-1">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10 ring-1 ring-accent/20">
+            <Database className="h-4 w-4 text-accent" />
+          </div>
+          <h1 className="text-xl font-bold tracking-tight text-foreground">Memory</h1>
+        </div>
+        <p className="text-[13px] text-muted-foreground ml-11">
           Everything Pact remembers about how you manage money.
         </p>
-      </div>
+      </motion.div>
 
       {goals.length > 0 && (
-        <MemorySection title="Financial Goals">
+        <MemorySection title="Financial Goals" icon={Target}>
           {goals.map((goal) => (
             <GoalCard key={goal.name} goal={goal} />
           ))}
@@ -121,7 +186,7 @@ export default function MemoryPage() {
       )}
 
       {rules.length > 0 && (
-        <MemorySection title="Spending Rules">
+        <MemorySection title="Spending Rules" icon={ShieldCheck}>
           {rules.map((rule) => (
             <MemoryCard
               key={rule.key}
@@ -145,7 +210,7 @@ export default function MemoryPage() {
       )}
 
       {decisionMemories.length > 0 && (
-        <MemorySection title="Previous Decisions">
+        <MemorySection title="Previous Decisions" icon={Clock}>
           {decisionMemories.map((dec) => (
             <MemoryCard
               key={dec.key}
@@ -158,7 +223,7 @@ export default function MemoryPage() {
       )}
 
       {paymentMemories.length > 0 && (
-        <MemorySection title="Payment History">
+        <MemorySection title="Payment History" icon={Sparkles}>
           {paymentMemories.map((pay) => (
             <MemoryCard
               key={pay.key}
@@ -173,14 +238,16 @@ export default function MemoryPage() {
       )}
 
       {memories.length === 0 && goals.length === 0 && (
-        <div className="text-center py-16">
-          <div className="text-4xl mb-4 opacity-20">◎</div>
-          <div className="text-zinc-400 mb-2">No memories yet</div>
-          <div className="text-sm text-zinc-600">
+        <motion.div variants={fadeUp} className="text-center py-16">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-muted ring-1 ring-border">
+            <Brain className="h-6 w-6 text-muted-foreground/40" />
+          </div>
+          <div className="text-[15px] font-medium text-foreground/40 mb-1">No memories yet</div>
+          <div className="text-[13px] text-muted-foreground">
             Start by telling Pact about your financial rules and goals.
           </div>
-        </div>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 }
