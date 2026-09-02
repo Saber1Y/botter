@@ -4,9 +4,10 @@ from functools import lru_cache
 
 
 class Settings(BaseSettings):
-    # LLM
+    # LLM (OpenRouter - free models available)
     openai_api_key: str = ""
-    openai_model: str = "gpt-4o"
+    openai_base_url: str = "https://openrouter.ai/api/v1"
+    openai_model: str = "google/gemini-2.0-flash-exp:free"
 
     # Base Sepolia
     base_sepolia_rpc: str = "https://sepolia.base.org"
