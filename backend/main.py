@@ -20,9 +20,7 @@ from schemas import (
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup and shutdown events."""
-    # Startup
     yield
-    # Shutdown
 
 
 app = FastAPI(
@@ -46,72 +44,93 @@ app.add_middleware(
 # --- Chat Endpoint ---
 
 @app.post("/chat", response_model=ChatResponse)
-async def chat(request: ChatRequest, user_id: str = "default"):
+async def chat(request: ChatRequest, wallet: str = "0x0000000000000000000000000000000000000000"):
     """Process a chat message from the user."""
-    result = await agent.process_message(user_id, request.message)
+    result = await agent.process_message(wallet, request.message)
     return ChatResponse(**result)
 
 
 # --- Memory Endpoints ---
 
 @app.get("/memory", response_model=list[MemoryResponse])
-async def get_memory(user_id: str = "default", category: str = None):
+async def get_memory(wallet: str = "0x0000000000000000000000000000000000000000", category: str = None):
     """Retrieve user memories."""
-    memories = await memory.retrieve(user_id, category)
-    return [
-        MemoryResponse(
-            key=m["key"],
-            category=m.get("category", "general"),
-            value=m.get("value", {}),
-        )
-        for m in memories
-    ]
+    if category == "rules":
+        rules = memory.get_all_rules(wallet)
+        return [
+            MemoryResponse(key=r["key"], category="rules", value=r["value"])
+            for r in rules
+        ]
+    elif category == "goals":
+        goals = memory.get_goals(wallet)
+        return [
+            MemoryResponse(key=g.get("name", ""), category="goals", value=g)
+            for g in goals
+        ]
+    elif category == "decisions":
+        decisions = memory.get_decisions(wallet)
+        return [
+            MemoryResponse(key=f"decision_{i}", category="decisions", value=d)
+            for i, d in enumerate(decisions)
+        ]
+    else:
+        # Return all rules, goals, and recent decisions
+        rules = memory.get_all_rules(wallet)
+        goals = memory.get_goals(wallet)
+        decisions = memory.get_decisions(wallet, limit=10)
+        results = [
+            MemoryResponse(key=r["key"], category="rules", value=r["value"])
+            for r in rules
+        ]
+        results += [
+            MemoryResponse(key=g.get("name", ""), category="goals", value=g)
+            for g in goals
+        ]
+        results += [
+            MemoryResponse(key=f"decision_{i}", category="decisions", value=d)
+            for i, d in enumerate(decisions)
+        ]
+        return results
 
 
 @app.post("/memory")
-async def store_memory(user_id: str = "default", key: str = "", value: dict = {}, category: str = "general"):
+async def store_memory(wallet: str = "0x0000000000000000000000000000000000000000", key: str = "", value: dict = {}, category: str = "general"):
     """Store a memory entry."""
-    result = await memory.store(user_id, key, value, category)
-    return result
+    if category == "rules":
+        rule_type = value.get("type", key)
+        memory.store_rule(wallet, rule_type=rule_type, value=value.get("value", ""), rule_id=rule_type)
+    elif category == "goals":
+        memory.store_goal(wallet, name=value.get("name", key), target=value.get("target", 0))
+    return {"status": "ok"}
 
 
 # --- Rules Endpoints ---
 
 @app.post("/rules")
-async def set_rule(request: RuleSetRequest, user_id: str = "default"):
+async def set_rule(request: RuleSetRequest, wallet: str = "0x0000000000000000000000000000000000000000"):
     """Set a financial rule."""
-    await memory.store(
-        user_id,
-        key=f"rule_{request.type}",
-        value={"type": request.type, "value": request.value},
-        category="rules",
+    memory.store_rule(
+        wallet,
+        rule_type=request.type,
+        value=request.value,
+        rule_id=request.type,  # stable ID: upserts
     )
     return {"status": "ok", "rule": request.type}
 
 
 @app.get("/rules")
-async def get_rules(user_id: str = "default"):
+async def get_rules(wallet: str = "0x0000000000000000000000000000000000000000"):
     """Get all financial rules."""
-    memories = await memory.retrieve(user_id, "rules")
-    return [m["value"] for m in memories]
+    rules = memory.get_all_rules(wallet)
+    return [r["value"] for r in rules]
 
 
 # --- Goals Endpoints ---
 
 @app.post("/goals", response_model=GoalResponse)
-async def create_goal(request: GoalCreate, user_id: str = "default"):
+async def create_goal(request: GoalCreate, wallet: str = "0x0000000000000000000000000000000000000000"):
     """Create a financial goal."""
-    goal_data = {
-        "name": request.name,
-        "target": request.target,
-        "current": 0,
-    }
-    await memory.store(
-        user_id,
-        key=f"goal_{request.name}",
-        value=goal_data,
-        category="goals",
-    )
+    memory.store_goal(wallet, name=request.name, target=request.target)
     return GoalResponse(
         name=request.name,
         target=request.target,
@@ -121,45 +140,39 @@ async def create_goal(request: GoalCreate, user_id: str = "default"):
 
 
 @app.get("/goals", response_model=list[GoalResponse])
-async def get_goals(user_id: str = "default"):
+async def get_goals(wallet: str = "0x0000000000000000000000000000000000000000"):
     """Get all financial goals."""
-    memories = await memory.retrieve(user_id, "goals")
-    goals = []
-    for m in memories:
-        v = m["value"]
-        target = v.get("target", 1)
-        current = v.get("current", 0)
-        goals.append(GoalResponse(
-            name=v.get("name", ""),
-            target=target,
-            current=current,
-            progress=(current / target * 100) if target > 0 else 0,
-        ))
-    return goals
+    goals = memory.get_goals(wallet)
+    return [
+        GoalResponse(
+            name=g.get("name", ""),
+            target=g.get("target", 0),
+            current=g.get("current", 0),
+            progress=(g.get("current", 0) / g.get("target", 1) * 100) if g.get("target") else 0,
+        )
+        for g in goals
+    ]
 
 
 # --- Payments Endpoints ---
 
 @app.get("/payments", response_model=list[PaymentResponse])
-async def get_payments(user_id: str = "default"):
-    """Get all payments."""
-    memories = await memory.retrieve(user_id, "payments")
-    decisions = await memory.retrieve(user_id, "decisions")
-
+async def get_payments(wallet: str = "0x0000000000000000000000000000000000000000"):
+    """Get all payments from decisions (WARM) and journal (COLD)."""
+    decisions = memory.get_decisions(wallet, limit=20)
     payments = []
     for d in decisions:
-        v = d.get("value", {})
         payments.append(PaymentResponse(
-            id=d["key"],
-            recipient=v.get("recipient", ""),
-            amount=v.get("amount", "0"),
+            id=f"decision_{d.get('recipient', '')}_{d.get('amount', '')}",
+            recipient=d.get("recipient", ""),
+            amount=d.get("amount", "0"),
             token="USDC",
-            decision=v.get("decision", "UNKNOWN"),
-            reason=v.get("reason", ""),
+            decision=d.get("decision", "UNKNOWN").upper(),
+            reason=d.get("reason", ""),
             tx_hash=None,
-            status=v.get("decision", "pending").lower(),
+            status=d.get("decision", "pending").lower(),
             memory_references=[],
-            timestamp="",
+            timestamp=str(d.get("ts", "")),
         ))
     return payments
 

@@ -1,5 +1,6 @@
 """LLM Agent for Pact - orchestrates the memory -> reasoning -> policy loop."""
 import json
+import hashlib
 from openai import AsyncOpenAI
 from config import get_settings
 from memory import memory
@@ -25,7 +26,8 @@ When a user gives you a financial instruction, you MUST:
   "payment": {
     "recipient": "0x...",
     "amount": "100",
-    "token": "USDC"
+    "token": "USDC",
+    "merchant": "Acme"
   } | null,
   "rule": {
     "type": "spending_limit" | "trusted_merchant" | "blocked_merchant",
@@ -54,12 +56,12 @@ class PactAgent:
         self.client = AsyncOpenAI(api_key=settings.openai_api_key)
         self.model = settings.openai_model
 
-    async def process_message(self, user_id: str, message: str) -> dict:
+    async def process_message(self, wallet: str, message: str) -> dict:
         """Process a user message and return the agent's response."""
 
-        # Retrieve user's memory context
-        memories = await memory.retrieve(user_id)
-        context = self._build_memory_context(memories)
+        # Retrieve user's memory context from Sibyl
+        memory_ctx = memory.get_memory_context(wallet)
+        context = self._build_memory_context(memory_ctx)
 
         # Get vault info
         try:
@@ -69,7 +71,7 @@ class PactAgent:
             vault_balance = 0
 
         # Build conversation context
-        memory_summary = self._format_memory_for_llm(memories)
+        memory_summary = memory.format_for_llm(wallet)
 
         user_prompt = f"""Current memory context:
 {memory_summary}
@@ -95,13 +97,13 @@ Respond with a JSON object containing your intent, response, and any actions to 
         agent_response = json.loads(response.choices[0].message.content)
 
         # Process intent
-        result = await self._handle_intent(user_id, agent_response, context, vault_balance)
+        result = await self._handle_intent(wallet, agent_response, context, vault_balance)
 
         return result
 
     async def _handle_intent(
         self,
-        user_id: str,
+        wallet: str,
         agent_response: dict,
         context: MemoryContext,
         vault_balance: float,
@@ -117,39 +119,40 @@ Respond with a JSON object containing your intent, response, and any actions to 
             "memory_stored": [],
         }
 
-        # Store any new rules
+        # Store rules → WARM entities (upsert)
         if intent == "SET_RULE" and agent_response.get("rule"):
             rule = agent_response["rule"]
-            await memory.store(
-                user_id,
-                key=f"rule_{rule['type']}",
-                value=rule,
-                category="rules",
+            rule_type = rule["type"]
+            memory.store_rule(
+                wallet,
+                rule_type=rule_type,
+                value=rule["value"],
+                rule_id=rule_type,  # stable ID: overwrites previous rule of same type
             )
-            result["memory_stored"].append(f"rule_{rule['type']}")
+            result["memory_stored"].append(f"rule:{rule_type}")
 
             # Update memory context
-            if rule["type"] == "spending_limit":
+            if rule_type == "spending_limit":
                 context.spending_limit = float(rule["value"])
-            elif rule["type"] == "trusted_merchant":
+            elif rule_type == "trusted_merchant":
                 context.trusted_merchants.append(rule["value"])
-            elif rule["type"] == "blocked_merchant":
+            elif rule_type == "blocked_merchant":
                 context.blocked_merchants.append(rule["value"])
 
-        # Store goals
+        # Store goals → WARM entities (upsert)
         if intent == "SET_GOAL" and agent_response.get("goal"):
             goal = agent_response["goal"]
-            await memory.store(
-                user_id,
-                key=f"goal_{goal['name']}",
-                value={**goal, "current": 0},
-                category="goals",
+            memory.store_goal(
+                wallet,
+                name=goal["name"],
+                target=goal["target"],
             )
-            result["memory_stored"].append(f"goal_{goal['name']}")
+            result["memory_stored"].append(f"goal:{goal['name']}")
 
         # Handle payments
         if intent == "PAYMENT" and agent_response.get("payment"):
             payment_data = agent_response["payment"]
+            merchant = payment_data.get("merchant", "")
             request = PaymentRequest(**payment_data)
 
             # Evaluate against policy
@@ -160,30 +163,31 @@ Respond with a JSON object containing your intent, response, and any actions to 
                 "recipient": request.recipient,
                 "amount": request.amount,
                 "token": request.token,
+                "merchant": merchant,
                 "reason": policy_decision.reason,
                 "memory_references": policy_decision.memory_references,
             }
 
-            # Store the decision in memory
-            await memory.store(
-                user_id,
-                key=f"decision_{request.recipient}_{request.amount}",
-                value={
-                    "recipient": request.recipient,
-                    "amount": request.amount,
-                    "decision": policy_decision.decision.value,
-                    "reason": policy_decision.reason,
-                },
-                category="decisions",
+            # Store decision as WARM fact (for future policy reasoning)
+            decision_id = hashlib.sha256(
+                f"{wallet}_{request.recipient}_{request.amount}".encode()
+            ).hexdigest()[:16]
+            memory.store_decision(
+                wallet,
+                decision_id=decision_id,
+                recipient=request.recipient,
+                amount=request.amount,
+                decision=policy_decision.decision.value,
+                reason=policy_decision.reason,
+                merchant=merchant,
             )
 
             # Execute if approved
             if policy_decision.decision == Decision.APPROVE:
                 try:
                     executor = get_executor()
-                    import hashlib
                     payment_id = hashlib.sha256(
-                        f"{user_id}_{request.recipient}_{request.amount}".encode()
+                        f"{wallet}_{request.recipient}_{request.amount}".encode()
                     ).hexdigest()[:32]
 
                     tx_result = executor.execute_payment(
@@ -195,57 +199,47 @@ Respond with a JSON object containing your intent, response, and any actions to 
                     result["payment"]["tx_hash"] = tx_result["tx_hash"]
                     result["payment"]["status"] = tx_result["status"]
 
-                    # Store transaction in memory
-                    await memory.store(
-                        user_id,
-                        key=f"payment_{payment_id}",
-                        value={
-                            **tx_result,
-                            "token": request.token,
-                        },
-                        category="payments",
+                    # Record in COLD journal
+                    memory.record_payment(
+                        wallet,
+                        recipient=request.recipient,
+                        amount=request.amount,
+                        token=request.token,
+                        decision="approved",
+                        tx_hash=tx_result["tx_hash"],
+                        merchant=merchant,
                     )
                 except Exception as e:
                     result["payment"]["status"] = "error"
                     result["payment"]["error"] = str(e)
 
+            # Record rejected/required decision in COLD journal too
+            if policy_decision.decision != Decision.APPROVE:
+                memory.record_payment(
+                    wallet,
+                    recipient=request.recipient,
+                    amount=request.amount,
+                    token=request.token,
+                    decision=policy_decision.decision.value,
+                    merchant=merchant,
+                    reason=policy_decision.reason,
+                )
+
         return result
 
-    def _build_memory_context(self, memories: list[dict]) -> MemoryContext:
-        """Build a MemoryContext from stored memories."""
+    def _build_memory_context(self, memory_ctx: dict) -> MemoryContext:
+        """Build a MemoryContext from the structured memory dict."""
         context = MemoryContext()
 
-        for mem in memories:
-            category = mem.get("category", "")
-            value = mem.get("value", {})
+        if memory_ctx.get("spending_limit") is not None:
+            context.spending_limit = memory_ctx["spending_limit"]
 
-            if category == "rules":
-                if value.get("type") == "spending_limit":
-                    context.spending_limit = float(value.get("value", 0))
-                elif value.get("type") == "trusted_merchant":
-                    context.trusted_merchants.append(value.get("value", ""))
-                elif value.get("type") == "blocked_merchant":
-                    context.blocked_merchants.append(value.get("value", ""))
-            elif category == "goals":
-                context.goals.append(value)
-            elif category == "payments":
-                context.previous_payments.append(value)
+        context.trusted_merchants = memory_ctx.get("trusted_merchants", [])
+        context.blocked_merchants = memory_ctx.get("blocked_merchants", [])
+        context.goals = memory_ctx.get("goals", [])
+        context.previous_payments = memory_ctx.get("recent_payments", [])
 
         return context
-
-    def _format_memory_for_llm(self, memories: list[dict]) -> str:
-        """Format memories into a readable string for the LLM."""
-        if not memories:
-            return "No memories stored yet."
-
-        lines = []
-        for mem in memories:
-            category = mem.get("category", "general")
-            key = mem.get("key", "")
-            value = mem.get("value", {})
-            lines.append(f"- [{category}] {key}: {json.dumps(value)}")
-
-        return "\n".join(lines)
 
 
 # Singleton instance
