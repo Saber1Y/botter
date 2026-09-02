@@ -16,6 +16,23 @@ export interface ChatMessage {
   memory_stored: string[];
 }
 
+export interface ChatHistoryEntry {
+  role: "user" | "assistant";
+  content: string;
+  ts: number;
+  intent?: string;
+  decision?: string;
+  payment?: {
+    recipient: string;
+    amount: string;
+    token: string;
+    reason: string;
+    memory_references: string[];
+    tx_hash?: string;
+    status?: string;
+  };
+}
+
 export interface Memory {
   key: string;
   category: string;
@@ -73,6 +90,8 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ message }),
     }),
+
+  getChatHistory: () => fetchAPI<ChatHistoryEntry[]>("/chat/history"),
 
   // Memory
   getMemory: (category?: string) =>

@@ -14,6 +14,15 @@ class ChatRequest(BaseModel):
     message: str
 
 
+class ChatHistoryEntry(BaseModel):
+    role: str
+    content: str
+    ts: float
+    intent: Optional[str] = None
+    decision: Optional[str] = None
+    payment: Optional[dict] = None
+
+
 class ChatResponse(BaseModel):
     response: str
     intent: str

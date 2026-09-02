@@ -10,10 +10,10 @@ import {
   ExternalLink,
   Clock,
   Filter,
-  Loader2,
   ArrowDownRight,
   Receipt,
 } from "lucide-react";
+import { PageSkeleton } from "@/components/Skeleton";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
@@ -33,9 +33,9 @@ function PaymentRow({ payment, isSelected }: { payment: Payment; isSelected: boo
         isSelected ? "bg-accent/5" : "hover:bg-muted/50"
       }`}
     >
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3 sm:gap-4 min-w-0">
         <div
-          className={`flex h-10 w-10 items-center justify-center rounded-xl ${
+          className={`flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl ${
             isApproved
               ? "bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200"
               : isPending
@@ -45,14 +45,14 @@ function PaymentRow({ payment, isSelected }: { payment: Payment; isSelected: boo
         >
           <Icon className="h-4 w-4" />
         </div>
-        <div>
-          <div className="text-[13px] font-medium text-foreground">{payment.recipient}</div>
+        <div className="min-w-0">
+          <div className="text-[13px] font-medium text-foreground truncate">{payment.recipient}</div>
           <div className="text-[11px] text-muted-foreground">
             {isApproved ? "Auto-approved" : isPending ? "Approved by you" : "Denied"}
           </div>
         </div>
       </div>
-      <div className="text-right">
+      <div className="text-right shrink-0 ml-3">
         <div className="flex items-center gap-1">
           <ArrowDownRight className="h-3 w-3 text-red-400" />
           <div className="text-[14px] font-semibold text-foreground">${payment.amount}</div>
@@ -73,12 +73,12 @@ function PaymentDetail({ payment }: { payment: Payment }) {
       initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
-      className="mb-6 rounded-2xl border border-border bg-card p-6 shadow-sm"
+      className="mb-6 rounded-2xl border border-border bg-card p-4 sm:p-6 shadow-sm"
     >
       <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 min-w-0">
           <div
-            className={`flex h-10 w-10 items-center justify-center rounded-xl ${
+            className={`flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl ${
               isApproved
                 ? "bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200"
                 : isPending
@@ -88,18 +88,18 @@ function PaymentDetail({ payment }: { payment: Payment }) {
           >
             <Icon className="h-5 w-5" />
           </div>
-          <div>
-            <div className="text-[15px] font-medium text-foreground">{payment.recipient}</div>
+          <div className="min-w-0">
+            <div className="text-[15px] font-medium text-foreground truncate">{payment.recipient}</div>
             <div className="text-[11px] text-muted-foreground">{payment.decision}</div>
           </div>
         </div>
-        <div className="text-right">
+        <div className="text-right shrink-0">
           <div className="text-xl font-bold text-foreground">${payment.amount}</div>
           <div className="text-[11px] text-muted-foreground">{payment.token}</div>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mb-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-4">
         <div className="rounded-xl bg-muted p-3">
           <div className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground mb-1">Status</div>
           <div className="text-[13px] text-foreground">{payment.status}</div>
@@ -162,23 +162,14 @@ export default function PaymentsPage() {
     return true;
   });
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-5 w-5 animate-spin text-accent" />
-          <span className="text-[13px] text-muted-foreground">Loading payments...</span>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <PageSkeleton />;
 
   return (
     <motion.div
       initial="hidden"
       animate="visible"
       variants={stagger}
-      className="p-8 max-w-4xl"
+      className="p-4 sm:p-8 max-w-4xl"
     >
       <motion.div variants={fadeUp} className="mb-8">
         <div className="flex items-center gap-3 mb-1">
@@ -187,7 +178,7 @@ export default function PaymentsPage() {
           </div>
           <h1 className="text-xl font-bold tracking-tight text-foreground">Payments</h1>
         </div>
-        <p className="text-[13px] text-muted-foreground ml-11">
+        <p className="text-[13px] text-muted-foreground sm:ml-11">
           All payments executed by Pact on Base Sepolia.
         </p>
       </motion.div>
@@ -198,12 +189,12 @@ export default function PaymentsPage() {
 
       {error && (
         <div className="mb-4 flex items-center gap-2 rounded-xl bg-red-50 px-4 py-3 text-[12px] text-red-600 ring-1 ring-red-200">
-          <AlertTriangle className="h-4 w-4" />
+          <AlertTriangle className="h-4 w-4 shrink-0" />
           {error}
         </div>
       )}
 
-      <motion.div variants={fadeUp} className="mb-4 flex items-center gap-1">
+      <motion.div variants={fadeUp} className="mb-4 flex flex-wrap items-center gap-1">
         <Filter className="h-3.5 w-3.5 text-muted-foreground mr-1" />
         {filters.map((f) => (
           <button
@@ -236,6 +227,8 @@ export default function PaymentsPage() {
                 key={p.id}
                 onClick={() => setSelected(selected?.id === p.id ? null : p)}
                 className="w-full text-left"
+                aria-expanded={selected?.id === p.id}
+                aria-label={`Payment to ${p.recipient} for $${p.amount}`}
               >
                 <PaymentRow payment={p} isSelected={selected?.id === p.id} />
               </button>

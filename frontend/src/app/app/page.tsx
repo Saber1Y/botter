@@ -8,16 +8,14 @@ import {
   Wallet,
   TrendingUp,
   Target,
-  ArrowUpRight,
   Clock,
   CheckCircle2,
   AlertTriangle,
   XCircle,
-  Loader2,
   MessageSquare,
-  Sparkles,
   Zap,
 } from "lucide-react";
+import { StatCardSkeleton, TableRowSkeleton } from "@/components/Skeleton";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 16 },
@@ -77,9 +75,9 @@ function PaymentRow({ payment }: { payment: Payment }) {
       variants={fadeUp}
       className="flex items-center justify-between border-b border-border py-3.5 last:border-0"
     >
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 min-w-0">
         <div
-          className={`flex h-8 w-8 items-center justify-center rounded-lg ${
+          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
             isApproved
               ? "bg-emerald-50 text-emerald-600"
               : isPending
@@ -89,14 +87,14 @@ function PaymentRow({ payment }: { payment: Payment }) {
         >
           <Icon className="h-4 w-4" />
         </div>
-        <div>
-          <p className="text-[13px] font-medium text-foreground">{payment.recipient}</p>
+        <div className="min-w-0">
+          <p className="text-[13px] font-medium text-foreground truncate">{payment.recipient}</p>
           <p className="text-[11px] text-muted-foreground">
             {isApproved ? "Auto-approved" : isPending ? "Approval required" : "Denied"}
           </p>
         </div>
       </div>
-      <p className="text-[13px] font-medium text-muted-foreground">${payment.amount}</p>
+      <p className="text-[13px] font-medium text-muted-foreground shrink-0 ml-3">${payment.amount}</p>
     </motion.div>
   );
 }
@@ -120,7 +118,7 @@ export default function OverviewPage() {
         setGoals(g);
         setPayments(p);
       } catch (err) {
-        setError("Failed to load dashboard data. Please try again.");
+        setError("Failed to load dashboard data.");
       } finally {
         setLoading(false);
       }
@@ -130,11 +128,23 @@ export default function OverviewPage() {
 
   if (loading) {
     return (
-      <div className="flex h-full items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-5 w-5 animate-spin text-accent" />
-          <span className="text-[13px] text-muted-foreground">Loading your dashboard...</span>
+      <div className="p-6 md:p-8 max-w-5xl" role="status" aria-label="Loading dashboard">
+        <div className="mb-8">
+          <div className="h-7 w-40 rounded-lg bg-muted animate-pulse mb-2" />
+          <div className="h-4 w-64 rounded bg-muted animate-pulse" />
         </div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 mb-8">
+          <StatCardSkeleton />
+          <StatCardSkeleton />
+          <StatCardSkeleton />
+        </div>
+        <div className="h-5 w-32 rounded bg-muted animate-pulse mb-3" />
+        <div className="rounded-2xl border border-border bg-card p-4">
+          <TableRowSkeleton />
+          <TableRowSkeleton />
+          <TableRowSkeleton />
+        </div>
+        <span className="sr-only">Loading dashboard...</span>
       </div>
     );
   }
@@ -160,7 +170,7 @@ export default function OverviewPage() {
       initial="hidden"
       animate="visible"
       variants={stagger}
-      className="p-6 md:p-8 max-w-5xl"
+      className="p-4 sm:p-6 md:p-8 max-w-5xl"
     >
       <motion.div variants={fadeUp} className="mb-8">
         <h1 className="text-xl font-bold tracking-tight text-foreground mb-1">

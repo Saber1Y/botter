@@ -1,4 +1,5 @@
 """Pact Backend - AI Financial Agent with Persistent Memory."""
+import time
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -6,6 +7,7 @@ from config import get_settings
 from memory import memory
 from agent import agent
 from schemas import (
+    ChatHistoryEntry,
     ChatRequest,
     ChatResponse,
     PaymentResponse,
@@ -46,8 +48,50 @@ app.add_middleware(
 @app.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest, wallet: str = "0x0000000000000000000000000000000000000000"):
     """Process a chat message from the user."""
+    # Store user message in history
+    client = memory._client(wallet)
+    ts = time.time()
+    client.set_entity("chat_history", f"msg_{ts}_user", {
+        "role": "user",
+        "content": request.message,
+        "ts": ts,
+    })
+
     result = await agent.process_message(wallet, request.message)
+
+    # Store assistant response in history
+    ts2 = time.time()
+    client.set_entity("chat_history", f"msg_{ts2}_assistant", {
+        "role": "assistant",
+        "content": result.get("response", ""),
+        "intent": result.get("intent", ""),
+        "decision": result.get("decision"),
+        "payment": result.get("payment"),
+        "ts": ts2,
+    })
+
     return ChatResponse(**result)
+
+
+@app.get("/chat/history", response_model=list[ChatHistoryEntry])
+async def get_chat_history(wallet: str = "0x0000000000000000000000000000000000000000"):
+    """Get chat history for a wallet."""
+    client = memory._client(wallet)
+    entities = client.list_entities("chat_history")
+    messages = []
+    for e in entities:
+        body = e.get("body", {})
+        if body.get("role"):
+            messages.append(ChatHistoryEntry(
+                role=body["role"],
+                content=body.get("content", ""),
+                ts=body.get("ts", 0),
+                intent=body.get("intent"),
+                decision=body.get("decision"),
+                payment=body.get("payment"),
+            ))
+    messages.sort(key=lambda m: m.ts)
+    return messages[-50:]  # last 50 messages
 
 
 # --- Memory Endpoints ---

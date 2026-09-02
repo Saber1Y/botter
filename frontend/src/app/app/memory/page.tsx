@@ -10,10 +10,10 @@ import {
   Clock,
   AlertTriangle,
   CheckCircle2,
-  Loader2,
   Database,
   Sparkles,
 } from "lucide-react";
+import { PageSkeleton } from "@/components/Skeleton";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
@@ -59,10 +59,10 @@ function MemoryCard({
       className="rounded-xl border border-border bg-card p-4 transition-all hover:shadow-md hover:shadow-black/[0.03]"
     >
       <div className="flex items-center justify-between mb-1">
-        <div className="text-[13px] font-medium text-foreground">{label}</div>
-        <span className="rounded-full bg-muted px-2 py-0.5 text-[9px] font-medium text-muted-foreground">{category}</span>
+        <div className="text-[13px] font-medium text-foreground min-w-0 truncate">{label}</div>
+        <span className="rounded-full bg-muted px-2 py-0.5 text-[9px] font-medium text-muted-foreground shrink-0 ml-2">{category}</span>
       </div>
-      <div className="text-[12px] text-muted-foreground">{value}</div>
+      <div className="text-[12px] text-muted-foreground truncate">{value}</div>
       {source && (
         <div className="mt-2 flex items-center gap-1">
           <CheckCircle2 className="h-3 w-3 text-accent/50" />
@@ -82,13 +82,13 @@ function GoalCard({ goal }: { goal: Goal }) {
       className="rounded-xl border border-border bg-card p-5 transition-all hover:shadow-md hover:shadow-black/[0.03]"
     >
       <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/10">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-accent/10">
             <Target className="h-3.5 w-3.5 text-accent" />
           </div>
-          <div className="text-[13px] font-medium text-foreground">{goal.name}</div>
+          <div className="text-[13px] font-medium text-foreground truncate">{goal.name}</div>
         </div>
-        <div className="text-[12px] text-muted-foreground">
+        <div className="text-[12px] text-muted-foreground shrink-0 ml-2">
           ${goal.current} / ${goal.target}
         </div>
       </div>
@@ -121,7 +121,7 @@ export default function MemoryPage() {
         setMemories(m);
         setGoals(g);
       } catch (err) {
-        setError("Failed to load memories. Please try again.");
+        setError("Failed to load memories.");
       } finally {
         setLoading(false);
       }
@@ -129,16 +129,7 @@ export default function MemoryPage() {
     load();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-5 w-5 animate-spin text-accent" />
-          <span className="text-[13px] text-muted-foreground">Loading memories...</span>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <PageSkeleton />;
 
   if (error) {
     return (
@@ -163,7 +154,7 @@ export default function MemoryPage() {
       initial="hidden"
       animate="visible"
       variants={stagger}
-      className="p-8 max-w-4xl"
+      className="p-4 sm:p-8 max-w-4xl"
     >
       <motion.div variants={fadeUp} className="mb-8">
         <div className="flex items-center gap-3 mb-1">
@@ -172,7 +163,7 @@ export default function MemoryPage() {
           </div>
           <h1 className="text-xl font-bold tracking-tight text-foreground">Memory</h1>
         </div>
-        <p className="text-[13px] text-muted-foreground ml-11">
+        <p className="text-[13px] text-muted-foreground sm:ml-11">
           Everything Pact remembers about how you manage money.
         </p>
       </motion.div>
