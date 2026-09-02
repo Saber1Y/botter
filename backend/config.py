@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     # LLM (OpenRouter - free models available)
     openai_api_key: str = ""
     openai_base_url: str = "https://openrouter.ai/api/v1"
-    openai_model: str = "google/gemini-2.0-flash-exp:free"
+    openai_model: str = "nvidia/nemotron-3-super-120b-a12b:free"
 
     # Base Sepolia
     base_sepolia_rpc: str = "https://sepolia.base.org"
