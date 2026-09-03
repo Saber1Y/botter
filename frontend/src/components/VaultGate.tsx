@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useAccount } from "wagmi";
+import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { api, VaultStatus } from "@/lib/api";
+import { VAULT_FACTORY_ABI } from "@/lib/abis";
 import { motion } from "framer-motion";
 import { Loader2, ExternalLink } from "lucide-react";
 
@@ -15,17 +16,18 @@ export function VaultGate({ children }: VaultGateProps) {
   const [vaultStatus, setVaultStatus] = useState<VaultStatus | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const refresh = () => {
+    if (!address) return;
+    setLoading(true);
+    api.getVaultStatus(address).then(setVaultStatus).catch(() => setVaultStatus({ has_vault: false })).finally(() => setLoading(false));
+  };
+
   useEffect(() => {
     if (!isConnected || !address) {
       setLoading(false);
       return;
     }
-
-    api
-      .getVaultStatus(address as string)
-      .then(setVaultStatus)
-      .catch(() => setVaultStatus({ has_vault: false }))
-      .finally(() => setLoading(false));
+    refresh();
   }, [address, isConnected]);
 
   if (!isConnected) {
@@ -45,47 +47,41 @@ export function VaultGate({ children }: VaultGateProps) {
   }
 
   if (!vaultStatus?.has_vault) {
-    return (
-      <DeployVaultPrompt
-        onDeployed={() => {
-          setLoading(true);
-          api.getVaultStatus(address as string).then(setVaultStatus).finally(() => setLoading(false));
-        }}
-      />
-    );
+    return <DeployVaultPrompt onDeployed={refresh} />;
   }
 
   if (vaultStatus.balance === 0) {
-    return (
-      <FundVaultPrompt
-        vaultAddress={vaultStatus.vault_address!}
-        onFunded={() => {
-          setLoading(true);
-          api.getVaultStatus(address as string).then(setVaultStatus).finally(() => setLoading(false));
-        }}
-      />
-    );
+    return <FundVaultPrompt vaultAddress={vaultStatus.vault_address!} onFunded={refresh} />;
   }
 
   return <>{children}</>;
 }
 
 function DeployVaultPrompt({ onDeployed }: { onDeployed: () => void }) {
-  const [loading, setLoading] = useState(false);
+  const factoryAddress = process.env.NEXT_PUBLIC_VAULT_FACTORY_ADDRESS as `0x${string}` | undefined;
+
+  const { writeContract, data: txHash, isPending, error } = useWriteContract();
+
+  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
+    hash: txHash,
+  });
+
+  useEffect(() => {
+    if (isConfirmed) {
+      onDeployed();
+    }
+  }, [isConfirmed, onDeployed]);
 
   const handleDeploy = () => {
-    setLoading(true);
-    const factoryAddress = process.env.NEXT_PUBLIC_VAULT_FACTORY_ADDRESS || "0x0000000000000000000000000000000000000000";
-    window.open(
-      `https://sepolia.basescan.org/address/${factoryAddress}#writeContract`,
-      "_blank"
-    );
-    // Optimistically assume deploy succeeded after a delay
-    setTimeout(() => {
-      setLoading(false);
-      onDeployed();
-    }, 5000);
+    if (!factoryAddress) return;
+    writeContract({
+      address: factoryAddress,
+      abi: VAULT_FACTORY_ABI,
+      functionName: "createVault",
+    });
   };
+
+  const deploying = isPending || isConfirming;
 
   return (
     <div className="flex h-full items-center justify-center">
@@ -105,23 +101,35 @@ function DeployVaultPrompt({ onDeployed }: { onDeployed: () => void }) {
 
         <button
           onClick={handleDeploy}
-          disabled={loading}
+          disabled={deploying || !factoryAddress}
           className="w-full rounded-xl bg-foreground px-5 py-2.5 text-[13px] font-medium text-background transition-all hover:opacity-90 disabled:opacity-50"
         >
-          {loading ? (
+          {isPending ? (
             <span className="flex items-center justify-center gap-2">
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              Waiting for confirmation...
+              Confirm in wallet...
+            </span>
+          ) : isConfirming ? (
+            <span className="flex items-center justify-center gap-2">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              Deploying...
             </span>
           ) : (
             "Deploy my vault"
           )}
         </button>
 
-        <p className="mt-4 text-[11px] text-muted-foreground/60">
-          Opens BaseScan - connect your wallet and call{" "}
-          <code className="rounded bg-muted px-1 py-0.5 text-[10px]">createVault()</code>
-        </p>
+        {error && (
+          <p className="mt-3 text-[11px] text-red-500">
+            {error.message?.includes("User rejected") ? "Transaction rejected" : "Deployment failed"}
+          </p>
+        )}
+
+        {!factoryAddress && (
+          <p className="mt-3 text-[11px] text-amber-600">
+            Factory address not configured
+          </p>
+        )}
       </motion.div>
     </div>
   );
