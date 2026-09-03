@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useAccount } from "wagmi";
 import { api, VaultInfo, Goal, Payment } from "@/lib/api";
 import { motion } from "framer-motion";
 import {
@@ -100,6 +101,7 @@ function PaymentRow({ payment }: { payment: Payment }) {
 }
 
 export default function OverviewPage() {
+  const { address } = useAccount();
   const [vault, setVault] = useState<VaultInfo | null>(null);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
@@ -107,12 +109,14 @@ export default function OverviewPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!address) return;
+
     async function load() {
       try {
         const [v, g, p] = await Promise.all([
-          api.getVault().catch(() => null),
-          api.getGoals().catch(() => []),
-          api.getPayments().catch(() => []),
+          api.getVault(address!).catch(() => null),
+          api.getGoals(address!).catch(() => []),
+          api.getPayments(address!).catch(() => []),
         ]);
         setVault(v);
         setGoals(g);
@@ -124,7 +128,7 @@ export default function OverviewPage() {
       }
     }
     load();
-  }, []);
+  }, [address]);
 
   if (loading) {
     return (
