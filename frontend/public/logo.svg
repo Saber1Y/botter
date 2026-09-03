@@ -1,7 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
-  <rect width="128" height="128" rx="32" fill="#09090b"/>
-  <!-- Minimal hexagon = tech + connection -->
-  <path d="M64 24L100 44V84L64 104L28 84V44L64 24Z" stroke="#27272a" stroke-width="2.5"/>
-  <!-- Inner accent = the memory/agent core -->
-  <circle cx="64" cy="64" r="16" fill="#22c55e" opacity="0.9"/>
+  <rect width="128" height="128" rx="32" fill="#FDFCFA"/>
+  <rect x="0.5" y="0.5" width="127" height="127" rx="31.5" stroke="#E7E0D8"/>
+  <!-- P mark -->
+  <path d="M44 36h24c14.4 0 26 10.8 26 24s-11.6 24-26 24H44V36zm16 13.6V72.4h7.6c7.2 0 12.4-5.2 12.4-12.2 0-7-5.2-12.2-12.4-12.2H60z" fill="#6366f1"/>
 </svg>

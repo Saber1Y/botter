@@ -63,7 +63,7 @@ export function Sidebar() {
         <div className="border-b border-border p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10 ring-1 ring-accent/20">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-card">
                 <Image src="/logo.svg" alt="Pact" width={16} height={16} />
               </div>
               <div>
