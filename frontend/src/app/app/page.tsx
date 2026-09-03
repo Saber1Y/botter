@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useAccount } from "wagmi";
-import { api, VaultInfo, Goal, Payment } from "@/lib/api";
+import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { api, VaultInfo, VaultStatus, Goal, Payment } from "@/lib/api";
+import { VAULT_FACTORY_ABI } from "@/lib/abis";
 import { motion } from "framer-motion";
 import {
   CheckCircle2,
@@ -11,6 +12,8 @@ import {
   XCircle,
   ArrowRight,
   Plus,
+  Loader2,
+  ExternalLink,
 } from "lucide-react";
 import { StatCardSkeleton, TableRowSkeleton } from "@/components/Skeleton";
 
@@ -35,6 +38,7 @@ function getGreeting() {
 export default function OverviewPage() {
   const { address } = useAccount();
   const [vault, setVault] = useState<VaultInfo | null>(null);
+  const [vaultStatus, setVaultStatus] = useState<VaultStatus | null>(null);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,12 +49,14 @@ export default function OverviewPage() {
 
     async function load() {
       try {
-        const [v, g, p] = await Promise.all([
+        const [v, vs, g, p] = await Promise.all([
           api.getVault(address!).catch(() => null),
+          api.getVaultStatus(address!).catch(() => null),
           api.getGoals(address!).catch(() => []),
           api.getPayments(address!).catch(() => []),
         ]);
         setVault(v);
+        setVaultStatus(vs);
         setGoals(g);
         setPayments(p);
       } catch (err) {
@@ -61,6 +67,12 @@ export default function OverviewPage() {
     }
     load();
   }, [address]);
+
+  const refreshVault = () => {
+    if (!address) return;
+    api.getVaultStatus(address).then(setVaultStatus).catch(() => {});
+    api.getVault(address).then(setVault).catch(() => {});
+  };
 
   if (loading) {
     return (
@@ -124,6 +136,18 @@ export default function OverviewPage() {
           Your financial command center
         </p>
       </motion.div>
+
+      {/* Vault status banner */}
+      {vaultStatus && !vaultStatus.has_vault && (
+        <motion.div variants={fadeUp} className="mb-6">
+          <VaultDeployBanner address={address!} onDeployed={refreshVault} />
+        </motion.div>
+      )}
+      {vaultStatus && vaultStatus.has_vault && vaultStatus.balance === 0 && (
+        <motion.div variants={fadeUp} className="mb-6">
+          <VaultFundBanner vaultAddress={vaultStatus.vault_address!} onFunded={refreshVault} />
+        </motion.div>
+      )}
 
       {/* Hero balance */}
       <motion.div
@@ -327,5 +351,99 @@ function PaymentRow({ payment }: { payment: Payment }) {
         ${payment.amount}
       </p>
     </motion.div>
+  );
+}
+
+function VaultDeployBanner({
+  address,
+  onDeployed,
+}: {
+  address: string;
+  onDeployed: () => void;
+}) {
+  const factoryAddress = process.env.NEXT_PUBLIC_VAULT_FACTORY_ADDRESS as `0x${string}` | undefined;
+  const { writeContract, data: txHash, isPending, error } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash: txHash });
+
+  useEffect(() => {
+    if (isConfirmed) onDeployed();
+  }, [isConfirmed, onDeployed]);
+
+  const handleDeploy = () => {
+    if (!factoryAddress) return;
+    writeContract({
+      address: factoryAddress,
+      abi: VAULT_FACTORY_ABI,
+      functionName: "createVault",
+    });
+  };
+
+  const deploying = isPending || isConfirming;
+
+  return (
+    <div className="rounded-2xl border border-accent/20 bg-accent/[0.03] p-4 sm:p-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <p className="text-[13px] font-medium text-foreground mb-0.5">
+            Deploy your vault to start
+          </p>
+          <p className="text-[12px] text-muted-foreground">
+            Create a PactVault on Base Sepolia to hold USDC and execute payments.
+          </p>
+        </div>
+        <button
+          onClick={handleDeploy}
+          disabled={deploying || !factoryAddress}
+          className="shrink-0 rounded-xl bg-foreground px-4 py-2 text-[12px] font-medium text-background transition-all hover:opacity-90 disabled:opacity-50"
+        >
+          {isPending ? "Confirm..." : isConfirming ? "Deploying..." : "Deploy vault"}
+        </button>
+      </div>
+      {error && (
+        <p className="mt-2 text-[11px] text-red-500">
+          {error.message?.includes("User rejected") ? "Transaction rejected" : "Deployment failed"}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function VaultFundBanner({
+  vaultAddress,
+  onFunded,
+}: {
+  vaultAddress: string;
+  onFunded: () => void;
+}) {
+  return (
+    <div className="rounded-2xl border border-border bg-card p-4 sm:p-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[13px] font-medium text-foreground mb-0.5">
+            Fund your vault
+          </p>
+          <p className="text-[12px] text-muted-foreground truncate">
+            Send USDC to{" "}
+            <code className="font-mono text-[11px]">{vaultAddress.slice(0, 6)}...{vaultAddress.slice(-4)}</code>
+          </p>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <a
+            href={`https://sepolia.basescan.org/address/${vaultAddress}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ExternalLink className="h-3.5 w-3.5" />
+          </a>
+          <button
+            onClick={onFunded}
+            className="rounded-xl bg-foreground px-4 py-2 text-[12px] font-medium text-background transition-all hover:opacity-90"
+          >
+            I've deposited
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
