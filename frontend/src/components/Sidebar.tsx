@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import {
@@ -11,7 +10,6 @@ import {
   Target,
   CreditCard,
   MessageSquare,
-  Sparkles,
   Menu,
   X,
 } from "lucide-react";
@@ -63,11 +61,11 @@ export function Sidebar() {
         <div className="border-b border-border p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-card">
-                <Image src="/logo.svg" alt="Pact" width={16} height={16} />
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-foreground">
+                <span className="text-[15px] font-medium text-background font-display">P</span>
               </div>
               <div>
-                <h1 className="text-[13px] font-semibold tracking-tight text-foreground">Pact</h1>
+                <h1 className="text-[15px] font-medium tracking-[-0.02em] text-foreground font-display">Pact</h1>
                 <p className="text-[9px] text-muted-foreground">Your rules. Remembered.</p>
               </div>
             </div>
@@ -113,7 +111,6 @@ export function Sidebar() {
 
         <div className="border-t border-border p-3">
           <div className="mb-2 flex items-center gap-1.5 px-1">
-            <Sparkles className="h-3 w-3 text-accent/50" />
             <p className="text-[9px] font-medium uppercase tracking-widest text-muted-foreground">Wallet</p>
           </div>
           <ConnectButton

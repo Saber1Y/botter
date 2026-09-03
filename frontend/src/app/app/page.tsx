@@ -125,16 +125,17 @@ export default function OverviewPage() {
       initial="hidden"
       animate="visible"
       variants={stagger}
-      className="p-4 sm:p-6 md:p-8 max-w-5xl"
+      className="p-4 sm:p-6 md:p-10 max-w-5xl"
     >
       {/* Header */}
-      <motion.div variants={fadeUp} className="mb-10">
-        <h1 className="text-xl font-bold tracking-tight text-foreground mb-1">
-          {getGreeting()}
-        </h1>
-        <p className="text-[13px] text-muted-foreground">
-          Your financial command center
+      <motion.div variants={fadeUp} className="mb-8">
+        <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground mb-2">
+          Dashboard
         </p>
+        <h1 className="text-3xl sm:text-4xl font-medium tracking-[-0.03em] text-foreground font-display">
+          {getGreeting()}
+          <span className="text-muted-foreground/40">.</span>
+        </h1>
       </motion.div>
 
       {/* Vault status banner */}
@@ -149,45 +150,55 @@ export default function OverviewPage() {
         </motion.div>
       )}
 
-      {/* Hero balance */}
-      <motion.div
-        variants={fadeUp}
-        className="mb-8 rounded-2xl border border-border bg-card p-6 sm:p-8"
-      >
-        <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground mb-2">
-          Vault balance
-        </p>
-        <div className="flex items-baseline gap-1 mb-1">
-          <span className="text-[13px] text-muted-foreground">$</span>
-          <span className="text-4xl sm:text-5xl font-bold tracking-tight text-foreground">
-            {balance.toFixed(2)}
-          </span>
-        </div>
-        <p className="text-[12px] text-muted-foreground">
-          USDC on Base Sepolia
-        </p>
-      </motion.div>
+      {/* Bento hero: balance (2 cols) + budget + goal */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-8">
+        {/* Balance - spans 2 cols */}
+        <motion.div
+          variants={fadeUp}
+          className="sm:col-span-2 rounded-xl border border-border bg-card p-6 sm:p-8 relative overflow-hidden"
+        >
+          {/* Ambient radial accent */}
+          <div
+            aria-hidden="true"
+            className="absolute -top-24 -right-24 h-64 w-64 rounded-full pointer-events-none"
+            style={{
+              background:
+                "radial-gradient(closest-side, rgba(99,102,241,0.07), transparent)",
+            }}
+          />
+          <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground mb-3">
+            Vault balance
+          </p>
+          <div className="flex items-baseline gap-2 mb-1 relative">
+            <span className="text-5xl sm:text-6xl font-medium tracking-[-0.03em] text-foreground font-display tabular-nums">
+              {balance.toFixed(2)}
+            </span>
+            <span className="text-[13px] font-medium text-muted-foreground">
+              USDC
+            </span>
+          </div>
+          <p className="text-[11px] text-muted-foreground font-mono mt-2">
+            Base Sepolia
+          </p>
+        </motion.div>
 
-      {/* Two-column: Budget + Goal */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
         {/* Daily budget */}
         <motion.div
           variants={fadeUp}
-          className="rounded-2xl border border-border bg-card p-5"
+          className="rounded-xl border border-border bg-card p-5 flex flex-col"
         >
           <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground mb-3">
             Autonomous budget
           </p>
           <div className="flex items-baseline gap-1 mb-3">
-            <span className="text-[13px] text-muted-foreground">$</span>
-            <span className="text-2xl font-bold tracking-tight text-foreground">
-              {dailyRemaining.toFixed(2)}
+            <span className="text-3xl font-medium tracking-[-0.02em] text-foreground font-display tabular-nums">
+              {dailyRemaining.toFixed(0)}
             </span>
-            <span className="text-[12px] text-muted-foreground">
-              / ${dailyLimit.toFixed(0)}
+            <span className="text-[11px] text-muted-foreground">
+              / {dailyLimit.toFixed(0)} left
             </span>
           </div>
-          <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+          <div className="h-1 overflow-hidden rounded-full bg-muted mt-auto">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${Math.min(budgetPct, 100)}%` }}
@@ -199,35 +210,38 @@ export default function OverviewPage() {
               className="h-full rounded-full bg-accent"
             />
           </div>
-          <p className="mt-2 text-[11px] text-muted-foreground">
+          <p className="mt-2 text-[10px] uppercase tracking-widest text-muted-foreground/60">
             Resets daily
           </p>
         </motion.div>
+      </div>
 
-        {/* Goal */}
+      {/* Goal + Activity */}
+      <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 mb-8">
+        {/* Goal - 2 cols */}
         {goal ? (
           <motion.div
             variants={fadeUp}
-            className="rounded-2xl border border-border bg-card p-5"
+            className="sm:col-span-2 rounded-xl border border-border bg-card p-5"
           >
             <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground mb-3">
-              {goal.name}
+              Active goal
             </p>
-            <div className="flex items-baseline gap-1 mb-3">
-              <span className="text-[13px] text-muted-foreground">$</span>
-              <span className="text-2xl font-bold tracking-tight text-foreground">
+            <h3 className="text-[15px] font-medium text-foreground mb-2 font-display">
+              {goal.name}
+            </h3>
+            <div className="flex items-baseline gap-1.5 mb-3">
+              <span className="text-2xl font-medium tracking-[-0.02em] text-foreground font-display tabular-nums">
                 {goal.current.toLocaleString()}
               </span>
-              <span className="text-[12px] text-muted-foreground">
+              <span className="text-[11px] text-muted-foreground">
                 / ${goal.target.toLocaleString()}
               </span>
             </div>
-            <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+            <div className="h-1 overflow-hidden rounded-full bg-muted">
               <motion.div
                 initial={{ width: 0 }}
-                animate={{
-                  width: `${Math.min(goal.progress, 100)}%`,
-                }}
+                animate={{ width: `${Math.min(goal.progress, 100)}%` }}
                 transition={{
                   duration: 1,
                   ease: [0.22, 1, 0.36, 1],
@@ -236,77 +250,78 @@ export default function OverviewPage() {
                 className="h-full rounded-full bg-accent"
               />
             </div>
-            <p className="mt-2 text-[11px] text-muted-foreground">
-              {goal.progress.toFixed(0)}% complete
-            </p>
+            <Link href="/app/goals">
+              <p className="mt-3 text-[11px] font-medium text-accent hover:text-accent/70 transition-colors">
+                {goal.progress.toFixed(0)}% complete →
+              </p>
+            </Link>
           </motion.div>
         ) : (
           <motion.div
             variants={fadeUp}
-            className="rounded-2xl border border-dashed border-border bg-card p-5 flex flex-col items-center justify-center text-center"
+            className="sm:col-span-2 rounded-xl border border-dashed border-border bg-card p-5 flex flex-col items-start justify-center"
           >
-            <p className="text-[13px] text-muted-foreground mb-3">
-              No goals set yet
+            <p className="text-[13px] text-muted-foreground mb-2">
+              No active goal
             </p>
             <Link
               href="/app/goals"
-              className="inline-flex items-center gap-1.5 text-[12px] font-medium text-accent hover:text-accent/80 transition-colors"
+              className="inline-flex items-center gap-1 text-[12px] font-medium text-accent hover:text-accent/70 transition-colors"
             >
               <Plus className="h-3 w-3" />
-              Create a goal
+              Record a goal in memory
             </Link>
           </motion.div>
         )}
-      </div>
 
-      {/* Activity */}
-      <motion.div variants={fadeUp} className="mb-8">
-        <h2 className="mb-3 text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
-          Recent activity
-        </h2>
-        <div className="rounded-2xl border border-border bg-card">
-          {payments.length === 0 ? (
-            <div className="py-12 text-center">
-              <p className="text-[13px] text-muted-foreground mb-1">
-                No payments yet
-              </p>
-              <p className="text-[12px] text-muted-foreground/60">
-                Start by asking Pact to pay someone
-              </p>
-            </div>
-          ) : (
-            <motion.div
-              variants={stagger}
-              initial="hidden"
-              animate="visible"
-              className="divide-y divide-border"
-            >
-              {payments.slice(0, 5).map((p) => (
-                <PaymentRow key={p.id} payment={p} />
-              ))}
-            </motion.div>
-          )}
-        </div>
-      </motion.div>
+        {/* Activity - 3 cols */}
+        <motion.div variants={fadeUp} className="sm:col-span-3">
+          <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground mb-3">
+            Recent activity
+          </p>
+          <div className="rounded-xl border border-border bg-card">
+            {payments.length === 0 ? (
+              <div className="py-10 text-center">
+                <p className="text-[13px] text-muted-foreground mb-1">
+                  No payments yet
+                </p>
+                <p className="text-[11px] text-muted-foreground/60">
+                  Ask Pact to pay someone or set a rule
+                </p>
+              </div>
+            ) : (
+              <div className="divide-y divide-border">
+                {payments.slice(0, 4).map((p) => (
+                  <PaymentRow key={p.id} payment={p} />
+                ))}
+              </div>
+            )}
+          </div>
+          <Link
+            href="/app/payments"
+            className="inline-block mt-3 text-[11px] font-medium text-accent hover:text-accent/70 transition-colors"
+          >
+            View all payments →
+          </Link>
+        </motion.div>
+      </div>
 
       {/* CTA */}
       <motion.div variants={fadeUp}>
         <Link
           href="/app/chat"
-          className="group block rounded-2xl border border-border bg-card p-5 transition-all hover:shadow-md hover:shadow-accent/5 hover:border-accent/20"
+          className="group flex items-center justify-between rounded-xl border border-border bg-card p-5 transition-all hover:shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:border-accent/25"
         >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[14px] font-medium text-foreground mb-0.5">
-                Talk to your AI CFO
-              </p>
-              <p className="text-[12px] text-muted-foreground">
-                &quot;Can I spend $200 this weekend?&quot;
-              </p>
-            </div>
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-foreground text-background group-hover:bg-accent transition-colors">
-              <ArrowRight className="h-3.5 w-3.5" />
-            </div>
+          <div>
+            <p className="text-[14px] font-medium text-foreground mb-0.5">
+              Talk to your AI CFO
+            </p>
+            <p className="text-[12px] text-muted-foreground">
+              &quot;Can I spend $200 this weekend?&quot;
+            </p>
+          </div>
+          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-foreground text-background group-hover:bg-accent transition-colors">
+            <ArrowRight className="h-3.5 w-3.5" />
           </div>
         </Link>
       </motion.div>
@@ -320,25 +335,22 @@ function PaymentRow({ payment }: { payment: Payment }) {
   const Icon = isApproved ? CheckCircle2 : isPending ? AlertTriangle : XCircle;
 
   return (
-    <motion.div
-      variants={fadeUp}
-      className="flex items-center justify-between px-5 py-4"
-    >
+    <div className="flex items-center justify-between px-4 py-3.5">
       <div className="flex items-center gap-3 min-w-0">
         <Icon
-          className={`h-4 w-4 shrink-0 ${
+          className={`h-3.5 w-3.5 shrink-0 ${
             isApproved
-              ? "text-emerald-500"
+              ? "text-emerald-600"
               : isPending
-                ? "text-amber-500"
-                : "text-red-500"
+                ? "text-amber-600"
+                : "text-red-600"
           }`}
         />
         <div className="min-w-0">
-          <p className="text-[13px] font-medium text-foreground truncate">
+          <p className="text-[13px] font-medium text-foreground truncate font-mono">
             {payment.recipient}
           </p>
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-[10px] uppercase tracking-widest text-muted-foreground/70">
             {isApproved
               ? "Auto-approved"
               : isPending
@@ -347,10 +359,10 @@ function PaymentRow({ payment }: { payment: Payment }) {
           </p>
         </div>
       </div>
-      <p className="text-[13px] font-medium text-muted-foreground shrink-0 ml-3">
+      <p className="text-[13px] font-medium text-foreground shrink-0 ml-3 font-display tabular-nums">
         ${payment.amount}
       </p>
-    </motion.div>
+    </div>
   );
 }
 
@@ -381,7 +393,7 @@ function VaultDeployBanner({
   const deploying = isPending || isConfirming;
 
   return (
-    <div className="rounded-2xl border border-accent/20 bg-accent/[0.03] p-4 sm:p-5">
+    <div className="rounded-xl border border-accent/20 bg-accent/[0.03] p-4 sm:p-5">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <p className="text-[13px] font-medium text-foreground mb-0.5">
@@ -394,7 +406,7 @@ function VaultDeployBanner({
         <button
           onClick={handleDeploy}
           disabled={deploying || !factoryAddress}
-          className="shrink-0 rounded-xl bg-foreground px-4 py-2 text-[12px] font-medium text-background transition-all hover:opacity-90 disabled:opacity-50"
+          className="shrink-0 rounded-md bg-foreground px-4 py-2 text-[12px] font-medium text-background transition-all hover:opacity-90 disabled:opacity-50"
         >
           {isPending ? "Confirm..." : isConfirming ? "Deploying..." : "Deploy vault"}
         </button>
@@ -416,7 +428,7 @@ function VaultFundBanner({
   onFunded: () => void;
 }) {
   return (
-    <div className="rounded-2xl border border-border bg-card p-4 sm:p-5">
+    <div className="rounded-xl border border-border bg-card p-4 sm:p-5">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="text-[13px] font-medium text-foreground mb-0.5">
@@ -438,7 +450,7 @@ function VaultFundBanner({
           </a>
           <button
             onClick={onFunded}
-            className="rounded-xl bg-foreground px-4 py-2 text-[12px] font-medium text-background transition-all hover:opacity-90"
+            className="rounded-md bg-foreground px-4 py-2 text-[12px] font-medium text-background transition-all hover:opacity-90"
           >
             I've deposited
           </button>
