@@ -13,6 +13,7 @@ import {
   CheckCircle2,
   Sparkles,
   Rocket,
+  Trash2,
 } from "lucide-react";
 import { PageSkeleton } from "@/components/Skeleton";
 
@@ -69,6 +70,16 @@ export default function GoalsPage() {
       toast("Failed to create goal", "error");
     } finally {
       setCreating(false);
+    }
+  };
+
+  const handleDelete = async (name: string) => {
+    try {
+      await api.deleteGoal(name, address);
+      setGoals((prev) => prev.filter((g) => g.name !== name));
+      toast(`Goal "${name}" deleted`, "success");
+    } catch (err) {
+      toast("Failed to delete goal", "error");
     }
   };
 
@@ -196,11 +207,20 @@ export default function GoalsPage() {
                     </div>
                   </div>
                 </div>
-                <div className="text-right shrink-0">
-                  <div className="text-lg font-bold text-foreground">{progress.toFixed(0)}%</div>
-                  <div className="text-[10px] text-muted-foreground">
-                    ${(goal.target - goal.current).toLocaleString()} left
+                <div className="flex items-center gap-2 shrink-0">
+                  <div className="text-right">
+                    <div className="text-lg font-bold text-foreground">{progress.toFixed(0)}%</div>
+                    <div className="text-[10px] text-muted-foreground">
+                      ${(goal.target - goal.current).toLocaleString()} left
+                    </div>
                   </div>
+                  <button
+                    onClick={() => handleDelete(goal.name)}
+                    className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground/40 hover:text-red-500 hover:bg-red-50 transition-colors"
+                    aria-label={`Delete ${goal.name}`}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
                 </div>
               </div>
 

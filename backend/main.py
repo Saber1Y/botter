@@ -199,6 +199,15 @@ async def get_goals(wallet: str = "0x0000000000000000000000000000000000000000"):
     ]
 
 
+@app.delete("/goals/{name}")
+async def delete_goal(name: str, wallet: str = "0x0000000000000000000000000000000000000000"):
+    """Delete a financial goal."""
+    success = memory.delete_goal(wallet, name)
+    if not success:
+        raise HTTPException(status_code=404, detail="Goal not found")
+    return {"status": "ok", "deleted": name}
+
+
 # --- Payments Endpoints ---
 
 @app.get("/payments", response_model=list[PaymentResponse])

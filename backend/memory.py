@@ -132,6 +132,15 @@ class PactMemory:
         entities = client.list_entities("goals")
         return [e.get("body", {}) for e in entities if e.get("status") != "archived"]
 
+    def delete_goal(self, wallet: str, name: str) -> bool:
+        """Delete a goal by name."""
+        client = self._client(wallet)
+        try:
+            client.delete_entity("goals", name)
+            return True
+        except Exception:
+            return False
+
     # ─── WARM: Policy facts ─────────────────────────────────────
 
     def store_policy_fact(

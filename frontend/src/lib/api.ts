@@ -126,6 +126,11 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ name, target }),
     }),
+  deleteGoal: (name: string, wallet?: string) =>
+    fetchAPI<{ status: string; deleted: string }>(
+      `/goals/${encodeURIComponent(name)}${wallet ? `?wallet=${wallet}` : ""}`,
+      { method: "DELETE" }
+    ),
 
   // Payments
   getPayments: (wallet?: string) =>
