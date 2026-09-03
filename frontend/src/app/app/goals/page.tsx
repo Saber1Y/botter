@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useAccount } from "wagmi";
 import { api, Goal } from "@/lib/api";
 import { useToast } from "@/components/Toast";
 import { motion, AnimatePresence } from "framer-motion";
@@ -23,6 +24,7 @@ const fadeUp = {
 const stagger = { visible: { transition: { staggerChildren: 0.05 } } };
 
 export default function GoalsPage() {
+  const { address } = useAccount();
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -33,12 +35,13 @@ export default function GoalsPage() {
   const { toast } = useToast();
 
   useEffect(() => {
+    if (!address) return;
     api
-      .getGoals()
+      .getGoals(address)
       .then(setGoals)
       .catch(() => setError("Failed to load goals."))
       .finally(() => setLoading(false));
-  }, []);
+  }, [address]);
 
   const validate = () => {
     const errors: { name?: string; target?: string } = {};
@@ -55,7 +58,7 @@ export default function GoalsPage() {
     setError(null);
 
     try {
-      const goal = await api.createGoal(newGoal.name.trim(), parseFloat(newGoal.target));
+      const goal = await api.createGoal(newGoal.name.trim(), parseFloat(newGoal.target), address);
       setGoals((prev) => [...prev, goal]);
       setNewGoal({ name: "", target: "" });
       setFormErrors({});

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useAccount } from "wagmi";
 import { api, Memory, Goal } from "@/lib/api";
 import { motion } from "framer-motion";
 import {
@@ -106,17 +107,19 @@ function GoalCard({ goal }: { goal: Goal }) {
 }
 
 export default function MemoryPage() {
+  const { address } = useAccount();
   const [memories, setMemories] = useState<Memory[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!address) return;
     async function load() {
       try {
         const [m, g] = await Promise.all([
-          api.getMemory().catch(() => []),
-          api.getGoals().catch(() => []),
+          api.getMemory(undefined, address!).catch(() => []),
+          api.getGoals(address!).catch(() => []),
         ]);
         setMemories(m);
         setGoals(g);
@@ -127,7 +130,7 @@ export default function MemoryPage() {
       }
     }
     load();
-  }, []);
+  }, [address]);
 
   if (loading) return <PageSkeleton />;
 
