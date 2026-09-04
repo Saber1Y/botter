@@ -17,6 +17,7 @@ An educational tool, not financial advice, and not a custodial service.
 ## Table of contents
 
 - [See it in one command](#see-it-in-one-command)
+- [Screenshots](#screenshots)
 - [The one rule — never a spending key](#the-one-rule--never-a-spending-key)
 - [What Pact does](#what-pact-does)
   - [AI CFO chat — the hero feature](#ai-cfo-chat--the-hero-feature)
@@ -57,6 +58,24 @@ cd frontend && npm install && npm run dev
 Open http://localhost:3000, connect with RainbowKit, and tell Pact:
 "I'm saving $2,000 for a MacBook" — then "you can spend up to $100 without asking" — then "pay 0xAlice 60 USDC".
 Watch the payment get remembered, checked against your rules, approved, and executed from your vault.
+
+## Screenshots
+
+Landing · hero:
+
+![Pact landing hero - tagline, rules-first messaging, and AI CFO chat mockup](docs/screenshots/landing-hero.png)
+
+Landing · how it works:
+
+![Pact how-it-works section - the memory → reason → policy → vault loop](docs/screenshots/landing-how-it-works.png)
+
+Landing · security:
+
+![Pact security section - the one rule, never a spending key](docs/screenshots/landing-security.png)
+
+Dashboard:
+
+![Pact dashboard - vault balance, autonomous budget, goal, and recent activity](docs/screenshots/dashboard.png)
 
 ## The one rule — never a spending key
 
@@ -136,15 +155,55 @@ Two decisions drive everything else.
 
 ### The loop
 
+```mermaid
+flowchart LR
+    A[User intent] --> B[(Sibyl memory retrieval)]
+    B --> C[LLM reasoning]
+    C --> D[Policy engine<br/>deterministic verdict]
+    D -->|Approve| E[PactVault<br/>contract-enforced]
+    E --> F[(Memory update<br/>decision + journal)]
+    D -.->|Deny / Require approval| F
 ```
-User intent → Sibyl memory retrieval → LLM reasoning
-    → Policy engine (deterministic verdict) → PactVault (contract-enforced)
-    → Memory update (decision + journal)
+
+The verdicts are a pure function of memory + request + vault state, computed by the policy engine and re-checked by the contract.
+
+```mermaid
+flowchart LR
+    User -->|creates & owns| Vault[PactVault per user]
+    Factory[VaultFactory<br/>CREATE2] --> Vault
+    Agent[Pact agent address] -->|pay / USDC| Vault
+    Vault -->|onlyOwner| User[Withdraw]
+    subgraph Limits
+        L1[per-transaction cap]
+        L2[daily cap]
+        L3[payment-id replay guard]
+    end
+    Vault === Limits
 ```
 
 ### Process model & the security boundary
 
 Three tiers, with the spend capability isolated where the model cannot reach it.
+
+```mermaid
+flowchart TB
+    subgraph Browser[User's browser]
+        FE[Next.js frontend<br/>can't move funds]
+    end
+    subgraph Server[Backend / FastAPI]
+        MEM[(Sibyl memory)]
+        LLM[LLM reasoning]
+        POL[Policy engine]
+        EX[Executor]
+    end
+    subgraph Chain[Base Sepolia]
+        VA[PactVault<br/>agent-only, limit-bounded]
+    end
+    Browser -->|chat / wallet| Server
+    MEM --> LLM --> POL
+    POL -->|verdict| EX
+    EX -->|typed pay call| VA
+```
 
 | Tier | Runs | Can it move funds? | Responsibility |
 | --- | --- | --- | --- |
