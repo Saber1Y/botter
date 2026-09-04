@@ -4,7 +4,12 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
+import {
+  motion,
+  useScroll,
+  useTransform,
+  AnimatePresence,
+} from "framer-motion";
 import {
   ArrowRight,
   Shield,
@@ -17,12 +22,11 @@ import {
   CreditCard,
   Lock,
   Eye,
-  ExternalLink,
+
   Sparkles,
   Globe,
   ShieldCheck,
   EyeOff,
-  FileCheck,
   ChevronRight,
   Clock,
 } from "lucide-react";
@@ -70,7 +74,12 @@ function HeroChatMockup() {
   }, []);
 
   return (
-    <motion.div variants={slideLeft} initial="hidden" animate="visible" className="relative">
+    <motion.div
+      variants={slideLeft}
+      initial="hidden"
+      animate="visible"
+      className="relative"
+    >
       <div className="absolute -inset-8 rounded-3xl bg-accent/[0.04] blur-3xl" />
       <div className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-xl shadow-black/[0.04]">
         {/* Title bar */}
@@ -80,7 +89,9 @@ function HeroChatMockup() {
             <div className="h-2.5 w-2.5 rounded-full bg-border" />
             <div className="h-2.5 w-2.5 rounded-full bg-border" />
           </div>
-          <span className="ml-2 text-[11px] font-medium tracking-wide text-muted-foreground">Pact AI CFO</span>
+          <span className="ml-2 text-[11px] font-medium tracking-wide text-muted-foreground">
+            Pact AI CFO
+          </span>
           <div className="ml-auto flex items-center gap-1.5">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
             <span className="text-[10px] text-emerald-600">Active</span>
@@ -112,7 +123,8 @@ function HeroChatMockup() {
             </div>
             <div className="max-w-[80%] space-y-3">
               <div className="rounded-2xl rounded-bl-md bg-muted px-4 py-3 text-[13px] leading-relaxed text-foreground/80">
-                I remember your $100 automatic spending limit. This payment requires your approval.
+                I remember your $100 automatic spending limit. This payment
+                requires your approval.
               </div>
 
               <AnimatePresence>
@@ -120,18 +132,29 @@ function HeroChatMockup() {
                   <motion.div
                     initial={{ opacity: 0, y: 8, scale: 0.98 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                    transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] as const }}
+                    transition={{
+                      duration: 0.4,
+                      ease: [0.22, 1, 0.36, 1] as const,
+                    }}
                     className="overflow-hidden rounded-xl border border-border bg-card shadow-sm"
                   >
                     <div className="p-4">
                       <div className="mb-3 flex items-start justify-between">
                         <div>
-                          <p className="text-[13px] font-medium text-foreground">Acme Software</p>
-                          <p className="text-[11px] text-muted-foreground">Subscription renewal</p>
+                          <p className="text-[13px] font-medium text-foreground">
+                            Acme Software
+                          </p>
+                          <p className="text-[11px] text-muted-foreground">
+                            Subscription renewal
+                          </p>
                         </div>
                         <div className="text-right">
-                          <p className="text-base font-semibold text-foreground">$150</p>
-                          <p className="text-[11px] text-muted-foreground">USDC</p>
+                          <p className="text-base font-semibold text-foreground">
+                            $150
+                          </p>
+                          <p className="text-[11px] text-muted-foreground">
+                            USDC
+                          </p>
                         </div>
                       </div>
 
@@ -222,7 +245,9 @@ function DashboardMockup() {
               <Sparkles className="h-4 w-4 text-accent" />
             </div>
             <div>
-              <p className="text-sm font-medium text-foreground">Pact Dashboard</p>
+              <p className="text-sm font-medium text-foreground">
+                Pact Dashboard
+              </p>
               <p className="text-[11px] text-muted-foreground">Base Sepolia</p>
             </div>
           </div>
@@ -240,17 +265,27 @@ function DashboardMockup() {
               <div className="rounded-xl border border-border bg-muted/50 p-4">
                 <div className="mb-2 flex items-center gap-1.5">
                   <CreditCard className="h-3 w-3 text-muted-foreground" />
-                  <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">Vault</p>
+                  <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
+                    Vault
+                  </p>
                 </div>
-                <p className="text-2xl font-bold tracking-tight text-foreground">$482.40</p>
-                <p className="mt-0.5 text-[10px] text-muted-foreground">USDC on Base</p>
+                <p className="text-2xl font-bold tracking-tight text-foreground">
+                  $482.40
+                </p>
+                <p className="mt-0.5 text-[10px] text-muted-foreground">
+                  USDC on Base
+                </p>
               </div>
               <div className="rounded-xl border border-border bg-muted/50 p-4">
                 <div className="mb-2 flex items-center gap-1.5">
                   <Settings className="h-3 w-3 text-muted-foreground" />
-                  <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">Budget left</p>
+                  <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
+                    Budget left
+                  </p>
                 </div>
-                <p className="text-2xl font-bold tracking-tight text-foreground">$73</p>
+                <p className="text-2xl font-bold tracking-tight text-foreground">
+                  $73
+                </p>
                 <div className="mt-2 h-1 overflow-hidden rounded-full bg-border">
                   <div className="h-full w-[36%] rounded-full bg-accent" />
                 </div>
@@ -262,13 +297,17 @@ function DashboardMockup() {
               <div className="mb-2 flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <Target className="h-3 w-3 text-muted-foreground" />
-                  <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">Active goal</p>
+                  <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
+                    Active goal
+                  </p>
                 </div>
                 <span className="rounded-full bg-accent/10 px-2 py-0.5 text-[9px] font-medium text-accent ring-1 ring-accent/20">
                   72%
                 </span>
               </div>
-              <p className="mb-3 text-sm font-medium text-foreground">MacBook Pro</p>
+              <p className="mb-3 text-sm font-medium text-foreground">
+                MacBook Pro
+              </p>
               <div className="h-1.5 overflow-hidden rounded-full bg-border">
                 <div className="h-full w-[72%] rounded-full bg-gradient-to-r from-accent to-indigo-400" />
               </div>
@@ -280,15 +319,22 @@ function DashboardMockup() {
 
             {/* Memory chips */}
             <div className="space-y-2">
-              <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">Active rules</p>
+              <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
+                Active rules
+              </p>
               {[
                 { label: "$100 auto-approve limit", color: "bg-accent" },
                 { label: "Acme = trusted", color: "bg-indigo-500" },
                 { label: "Save 30% of income", color: "bg-blue-500" },
               ].map((rule, i) => (
-                <div key={i} className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2">
+                <div
+                  key={i}
+                  className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2"
+                >
                   <span className={`h-1.5 w-1.5 rounded-full ${rule.color}`} />
-                  <span className="text-[11px] text-muted-foreground">{rule.label}</span>
+                  <span className="text-[11px] text-muted-foreground">
+                    {rule.label}
+                  </span>
                 </div>
               ))}
             </div>
@@ -299,14 +345,51 @@ function DashboardMockup() {
 
           {/* Right: Activity */}
           <div className="p-6">
-            <p className="mb-4 text-[10px] font-medium uppercase tracking-widest text-muted-foreground">Recent activity</p>
+            <p className="mb-4 text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
+              Recent activity
+            </p>
             <div className="space-y-2">
               {[
-                { name: "Acme Software", amount: "$42", status: "Auto-approved", time: "2m ago", color: "text-emerald-600", Icon: CheckCircle2 },
-                { name: "Vercel", amount: "$20", status: "Auto-approved", time: "1h ago", color: "text-emerald-600", Icon: CheckCircle2 },
-                { name: "Acme Software", amount: "$150", status: "Approval required", time: "3h ago", color: "text-amber-600", Icon: AlertTriangle },
-                { name: "Linear", amount: "$8", status: "Auto-approved", time: "5h ago", color: "text-emerald-600", Icon: CheckCircle2 },
-                { name: "Figma", amount: "$15", status: "Rejected", time: "1d ago", color: "text-red-600", Icon: XCircle },
+                {
+                  name: "Acme Software",
+                  amount: "$42",
+                  status: "Auto-approved",
+                  time: "2m ago",
+                  color: "text-emerald-600",
+                  Icon: CheckCircle2,
+                },
+                {
+                  name: "Vercel",
+                  amount: "$20",
+                  status: "Auto-approved",
+                  time: "1h ago",
+                  color: "text-emerald-600",
+                  Icon: CheckCircle2,
+                },
+                {
+                  name: "Acme Software",
+                  amount: "$150",
+                  status: "Approval required",
+                  time: "3h ago",
+                  color: "text-amber-600",
+                  Icon: AlertTriangle,
+                },
+                {
+                  name: "Linear",
+                  amount: "$8",
+                  status: "Auto-approved",
+                  time: "5h ago",
+                  color: "text-emerald-600",
+                  Icon: CheckCircle2,
+                },
+                {
+                  name: "Figma",
+                  amount: "$15",
+                  status: "Rejected",
+                  time: "1d ago",
+                  color: "text-red-600",
+                  Icon: XCircle,
+                },
               ].map((tx, i) => (
                 <div
                   key={i}
@@ -314,19 +397,29 @@ function DashboardMockup() {
                 >
                   <div className="flex items-center gap-3">
                     <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-border/50">
-                      <span className="text-[11px] font-semibold text-muted-foreground">{tx.name[0]}</span>
+                      <span className="text-[11px] font-semibold text-muted-foreground">
+                        {tx.name[0]}
+                      </span>
                     </div>
                     <div>
-                      <p className="text-[12px] font-medium text-foreground">{tx.name}</p>
-                      <p className="text-[10px] text-muted-foreground">{tx.time}</p>
+                      <p className="text-[12px] font-medium text-foreground">
+                        {tx.name}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground">
+                        {tx.time}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className={`flex items-center gap-1 text-[10px] font-medium ${tx.color}`}>
+                    <span
+                      className={`flex items-center gap-1 text-[10px] font-medium ${tx.color}`}
+                    >
                       <tx.Icon className="h-3 w-3" />
                       {tx.status}
                     </span>
-                    <span className="text-[12px] font-medium text-muted-foreground">{tx.amount}</span>
+                    <span className="text-[12px] font-medium text-muted-foreground">
+                      {tx.amount}
+                    </span>
                   </div>
                 </div>
               ))}
@@ -339,9 +432,12 @@ function DashboardMockup() {
                   <Sparkles className="h-2.5 w-2.5 text-accent" />
                 </div>
                 <div>
-                  <p className="text-[11px] font-medium text-accent">AI Insight</p>
+                  <p className="text-[11px] font-medium text-accent">
+                    AI Insight
+                  </p>
                   <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">
-                    You&apos;re $73 under your weekly autonomous budget. Acme is within normal range.
+                    You&apos;re $73 under your weekly autonomous budget. Acme is
+                    within normal range.
                   </p>
                 </div>
               </div>
@@ -390,32 +486,68 @@ function Badge({ children }: { children: React.ReactNode }) {
 }
 
 /* ─── Step Card ─── */
-function StepCard({ number, title, description }: { number: string; title: string; description: string }) {
+function StepCard({
+  number,
+  title,
+  description,
+}: {
+  number: string;
+  title: string;
+  description: string;
+}) {
   return (
     <motion.div variants={fadeUp} className="relative group">
-      <div className="mb-3 text-[11px] font-medium tracking-widest text-accent">{number}</div>
-      <h3 className="mb-2 text-lg font-semibold tracking-tight text-foreground">{title}</h3>
-      <p className="text-[13px] leading-relaxed text-muted-foreground">{description}</p>
+      <div className="mb-3 text-[11px] font-medium tracking-widest text-accent">
+        {number}
+      </div>
+      <h3 className="mb-2 text-lg font-semibold tracking-tight text-foreground">
+        {title}
+      </h3>
+      <p className="text-[13px] leading-relaxed text-muted-foreground">
+        {description}
+      </p>
     </motion.div>
   );
 }
 
 /* ─── Feature Card ─── */
-function FeatureCard({ number, title, description }: { number: string; title: string; description: string }) {
+function FeatureCard({
+  number,
+  title,
+  description,
+}: {
+  number: string;
+  title: string;
+  description: string;
+}) {
   return (
     <motion.div
       variants={fadeUp}
       className="rounded-2xl border border-border bg-card p-7 transition-all hover:shadow-lg hover:shadow-black/[0.04]"
     >
-      <div className="mb-3 text-[11px] font-medium tracking-widest text-accent">{number}</div>
-      <h3 className="mb-2 text-lg font-semibold tracking-tight text-foreground">{title}</h3>
-      <p className="text-[13px] leading-relaxed text-muted-foreground">{description}</p>
+      <div className="mb-3 text-[11px] font-medium tracking-widest text-accent">
+        {number}
+      </div>
+      <h3 className="mb-2 text-lg font-semibold tracking-tight text-foreground">
+        {title}
+      </h3>
+      <p className="text-[13px] leading-relaxed text-muted-foreground">
+        {description}
+      </p>
     </motion.div>
   );
 }
 
 /* ─── Memory Card ─── */
-function MemoryCard({ icon, label, example }: { icon: React.ReactNode; label: string; example: string }) {
+function MemoryCard({
+  icon,
+  label,
+  example,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  example: string;
+}) {
   return (
     <motion.div
       variants={fadeUp}
@@ -435,7 +567,9 @@ function ArchStep({ label, sublabel }: { label: string; sublabel?: string }) {
       <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-border bg-card text-[11px] font-medium text-muted-foreground shadow-sm">
         {label}
       </div>
-      {sublabel && <p className="text-[10px] text-muted-foreground">{sublabel}</p>}
+      {sublabel && (
+        <p className="text-[10px] text-muted-foreground">{sublabel}</p>
+      )}
     </div>
   );
 }
@@ -493,8 +627,16 @@ export default function LandingPage() {
       <nav className="fixed top-0 z-50 w-full border-b border-border/60 bg-background/70 backdrop-blur-xl">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
           <Link href="/" className="flex items-center gap-2.5">
-            <Image src="/logo.svg" alt="Pact" width={26} height={26} className="rounded-lg" />
-            <span className="text-[16px] font-semibold tracking-tight text-foreground font-display">Pact</span>
+            <Image
+              src="/logo.svg"
+              alt="Pact"
+              width={26}
+              height={26}
+              className="rounded-lg"
+            />
+            <span className="text-[16px] font-semibold tracking-tight text-foreground font-display">
+              Pact
+            </span>
           </Link>
 
           <div className="hidden items-center gap-7 md:flex">
@@ -536,9 +678,14 @@ export default function LandingPage() {
             animate="visible"
             className="max-w-xl"
           >
-            <motion.div variants={fadeUp} className="mb-5 inline-flex items-center gap-2 rounded-full border border-border bg-muted/50 px-3.5 py-1.5">
+            <motion.div
+              variants={fadeUp}
+              className="mb-5 inline-flex items-center gap-2 rounded-full border border-border bg-muted/50 px-3.5 py-1.5"
+            >
               <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse-glow" />
-              <span className="text-[11px] font-medium tracking-wide text-muted-foreground">AI-native financial agent</span>
+              <span className="text-[11px] font-medium tracking-wide text-muted-foreground">
+                AI-native financial agent
+              </span>
             </motion.div>
 
             <motion.h1
@@ -558,8 +705,9 @@ export default function LandingPage() {
               variants={fadeUp}
               className="mb-8 max-w-md text-[15px] leading-relaxed text-muted-foreground"
             >
-              Set the rules once. Pact remembers them across sessions, makes decisions using your
-              financial context, and executes approved actions onchain.
+              Set the rules once. Pact remembers them across sessions, makes
+              decisions using your financial context, and executes approved
+              actions onchain.
             </motion.p>
 
             <motion.div variants={fadeUp} className="mb-8 flex flex-wrap gap-3">
@@ -578,13 +726,18 @@ export default function LandingPage() {
               </a>
             </motion.div>
 
-            <motion.div variants={fadeIn} className="flex flex-wrap items-center gap-4 text-[11px] text-muted-foreground">
-              {["Sibyl Memory", "Base", "AI-native", "Non-custodial"].map((item) => (
-                <span key={item} className="flex items-center gap-1.5">
-                  <span className="h-1 w-1 rounded-full bg-accent/50" />
-                  {item}
-                </span>
-              ))}
+            <motion.div
+              variants={fadeIn}
+              className="flex flex-wrap items-center gap-4 text-[11px] text-muted-foreground"
+            >
+              {["Sibyl Memory", "Base", "AI-native", "Non-custodial"].map(
+                (item) => (
+                  <span key={item} className="flex items-center gap-1.5">
+                    <span className="h-1 w-1 rounded-full bg-accent/50" />
+                    {item}
+                  </span>
+                ),
+              )}
             </motion.div>
           </motion.div>
 
@@ -605,8 +758,8 @@ export default function LandingPage() {
             But can it remember?
           </h2>
           <p className="mx-auto max-w-md text-[15px] text-muted-foreground">
-            Without memory, every conversation starts from zero. The agent forgets your rules, your
-            preferences, and your history.
+            Without memory, every conversation starts from zero. The agent
+            forgets your rules, your preferences, and your history.
           </p>
         </motion.div>
 
@@ -716,9 +869,12 @@ export default function LandingPage() {
           />
         </motion.div>
 
-        <motion.p variants={fadeUp} className="mx-auto max-w-md text-center text-[13px] leading-relaxed text-muted-foreground">
-          Persistent memory turns a generic agent into an agent that actually knows how you want your
-          money handled.
+        <motion.p
+          variants={fadeUp}
+          className="mx-auto max-w-md text-center text-[13px] leading-relaxed text-muted-foreground"
+        >
+          Persistent memory turns a generic agent into an agent that actually
+          knows how you want your money handled.
         </motion.p>
       </Section>
 
@@ -751,10 +907,26 @@ export default function LandingPage() {
           viewport={{ once: true }}
           className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4"
         >
-          <StepCard number="01" title="Remember" description="Pact stores your financial goals, rules, preferences, and history." />
-          <StepCard number="02" title="Understand" description="When you request an action, Pact retrieves the context that matters." />
-          <StepCard number="03" title="Decide" description="Pact determines whether to approve, ask, or deny based on your rules." />
-          <StepCard number="04" title="Act" description="Approved actions execute securely onchain via smart contracts." />
+          <StepCard
+            number="01"
+            title="Remember"
+            description="Pact stores your financial goals, rules, preferences, and history."
+          />
+          <StepCard
+            number="02"
+            title="Understand"
+            description="When you request an action, Pact retrieves the context that matters."
+          />
+          <StepCard
+            number="03"
+            title="Decide"
+            description="Pact determines whether to approve, ask, or deny based on your rules."
+          />
+          <StepCard
+            number="04"
+            title="Act"
+            description="Approved actions execute securely onchain via smart contracts."
+          />
         </motion.div>
       </Section>
 
@@ -766,91 +938,12 @@ export default function LandingPage() {
             Your AI CFO, with context.
           </h2>
           <p className="mx-auto max-w-md text-[15px] text-muted-foreground">
-            A complete financial interface powered by persistent memory and onchain execution.
+            A complete financial interface powered by persistent memory and
+            onchain execution.
           </p>
         </motion.div>
 
         <DashboardMockup />
-      </Section>
-
-      {/* ─── Why Pact is Different ─── */}
-      <Section>
-        <motion.div variants={fadeUp} className="mb-12 text-center">
-          <Badge>Why Pact</Badge>
-          <h2 className="mb-4 text-[clamp(1.75rem,3.5vw,3rem)] font-bold tracking-tight text-foreground">
-            Not a wallet.
-            <br />
-            Not a chatbot.
-            <br />
-            An agent with memory.
-          </h2>
-        </motion.div>
-
-        <motion.div
-          variants={stagger}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          className="grid gap-4 md:grid-cols-3"
-        >
-          <FeatureCard
-            number="01"
-            title="Persistent memory"
-            description="Your financial rules survive the session. Pact remembers across every interaction."
-          />
-          <FeatureCard
-            number="02"
-            title="Policy-aware autonomy"
-            description="Pact knows when it can act and when it should ask. You define the boundaries."
-          />
-          <FeatureCard
-            number="03"
-            title="Onchain execution"
-            description="Approved financial actions execute on Base. Transparent, verifiable, auditable."
-          />
-        </motion.div>
-      </Section>
-
-      {/* ─── Base / Onchain ─── */}
-      <Section>
-        <motion.div variants={fadeUp} className="mb-12 text-center">
-          <Badge>Onchain</Badge>
-          <h2 className="mb-4 text-[clamp(1.75rem,3.5vw,3rem)] font-bold tracking-tight text-foreground">
-            When Pact acts, it acts onchain.
-          </h2>
-        </motion.div>
-
-        <motion.div
-          variants={fadeUp}
-          className="mx-auto mb-10 flex max-w-xl flex-wrap items-center justify-center gap-2 md:gap-0"
-        >
-          <ArchStep label="Pact" />
-          <ArchArrow />
-          <ArchStep label="Policy" />
-          <ArchArrow />
-          <ArchStep label="Vault" />
-          <ArchArrow />
-          <ArchStep label="Base" />
-          <ArchArrow />
-          <ArchStep label="USDC" />
-        </motion.div>
-
-        <motion.p variants={fadeUp} className="mx-auto max-w-md text-center text-[13px] leading-relaxed text-muted-foreground">
-          Pact combines persistent financial memory with programmable onchain execution. Every action
-          is verifiable. Every rule is enforced by smart contracts.
-        </motion.p>
-
-        <motion.div variants={fadeUp} className="mt-8 text-center">
-          <a
-            href="https://github.com/Saber1Y/Pact"
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex h-11 items-center gap-2 rounded-xl border border-border bg-card px-5 text-[13px] font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
-          >
-            Explore the architecture
-            <ExternalLink className="h-3.5 w-3.5" />
-          </a>
-        </motion.div>
       </Section>
 
       {/* ─── Security ─── */}
@@ -861,7 +954,8 @@ export default function LandingPage() {
             Autonomous doesn&apos;t mean uncontrolled.
           </h2>
           <p className="mx-auto max-w-md text-[15px] text-muted-foreground">
-            AI handles context and reasoning. Smart contracts enforce the boundaries.
+            AI handles context and reasoning. Smart contracts enforce the
+            boundaries.
           </p>
         </motion.div>
 
@@ -888,12 +982,30 @@ export default function LandingPage() {
           className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
         >
           {[
-            { title: "User-defined limits", desc: "You set spending thresholds and budgets" },
-            { title: "Approval thresholds", desc: "Payments above your limit require confirmation" },
-            { title: "Trusted recipients", desc: "Only pre-approved addresses receive funds" },
-            { title: "Contract-enforced controls", desc: "Smart contracts prevent unauthorized actions" },
-            { title: "No arbitrary AI calls", desc: "The LLM never calls contracts directly" },
-            { title: "Full audit trail", desc: "Every decision is logged and verifiable" },
+            {
+              title: "User-defined limits",
+              desc: "You set spending thresholds and budgets",
+            },
+            {
+              title: "Approval thresholds",
+              desc: "Payments above your limit require confirmation",
+            },
+            {
+              title: "Trusted recipients",
+              desc: "Only pre-approved addresses receive funds",
+            },
+            {
+              title: "Contract-enforced controls",
+              desc: "Smart contracts prevent unauthorized actions",
+            },
+            {
+              title: "No arbitrary AI calls",
+              desc: "The LLM never calls contracts directly",
+            },
+            {
+              title: "Full audit trail",
+              desc: "Every decision is logged and verifiable",
+            },
           ].map((item, i) => (
             <motion.div
               key={i}
@@ -902,7 +1014,9 @@ export default function LandingPage() {
             >
               <div className="mb-1.5 flex items-center gap-2">
                 <CheckCircle2 className="h-3.5 w-3.5 text-accent" />
-                <p className="text-[13px] font-medium text-foreground">{item.title}</p>
+                <p className="text-[13px] font-medium text-foreground">
+                  {item.title}
+                </p>
               </div>
               <p className="text-[12px] text-muted-foreground">{item.desc}</p>
             </motion.div>
@@ -972,15 +1086,27 @@ export default function LandingPage() {
       <footer className="border-t border-border px-6 py-10">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-5 md:flex-row">
           <div className="flex items-center gap-2">
-            <Image src="/logo.svg" alt="Pact" width={22} height={22} className="rounded-md" />
-            <span className="text-[13px] font-semibold text-muted-foreground">Pact</span>
+            <Image
+              src="/logo.svg"
+              alt="Pact"
+              width={22}
+              height={22}
+              className="rounded-md"
+            />
+            <span className="text-[13px] font-semibold text-muted-foreground">
+              Pact
+            </span>
           </div>
 
           <div className="flex gap-5 text-[12px] text-muted-foreground">
             {["Product", "Memory", "Security", "GitHub"].map((item) => (
               <a
                 key={item}
-                href={item === "GitHub" ? "https://github.com/Saber1Y/Pact" : `#${item.toLowerCase()}`}
+                href={
+                  item === "GitHub"
+                    ? "https://github.com/Saber1Y/Pact"
+                    : `#${item.toLowerCase()}`
+                }
                 target={item === "GitHub" ? "_blank" : undefined}
                 rel={item === "GitHub" ? "noreferrer" : undefined}
                 className="transition-colors hover:text-foreground"
