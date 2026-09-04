@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import {
@@ -61,9 +62,7 @@ export function Sidebar() {
         <div className="border-b border-border p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-foreground">
-                <span className="text-[15px] font-medium text-background font-display">P</span>
-              </div>
+              <Image src="/logo.svg" alt="Pact" width={30} height={30} className="rounded-lg" />
               <div>
                 <h1 className="text-[15px] font-medium tracking-[-0.02em] text-foreground font-display">Pact</h1>
                 <p className="text-[9px] text-muted-foreground">Your rules. Remembered.</p>

@@ -370,7 +370,7 @@ function Section({
       whileInView="visible"
       viewport={{ once: true, margin: "-80px" }}
       variants={{ visible: { transition: { staggerChildren: 0.08 } } }}
-      className={`relative px-6 py-24 md:py-32 ${className}`}
+      className={`relative scroll-mt-24 px-6 py-20 md:py-24 ${className}`}
     >
       <div className="mx-auto max-w-6xl">{children}</div>
     </motion.section>
@@ -459,47 +459,39 @@ export default function LandingPage() {
     <div className="relative min-h-screen overflow-hidden">
       {/* ─── Background Effects ─── */}
       <div className="pointer-events-none fixed inset-0 z-0">
-        {/* Warm radial gradient */}
+        {/* Warm radial gradient from top */}
         <div
           className="absolute inset-0"
           style={{
-            background: "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(99,102,241,0.06) 0%, transparent 60%)",
+            background:
+              "radial-gradient(ellipse 90% 60% at 50% -5%, rgba(99,102,241,0.08) 0%, transparent 60%)",
           }}
         />
-        {/* Secondary warm blob */}
+        {/* Fading dot grid pattern */}
         <div
-          className="absolute inset-0"
+          className="absolute inset-0 opacity-[0.5]"
           style={{
-            background: "radial-gradient(circle at 80% 20%, rgba(99,102,241,0.04) 0%, transparent 40%)",
+            backgroundImage:
+              "radial-gradient(circle, #6366f1 0.7px, transparent 0.7px)",
+            backgroundSize: "28px 28px",
+            maskImage:
+              "radial-gradient(ellipse 70% 60% at 50% 18%, black 30%, transparent 75%)",
+            WebkitMaskImage:
+              "radial-gradient(ellipse 70% 60% at 50% 18%, black 30%, transparent 75%)",
           }}
         />
-        {/* Bottom cool accent */}
+        {/* Floating gradient orbs */}
         <div
-          className="absolute inset-0"
-          style={{
-            background: "radial-gradient(circle at 20% 80%, rgba(168,85,247,0.03) 0%, transparent 40%)",
-          }}
-        />
-        {/* Subtle dot grid */}
-        <div
-          className="absolute inset-0 opacity-[0.3]"
-          style={{
-            backgroundImage: "radial-gradient(circle, #c8c0b8 0.5px, transparent 0.5px)",
-            backgroundSize: "24px 24px",
-          }}
-        />
-        {/* Floating gradient orb */}
-        <div
-          className="animate-drift absolute left-[10%] top-[20%] h-96 w-96 rounded-full opacity-[0.04]"
+          className="animate-drift absolute left-[5%] top-[22%] h-[28rem] w-[28rem] rounded-full opacity-[0.06]"
           style={{
             background: "radial-gradient(circle, #6366f1 0%, transparent 70%)",
           }}
         />
         <div
-          className="animate-drift absolute bottom-[10%] right-[10%] h-80 w-80 rounded-full opacity-[0.03]"
+          className="animate-drift absolute right-[6%] top-[60%] h-[24rem] w-[24rem] rounded-full opacity-[0.04]"
           style={{
             background: "radial-gradient(circle, #a855f7 0%, transparent 70%)",
-            animationDelay: "-7s",
+            animationDelay: "-8s",
           }}
         />
       </div>
@@ -507,11 +499,9 @@ export default function LandingPage() {
       {/* ─── Navbar ─── */}
       <nav className="fixed top-0 z-50 w-full border-b border-border/60 bg-background/70 backdrop-blur-xl">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/10 ring-1 ring-accent/20">
-              <Image src="/logo.svg" alt="Pact" width={14} height={14} />
-            </div>
-            <span className="text-[15px] font-bold tracking-tight text-foreground">Pact</span>
+          <Link href="/" className="flex items-center gap-2.5">
+            <Image src="/logo.svg" alt="Pact" width={26} height={26} className="rounded-lg" />
+            <span className="text-[16px] font-semibold tracking-tight text-foreground font-display">Pact</span>
           </Link>
 
           <div className="hidden items-center gap-7 md:flex">
@@ -566,7 +556,9 @@ export default function LandingPage() {
               <br />
               Your rules.
               <br />
-              <span className="text-accent">Remembered.</span>
+              <span className="bg-gradient-to-r from-accent via-indigo-400 to-purple-500 bg-clip-text text-transparent">
+                Remembered.
+              </span>
             </motion.h1>
 
             <motion.p
@@ -612,7 +604,7 @@ export default function LandingPage() {
 
       {/* ─── The Problem ─── */}
       <Section id="product">
-        <motion.div variants={fadeUp} className="mb-16 text-center">
+        <motion.div variants={fadeUp} className="mb-12 text-center">
           <Badge>The Problem</Badge>
           <h2 className="mb-4 text-[clamp(1.75rem,3.5vw,3rem)] font-bold tracking-tight text-foreground">
             AI can act.
@@ -680,7 +672,7 @@ export default function LandingPage() {
 
       {/* ─── Memory is the Product ─── */}
       <Section id="memory">
-        <motion.div variants={fadeUp} className="mb-14 text-center">
+        <motion.div variants={fadeUp} className="mb-12 text-center">
           <Badge>
             <span className="h-1.5 w-1.5 rounded-full bg-accent" />
             Powered by Sibyl Memory
@@ -739,7 +731,7 @@ export default function LandingPage() {
 
       {/* ─── How it Works ─── */}
       <Section id="how-it-works">
-        <motion.div variants={fadeUp} className="mb-14 text-center">
+        <motion.div variants={fadeUp} className="mb-12 text-center">
           <Badge>How it works</Badge>
           <h2 className="mb-4 text-[clamp(1.75rem,3.5vw,3rem)] font-bold tracking-tight text-foreground">
             Remember. Decide. Act.
@@ -748,7 +740,7 @@ export default function LandingPage() {
 
         <motion.div
           variants={fadeUp}
-          className="mb-14 flex flex-wrap items-center justify-center gap-2 md:gap-0"
+          className="mb-10 flex flex-wrap items-center justify-center gap-2 md:gap-0"
         >
           <ArchStep label="You" sublabel="Set rules" />
           <ArchArrow />
@@ -775,7 +767,7 @@ export default function LandingPage() {
 
       {/* ─── Product Showcase ─── */}
       <Section id="product-showcase">
-        <motion.div variants={fadeUp} className="mb-14 text-center">
+        <motion.div variants={fadeUp} className="mb-12 text-center">
           <Badge>Product</Badge>
           <h2 className="mb-4 text-[clamp(1.75rem,3.5vw,3rem)] font-bold tracking-tight text-foreground">
             Your AI CFO, with context.
@@ -790,7 +782,7 @@ export default function LandingPage() {
 
       {/* ─── Why Pact is Different ─── */}
       <Section>
-        <motion.div variants={fadeUp} className="mb-14 text-center">
+        <motion.div variants={fadeUp} className="mb-12 text-center">
           <Badge>Why Pact</Badge>
           <h2 className="mb-4 text-[clamp(1.75rem,3.5vw,3rem)] font-bold tracking-tight text-foreground">
             Not a wallet.
@@ -828,7 +820,7 @@ export default function LandingPage() {
 
       {/* ─── Base / Onchain ─── */}
       <Section>
-        <motion.div variants={fadeUp} className="mb-14 text-center">
+        <motion.div variants={fadeUp} className="mb-12 text-center">
           <Badge>Onchain</Badge>
           <h2 className="mb-4 text-[clamp(1.75rem,3.5vw,3rem)] font-bold tracking-tight text-foreground">
             When Pact acts, it acts onchain.
@@ -870,7 +862,7 @@ export default function LandingPage() {
 
       {/* ─── Security ─── */}
       <Section id="security">
-        <motion.div variants={fadeUp} className="mb-14 text-center">
+        <motion.div variants={fadeUp} className="mb-12 text-center">
           <Badge>Security</Badge>
           <h2 className="mb-4 text-[clamp(1.75rem,3.5vw,3rem)] font-bold tracking-tight text-foreground">
             Autonomous doesn&apos;t mean uncontrolled.
@@ -882,7 +874,7 @@ export default function LandingPage() {
 
         <motion.div
           variants={fadeUp}
-          className="mx-auto mb-14 flex max-w-3xl flex-wrap items-center justify-center gap-2 md:gap-0"
+          className="mx-auto mb-10 flex max-w-3xl flex-wrap items-center justify-center gap-2 md:gap-0"
         >
           <ArchStep label="User" sublabel="Define" />
           <ArchArrow />
@@ -987,9 +979,7 @@ export default function LandingPage() {
       <footer className="border-t border-border px-6 py-10">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-5 md:flex-row">
           <div className="flex items-center gap-2">
-            <div className="flex h-6 w-6 items-center justify-center rounded-md bg-accent/10">
-              <Image src="/logo.svg" alt="Pact" width={12} height={12} />
-            </div>
+            <Image src="/logo.svg" alt="Pact" width={22} height={22} className="rounded-md" />
             <span className="text-[13px] font-semibold text-muted-foreground">Pact</span>
           </div>
 
