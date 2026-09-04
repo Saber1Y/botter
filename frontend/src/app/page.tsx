@@ -162,9 +162,9 @@ function HeroChatMockup() {
                               initial={{ opacity: 0, scale: 0.9 }}
                               animate={{ opacity: 1, scale: 1 }}
                               transition={{ delay: 0.2 }}
-                              className="inline-flex items-center gap-1 rounded-full bg-purple-50 px-2.5 py-1 text-[10px] font-medium text-purple-600 ring-1 ring-purple-200"
+                              className="inline-flex items-center gap-1 rounded-full bg-accent/10 px-2.5 py-1 text-[10px] font-medium text-accent ring-1 ring-accent/20"
                             >
-                              <span className="h-1 w-1 rounded-full bg-purple-500" />
+                              <span className="h-1 w-1 rounded-full bg-accent" />
                               Acme = trusted
                             </motion.span>
                           </motion.div>
@@ -283,7 +283,7 @@ function DashboardMockup() {
               <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">Active rules</p>
               {[
                 { label: "$100 auto-approve limit", color: "bg-accent" },
-                { label: "Acme = trusted", color: "bg-purple-500" },
+                { label: "Acme = trusted", color: "bg-indigo-500" },
                 { label: "Save 30% of income", color: "bg-blue-500" },
               ].map((rule, i) => (
                 <div key={i} className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2">
@@ -487,13 +487,6 @@ export default function LandingPage() {
             background: "radial-gradient(circle, #6366f1 0%, transparent 70%)",
           }}
         />
-        <div
-          className="animate-drift absolute right-[6%] top-[60%] h-[24rem] w-[24rem] rounded-full opacity-[0.04]"
-          style={{
-            background: "radial-gradient(circle, #a855f7 0%, transparent 70%)",
-            animationDelay: "-8s",
-          }}
-        />
       </div>
 
       {/* ─── Navbar ─── */}
@@ -556,7 +549,7 @@ export default function LandingPage() {
               <br />
               Your rules.
               <br />
-              <span className="bg-gradient-to-r from-accent via-indigo-400 to-purple-500 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-accent to-indigo-400 bg-clip-text text-transparent">
                 Remembered.
               </span>
             </motion.h1>
