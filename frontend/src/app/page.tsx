@@ -602,17 +602,31 @@ export default function LandingPage() {
               "radial-gradient(ellipse 90% 60% at 50% -5%, rgba(99,102,241,0.08) 0%, transparent 60%)",
           }}
         />
-        {/* Fading dot grid pattern */}
+        {/* Fine dot texture */}
         <div
-          className="absolute inset-0 opacity-[0.5]"
+          className="absolute inset-0"
           style={{
             backgroundImage:
-              "radial-gradient(circle, #6366f1 0.7px, transparent 0.7px)",
-            backgroundSize: "28px 28px",
+              "radial-gradient(circle, rgba(99,102,241,0.35) 1px, transparent 1px)",
+            backgroundSize: "22px 22px",
             maskImage:
-              "radial-gradient(ellipse 70% 60% at 50% 18%, black 30%, transparent 75%)",
+              "linear-gradient(to bottom, black 0%, black 40%, transparent 100%)",
             WebkitMaskImage:
-              "radial-gradient(ellipse 70% 60% at 50% 18%, black 30%, transparent 75%)",
+              "linear-gradient(to bottom, black 0%, black 40%, transparent 100%)",
+            opacity: 0.35,
+          }}
+        />
+        {/* Refined grid texture */}
+        <div
+          className="absolute inset-0 opacity-[0.4]"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(28,25,23,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(28,25,23,0.04) 1px, transparent 1px)",
+            backgroundSize: "64px 64px",
+            maskImage:
+              "radial-gradient(ellipse 80% 60% at 50% 0%, black 20%, transparent 70%)",
+            WebkitMaskImage:
+              "radial-gradient(ellipse 80% 60% at 50% 0%, black 20%, transparent 70%)",
           }}
         />
         {/* Floating gradient orbs */}
