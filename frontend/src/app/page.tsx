@@ -30,6 +30,7 @@ import {
   ChevronRight,
   Clock,
 } from "lucide-react";
+import WorkflowDiagram from "@/components/WorkflowDiagram";
 
 /* ─── Animation Variants ─── */
 const fadeUp = {
@@ -889,15 +890,16 @@ export default function LandingPage() {
 
         <motion.div
           variants={fadeUp}
-          className="mb-10 flex flex-wrap items-center justify-center gap-2 md:gap-0"
+          className="mb-6 flex flex-wrap items-center justify-center gap-2 text-center"
         >
-          <ArchStep label="You" sublabel="Set rules" />
-          <ArchArrow />
-          <ArchStep label="Pact" sublabel="Remember" />
-          <ArchArrow />
-          <ArchStep label="Policy" sublabel="Decide" />
-          <ArchArrow />
-          <ArchStep label="Base" sublabel="Execute" />
+          <p className="max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
+            Pact runs as a workflow: a trigger becomes intent, a policy decides,
+            a vault gates the spend, and every outcome is remembered and journaled.
+          </p>
+        </motion.div>
+
+        <motion.div variants={fadeUp} className="mb-14">
+          <WorkflowDiagram />
         </motion.div>
 
         <motion.div
