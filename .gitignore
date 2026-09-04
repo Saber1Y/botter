@@ -12,14 +12,17 @@ frontend/.env*.local
 # Backend
 backend/__pycache__/
 backend/.env
+backend/*.env.bak
 backend/venv/
 backend/*.pyc
+backend/.agent_key
 
 # Contracts
 contracts/out/
 contracts/cache/
 contracts/node_modules/
 contracts/.env
+contracts/broadcast/
 
 # IDE
 .vscode/
