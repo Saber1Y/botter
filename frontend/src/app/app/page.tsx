@@ -19,6 +19,9 @@ import {
   Brain,
   Sparkles,
   Landmark,
+  TrendingUp,
+  Clock,
+  Fingerprint,
 } from "lucide-react";
 import { StatCardSkeleton, TableRowSkeleton } from "@/components/Skeleton";
 
@@ -137,7 +140,7 @@ export default function OverviewPage() {
 
   if (loading) {
     return (
-      <div className="p-6 md:p-8 max-w-5xl" role="status" aria-label="Loading dashboard">
+      <div       className="p-6 md:p-10 max-w-7xl" role="status" aria-label="Loading dashboard">
         <div className="mb-8">
           <div className="h-7 w-40 rounded-lg bg-muted animate-pulse mb-2" />
           <div className="h-4 w-64 rounded bg-muted animate-pulse" />
@@ -184,12 +187,25 @@ export default function OverviewPage() {
   const rules = memories.filter((m) => m.category === "rules");
   const recentDecisions = memories.filter((m) => m.category === "decisions");
 
+  const approvedPayments = payments.filter((p) => p.decision === "APPROVE");
+  const pendingPayments = payments.filter((p) => p.decision === "REQUIRE_APPROVAL");
+  const deniedPayments = payments.filter((p) => p.decision === "DENY");
+  const totalSpent = approvedPayments.reduce(
+    (sum, p) => sum + (parseFloat(p.amount) || 0),
+    0
+  );
+  const decidedCount = approvedPayments.length + deniedPayments.length;
+  const approvalRate =
+    decidedCount > 0
+      ? Math.round((approvedPayments.length / decidedCount) * 100)
+      : null;
+
   return (
     <motion.div
       initial="hidden"
       animate="visible"
       variants={stagger}
-      className="p-4 sm:p-6 md:p-10 max-w-5xl"
+      className="p-4 sm:p-6 md:p-10 max-w-7xl"
     >
       {/* Header */}
       <motion.div variants={fadeUp} className="mb-8">
@@ -353,6 +369,65 @@ export default function OverviewPage() {
         </motion.div>
       </div>
 
+      {/* Stats row */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
+        <motion.div variants={fadeUp} className="rounded-2xl border border-border bg-card p-4">
+          <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.14em] text-muted-foreground mb-2">
+            <TrendingUp className="h-3.5 w-3.5 text-accent" />
+            Total spent
+          </div>
+          <p className="text-2xl font-medium tracking-[-0.02em] text-foreground font-display tabular-nums">
+            ${totalSpent.toFixed(2)}
+          </p>
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            {approvedPayments.length} approved
+          </p>
+        </motion.div>
+
+        <motion.div variants={fadeUp} className="rounded-2xl border border-border bg-card p-4">
+          <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.14em] text-muted-foreground mb-2">
+            <Clock className="h-3.5 w-3.5 text-accent" />
+            Pending approvals
+          </div>
+          <p className="text-2xl font-medium tracking-[-0.02em] text-foreground font-display tabular-nums">
+            {pendingPayments.length}
+          </p>
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            {pendingPayments[0]
+              ? `${String(pendingPayments[0].recipient).slice(0, 8)}…`
+              : "Nothing queued"}
+          </p>
+        </motion.div>
+
+        <motion.div variants={fadeUp} className="rounded-2xl border border-border bg-card p-4">
+          <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.14em] text-muted-foreground mb-2">
+            <CheckCircle2 className="h-3.5 w-3.5 text-accent" />
+            Approval rate
+          </div>
+          <p className="text-2xl font-medium tracking-[-0.02em] text-foreground font-display tabular-nums">
+            {approvalRate === null ? "—" : `${approvalRate}%`}
+          </p>
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            {deniedPayments.length} denied
+          </p>
+        </motion.div>
+
+        <motion.div variants={fadeUp} className="rounded-2xl border border-border bg-card p-4">
+          <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.14em] text-muted-foreground mb-2">
+            <Fingerprint className="h-3.5 w-3.5 text-accent" />
+            Vault
+          </div>
+          <p className="text-2xl font-medium tracking-[-0.02em] text-foreground font-display tabular-nums">
+            {vaultStatus?.has_vault ? "Active" : "Not deployed"}
+          </p>
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            {vault
+              ? `Daily cap $${vault.daily_limit}`
+              : "Deploy to begin"}
+          </p>
+        </motion.div>
+      </div>
+
       {/* Goal + Activity */}
       <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 mb-8">
         {/* Goal - 2 cols */}
@@ -447,6 +522,125 @@ export default function OverviewPage() {
             className="inline-block mt-3 text-[11px] font-medium text-accent hover:text-accent/70 transition-colors"
           >
             View all payments →
+          </Link>
+        </motion.div>
+      </div>
+
+      {/* Spending rules + Pending approvals */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-8">
+        <motion.div variants={fadeUp}>
+          <div className="flex items-center gap-2 mb-3">
+            <ShieldCheck className="h-4 w-4 text-accent" />
+            <h2 className="text-[13px] font-semibold text-foreground">
+              Spending rules
+            </h2>
+            <Link
+              href="/app/memory"
+              className="ml-auto text-[11px] font-medium text-accent hover:text-accent/80"
+            >
+              Manage
+            </Link>
+          </div>
+          {rules.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-border bg-card p-5">
+              <p className="text-[13px] text-muted-foreground">
+                No spending rules yet
+              </p>
+              <p className="text-[11px] text-muted-foreground/60 mt-1">
+                Tell Pact your limits in chat to guard your vault
+              </p>
+            </div>
+          ) : (
+            <div className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
+              {rules.map((rule) => (
+                <div
+                  key={rule.key}
+                  className="flex items-center justify-between px-4 py-3"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span
+                      className={`inline-flex h-2 w-2 shrink-0 rounded-full ${
+                        rule.value.type === "blocked_merchant"
+                          ? "bg-red-400"
+                          : "bg-emerald-400"
+                      }`}
+                    />
+                    <span className="text-[13px] font-medium text-foreground truncate">
+                      {rule.value.type === "spending_limit"
+                        ? "Spending limit"
+                        : rule.value.type === "trusted_merchant"
+                          ? "Trusted merchant"
+                          : "Blocked merchant"}
+                    </span>
+                  </div>
+                  <span className="shrink-0 ml-3 font-mono text-[12px] text-muted-foreground">
+                    {rule.value.type === "spending_limit"
+                      ? `$${rule.value.value} / tx`
+                      : String(rule.value.value)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </motion.div>
+
+        <motion.div variants={fadeUp}>
+          <div className="flex items-center gap-2 mb-3">
+            <Clock className="h-4 w-4 text-accent" />
+            <h2 className="text-[13px] font-semibold text-foreground">
+              Pending approvals
+            </h2>
+            <span
+              className={`ml-auto rounded-full px-2 py-0.5 font-mono text-[10px] font-medium ${
+                pendingPayments.length > 0
+                  ? "bg-amber-50 text-amber-600 ring-1 ring-inset ring-amber-200"
+                  : "bg-muted text-muted-foreground"
+              }`}
+            >
+              {pendingPayments.length}
+            </span>
+          </div>
+          {pendingPayments.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-border bg-card p-5">
+              <p className="text-[13px] text-muted-foreground">
+                No approvals queued
+              </p>
+              <p className="text-[11px] text-muted-foreground/60 mt-1">
+                Payments Pact can&apos;t auto-approve will wait here
+              </p>
+            </div>
+          ) : (
+            <div className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
+              {pendingPayments.slice(0, 4).map((p) => (
+                <div
+                  key={p.id}
+                  className="flex items-center justify-between px-4 py-3"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-600 ring-1 ring-inset ring-amber-200">
+                      <Clock className="h-3.5 w-3.5" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[13px] font-medium text-foreground truncate font-mono">
+                        {p.recipient}
+                      </p>
+                      <p className="truncate text-[11px] text-muted-foreground">
+                        {p.reason || "Awaiting approval"}
+                      </p>
+                    </div>
+                  </div>
+                  <p className="shrink-0 ml-3 text-[13px] font-medium text-foreground font-display tabular-nums">
+                    ${p.amount}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+          <Link
+            href="/app/payments"
+            className="inline-block mt-3 text-[11px] font-medium text-accent hover:text-accent/70 transition-colors"
+          >
+            Review queue →
           </Link>
         </motion.div>
       </div>
