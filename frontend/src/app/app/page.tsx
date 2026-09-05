@@ -129,7 +129,8 @@ export default function OverviewPage() {
     >
       {/* Header */}
       <motion.div variants={fadeUp} className="mb-8">
-        <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground mb-2">
+        <p className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground mb-2">
+          <span className="inline-block h-1.5 w-1.5 rounded-full bg-accent/70" />
           Dashboard
         </p>
         <h1 className="text-3xl sm:text-4xl font-medium tracking-[-0.03em] text-foreground font-display">
@@ -155,21 +156,41 @@ export default function OverviewPage() {
         {/* Balance - spans 2 cols */}
         <motion.div
           variants={fadeUp}
-          className="sm:col-span-2 rounded-xl border border-border bg-card p-6 sm:p-8 relative overflow-hidden"
+          className="group relative sm:col-span-2 overflow-hidden rounded-2xl border border-border bg-card p-6 sm:p-8"
         >
-          {/* Ambient radial accent */}
+          {/* Layered ambient background */}
+          <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+            <div
+              className="absolute inset-0"
+              style={{
+                background:
+                  "linear-gradient(180deg, rgba(99,102,241,0.06) 0%, rgba(255,255,255,0) 55%)",
+              }}
+            />
+            <div
+              className="absolute -top-24 -right-24 h-64 w-64 rounded-full"
+              style={{
+                background:
+                  "radial-gradient(closest-side, rgba(99,102,241,0.10), transparent)",
+              }}
+            />
+            <div
+              className="absolute -bottom-28 -left-16 h-56 w-56 rounded-full"
+              style={{
+                background:
+                  "radial-gradient(closest-side, rgba(245,239,235,0.7), transparent)",
+              }}
+            />
+          </div>
+          {/* Top accent hairline */}
           <div
             aria-hidden="true"
-            className="absolute -top-24 -right-24 h-64 w-64 rounded-full pointer-events-none"
-            style={{
-              background:
-                "radial-gradient(closest-side, rgba(99,102,241,0.07), transparent)",
-            }}
+            className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-accent/30 to-transparent"
           />
-          <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground mb-3">
+          <p className="relative text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground mb-4">
             Vault balance
           </p>
-          <div className="flex items-baseline gap-2 mb-1 relative">
+          <div className="relative flex items-baseline gap-2 mb-1">
             <span className="text-5xl sm:text-6xl font-medium tracking-[-0.03em] text-foreground font-display tabular-nums">
               {balance.toFixed(2)}
             </span>
@@ -177,20 +198,31 @@ export default function OverviewPage() {
               USDC
             </span>
           </div>
-          <p className="text-[11px] text-muted-foreground font-mono mt-2">
-            Base Sepolia
-          </p>
+          <div className="relative mt-4 flex items-center gap-1.5">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/50 px-2.5 py-1 font-mono text-[10px] font-medium text-muted-foreground">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse-glow" />
+              Base Sepolia
+            </span>
+          </div>
         </motion.div>
 
         {/* Daily budget */}
         <motion.div
           variants={fadeUp}
-          className="rounded-xl border border-border bg-card p-5 flex flex-col"
+          className="relative overflow-hidden rounded-2xl border border-border bg-card p-5 flex flex-col"
         >
-          <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground mb-3">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full"
+            style={{
+              background:
+                "radial-gradient(closest-side, rgba(99,102,241,0.07), transparent)",
+            }}
+          />
+          <p className="relative text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground mb-3">
             Autonomous budget
           </p>
-          <div className="flex items-baseline gap-1 mb-3">
+          <div className="relative flex items-baseline gap-1 mb-3">
             <span className="text-3xl font-medium tracking-[-0.02em] text-foreground font-display tabular-nums">
               {dailyRemaining.toFixed(0)}
             </span>
@@ -198,7 +230,7 @@ export default function OverviewPage() {
               / {dailyLimit.toFixed(0)} left
             </span>
           </div>
-          <div className="h-1 overflow-hidden rounded-full bg-muted mt-auto">
+          <div className="relative mt-auto h-1.5 overflow-hidden rounded-full bg-muted ring-1 ring-inset ring-border/60">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${Math.min(budgetPct, 100)}%` }}
@@ -207,10 +239,10 @@ export default function OverviewPage() {
                 ease: [0.22, 1, 0.36, 1],
                 delay: 0.3,
               }}
-              className="h-full rounded-full bg-accent"
+              className="h-full rounded-full bg-gradient-to-r from-indigo-400 to-accent"
             />
           </div>
-          <p className="mt-2 text-[10px] uppercase tracking-widest text-muted-foreground/60">
+          <p className="relative mt-2.5 text-[10px] uppercase tracking-[0.16em] text-muted-foreground/60">
             Resets daily
           </p>
         </motion.div>
@@ -222,15 +254,23 @@ export default function OverviewPage() {
         {goal ? (
           <motion.div
             variants={fadeUp}
-            className="sm:col-span-2 rounded-xl border border-border bg-card p-5"
+            className="sm:col-span-2 relative overflow-hidden rounded-2xl border border-border bg-card p-5"
           >
-            <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground mb-3">
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute -left-16 -top-16 h-40 w-40 rounded-full"
+              style={{
+                background:
+                  "radial-gradient(closest-side, rgba(245,239,235,0.7), transparent)",
+              }}
+            />
+            <p className="relative text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground mb-3">
               Active goal
             </p>
-            <h3 className="text-[15px] font-medium text-foreground mb-2 font-display">
+            <h3 className="relative text-[15px] font-medium text-foreground mb-2 font-display">
               {goal.name}
             </h3>
-            <div className="flex items-baseline gap-1.5 mb-3">
+            <div className="relative flex items-baseline gap-1.5 mb-3">
               <span className="text-2xl font-medium tracking-[-0.02em] text-foreground font-display tabular-nums">
                 {goal.current.toLocaleString()}
               </span>
@@ -238,7 +278,7 @@ export default function OverviewPage() {
                 / ${goal.target.toLocaleString()}
               </span>
             </div>
-            <div className="h-1 overflow-hidden rounded-full bg-muted">
+            <div className="relative mt-auto h-1.5 overflow-hidden rounded-full bg-muted ring-1 ring-inset ring-border/60">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${Math.min(goal.progress, 100)}%` }}
@@ -247,11 +287,11 @@ export default function OverviewPage() {
                   ease: [0.22, 1, 0.36, 1],
                   delay: 0.4,
                 }}
-                className="h-full rounded-full bg-accent"
+                className="h-full rounded-full bg-gradient-to-r from-stone-400 to-stone-600"
               />
             </div>
             <Link href="/app/goals">
-              <p className="mt-3 text-[11px] font-medium text-accent hover:text-accent/70 transition-colors">
+              <p className="relative mt-3 text-[11px] font-medium text-accent hover:text-accent/70 transition-colors">
                 {goal.progress.toFixed(0)}% complete →
               </p>
             </Link>
@@ -259,7 +299,7 @@ export default function OverviewPage() {
         ) : (
           <motion.div
             variants={fadeUp}
-            className="sm:col-span-2 rounded-xl border border-dashed border-border bg-card p-5 flex flex-col items-start justify-center"
+            className="sm:col-span-2 rounded-2xl border border-dashed border-border bg-card p-5 flex flex-col items-start justify-center"
           >
             <p className="text-[13px] text-muted-foreground mb-2">
               No active goal
@@ -276,10 +316,10 @@ export default function OverviewPage() {
 
         {/* Activity - 3 cols */}
         <motion.div variants={fadeUp} className="sm:col-span-3">
-          <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground mb-3">
+          <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground mb-3">
             Recent activity
           </p>
-          <div className="rounded-xl border border-border bg-card">
+          <div className="group overflow-hidden rounded-2xl border border-border bg-card">
             {payments.length === 0 ? (
               <div className="py-10 text-center">
                 <p className="text-[13px] text-muted-foreground mb-1">
@@ -310,9 +350,17 @@ export default function OverviewPage() {
       <motion.div variants={fadeUp}>
         <Link
           href="/app/chat"
-          className="group flex items-center justify-between rounded-xl border border-border bg-card p-5 transition-all hover:shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:border-accent/25"
+          className="group relative flex items-center justify-between overflow-hidden rounded-2xl border border-border bg-card p-5 transition-all hover:shadow-[0_2px_16px_rgba(0,0,0,0.05)] hover:border-accent/30"
         >
-          <div>
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -right-10 -top-20 h-44 w-44 rounded-full opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+            style={{
+              background:
+                "radial-gradient(closest-side, rgba(99,102,241,0.10), transparent)",
+            }}
+          />
+          <div className="relative">
             <p className="text-[14px] font-medium text-foreground mb-0.5">
               Talk to your AI CFO
             </p>
@@ -320,8 +368,8 @@ export default function OverviewPage() {
               &quot;Can I spend $200 this weekend?&quot;
             </p>
           </div>
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-foreground text-background group-hover:bg-accent transition-colors">
-            <ArrowRight className="h-3.5 w-3.5" />
+          <div className="relative flex h-9 w-9 items-center justify-center rounded-lg bg-foreground text-background transition-colors group-hover:bg-accent">
+            <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
           </div>
         </Link>
       </motion.div>
@@ -335,17 +383,19 @@ function PaymentRow({ payment }: { payment: Payment }) {
   const Icon = isApproved ? CheckCircle2 : isPending ? AlertTriangle : XCircle;
 
   return (
-    <div className="flex items-center justify-between px-4 py-3.5">
+    <div className="group flex items-center justify-between px-4 py-3.5 transition-colors hover:bg-muted/40">
       <div className="flex items-center gap-3 min-w-0">
-        <Icon
-          className={`h-3.5 w-3.5 shrink-0 ${
+        <div
+          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ring-1 ring-inset ${
             isApproved
-              ? "text-emerald-600"
+              ? "bg-emerald-50 text-emerald-600 ring-emerald-200"
               : isPending
-                ? "text-amber-600"
-                : "text-red-600"
+                ? "bg-amber-50 text-amber-600 ring-amber-200"
+                : "bg-red-50 text-red-600 ring-red-200"
           }`}
-        />
+        >
+          <Icon className="h-3.5 w-3.5" />
+        </div>
         <div className="min-w-0">
           <p className="text-[13px] font-medium text-foreground truncate font-mono">
             {payment.recipient}
@@ -393,8 +443,16 @@ function VaultDeployBanner({
   const deploying = isPending || isConfirming;
 
   return (
-    <div className="rounded-xl border border-accent/20 bg-accent/[0.03] p-4 sm:p-5">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div className="relative overflow-hidden rounded-2xl border border-accent/20 bg-accent/[0.03] p-4 sm:p-5">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full"
+        style={{
+          background:
+            "radial-gradient(closest-side, rgba(99,102,241,0.10), transparent)",
+        }}
+      />
+      <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <p className="text-[13px] font-medium text-foreground mb-0.5">
             Deploy your vault to start
@@ -406,13 +464,13 @@ function VaultDeployBanner({
         <button
           onClick={handleDeploy}
           disabled={deploying || !factoryAddress}
-          className="shrink-0 rounded-md bg-foreground px-4 py-2 text-[12px] font-medium text-background transition-all hover:opacity-90 disabled:opacity-50"
+          className="shrink-0 rounded-lg bg-foreground px-4 py-2 text-[12px] font-medium text-background transition-all hover:bg-accent hover:opacity-100 disabled:opacity-50"
         >
           {isPending ? "Confirm..." : isConfirming ? "Deploying..." : "Deploy vault"}
         </button>
       </div>
       {error && (
-        <p className="mt-2 text-[11px] text-red-500">
+        <p className="relative mt-2 text-[11px] text-red-500">
           {error.message?.includes("User rejected") ? "Transaction rejected" : "Deployment failed"}
         </p>
       )}
@@ -428,8 +486,16 @@ function VaultFundBanner({
   onFunded: () => void;
 }) {
   return (
-    <div className="rounded-xl border border-border bg-card p-4 sm:p-5">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-4 sm:p-5">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full opacity-60"
+        style={{
+          background:
+            "radial-gradient(closest-side, rgba(245,239,235,0.8), transparent)",
+        }}
+      />
+      <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="text-[13px] font-medium text-foreground mb-0.5">
             Fund your vault
@@ -444,15 +510,16 @@ function VaultFundBanner({
             href={`https://sepolia.basescan.org/address/${vaultAddress}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+            aria-label="View vault on BaseScan"
+            className="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <ExternalLink className="h-3.5 w-3.5" />
           </a>
           <button
             onClick={onFunded}
-            className="rounded-md bg-foreground px-4 py-2 text-[12px] font-medium text-background transition-all hover:opacity-90"
+            className="shrink-0 rounded-lg bg-foreground px-4 py-2 text-[12px] font-medium text-background transition-all hover:bg-accent"
           >
-            I've deposited
+            I&apos;ve deposited
           </button>
         </div>
       </div>
