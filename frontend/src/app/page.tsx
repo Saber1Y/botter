@@ -607,26 +607,26 @@ export default function LandingPage() {
           className="absolute inset-0"
           style={{
             backgroundImage:
-              "radial-gradient(circle, rgba(99,102,241,0.35) 1px, transparent 1px)",
-            backgroundSize: "22px 22px",
+              "radial-gradient(circle, rgba(99,102,241,0.6) 1.2px, transparent 1.2px)",
+            backgroundSize: "20px 20px",
             maskImage:
-              "linear-gradient(to bottom, black 0%, black 40%, transparent 100%)",
+              "linear-gradient(to bottom, black 0%, black 55%, transparent 100%)",
             WebkitMaskImage:
-              "linear-gradient(to bottom, black 0%, black 40%, transparent 100%)",
-            opacity: 0.35,
+              "linear-gradient(to bottom, black 0%, black 55%, transparent 100%)",
+            opacity: 0.55,
           }}
         />
         {/* Refined grid texture */}
         <div
-          className="absolute inset-0 opacity-[0.4]"
+          className="absolute inset-0 opacity-[0.6]"
           style={{
             backgroundImage:
-              "linear-gradient(rgba(28,25,23,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(28,25,23,0.04) 1px, transparent 1px)",
-            backgroundSize: "64px 64px",
+              "linear-gradient(rgba(28,25,23,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(28,25,23,0.06) 1px, transparent 1px)",
+            backgroundSize: "56px 56px",
             maskImage:
-              "radial-gradient(ellipse 80% 60% at 50% 0%, black 20%, transparent 70%)",
+              "radial-gradient(ellipse 90% 70% at 50% 0%, black 30%, transparent 75%)",
             WebkitMaskImage:
-              "radial-gradient(ellipse 80% 60% at 50% 0%, black 20%, transparent 70%)",
+              "radial-gradient(ellipse 90% 70% at 50% 0%, black 30%, transparent 75%)",
           }}
         />
         {/* Floating gradient orbs */}
