@@ -108,7 +108,10 @@ const suggestions = [
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState(() => {
+    if (typeof window === "undefined") return "";
+    return new URLSearchParams(window.location.search).get("q") ?? "";
+  });
   const [loading, setLoading] = useState(false);
   const [historyLoading, setHistoryLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -135,6 +138,11 @@ export default function ChatPage() {
       })
       .catch(() => {})
       .finally(() => setHistoryLoading(false));
+  }, []);
+
+  useEffect(() => {
+    if (input) setTimeout(() => inputRef.current?.focus(), 300);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
