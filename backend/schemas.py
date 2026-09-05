@@ -47,6 +47,7 @@ class PaymentResponse(BaseModel):
     tx_hash: Optional[str] = None
     status: str
     memory_references: list[str] = []
+    memory_details: list[dict] = []
     timestamp: str
 
 
