@@ -43,35 +43,86 @@ export default function OverviewPage() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [liveError, setLiveError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!address) return;
 
+    let cancelled = false;
+
     async function load() {
+      // Track whether the live status fetch genuinely failed vs. returned empty.
+      // Note: a 404 from getVault is the legitimate "no vault yet" state, so only
+      // getVaultStatus (always 200) drives the live-error banner.
+      let statusFailed = false;
       try {
         const [v, vs, g, p] = await Promise.all([
           api.getVault(address!).catch(() => null),
-          api.getVaultStatus(address!).catch(() => null),
+          api.getVaultStatus(address!).catch(() => {
+            statusFailed = true;
+            return null;
+          }),
           api.getGoals(address!).catch(() => []),
           api.getPayments(address!).catch(() => []),
         ]);
+        if (cancelled) return;
         setVault(v);
         setVaultStatus(vs);
         setGoals(g);
         setPayments(p);
+        // If we couldn't reach the live status, show a recoverable banner
+        // instead of silently presenting $0 / "no vault" as fact.
+        if (statusFailed) {
+          setLiveError(
+            "Couldn't reach Pact services. Showing cached/empty values - retry to load live data."
+          );
+        } else {
+          setLiveError(null);
+        }
       } catch (err) {
+        if (cancelled) return;
         setError("Failed to load dashboard data.");
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
     load();
+
+    return () => {
+      cancelled = true;
+    };
   }, [address]);
+
+  const reloadLive = () => {
+    if (!address) return;
+    let statusFailed = false;
+    Promise.all([
+      api.getVault(address).catch(() => null),
+      api.getVaultStatus(address).catch(() => {
+        statusFailed = true;
+        return null;
+      }),
+      api.getGoals(address).catch(() => []),
+      api.getPayments(address).catch(() => []),
+    ]).then(([v, vs, g, p]) => {
+      setVault(v);
+      setVaultStatus(vs);
+      setGoals(g);
+      setPayments(p);
+      setLiveError(statusFailed ? "Couldn't reach Pact services." : null);
+    });
+  };
 
   const refreshVault = () => {
     if (!address) return;
-    api.getVaultStatus(address).then(setVaultStatus).catch(() => {});
-    api.getVault(address).then(setVault).catch(() => {});
+    Promise.all([
+      api.getVaultStatus(address).catch(() => null),
+      api.getVault(address).catch(() => null),
+    ]).then(([vs, v]) => {
+      if (vs) setVaultStatus(vs);
+      if (v) setVault(v);
+      if (vs || v) setLiveError(null);
+    });
   };
 
   if (loading) {
@@ -138,6 +189,41 @@ export default function OverviewPage() {
           <span className="text-muted-foreground/40">.</span>
         </h1>
       </motion.div>
+
+      {/* Live-data warning: a failed backend fetch must not masquerade as $0 */}
+      {liveError && (
+        <motion.div variants={fadeUp} className="mb-6">
+          <div className="flex items-start justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+            <div className="flex items-start gap-2.5">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+              <div>
+                <p className="text-[13px] font-medium text-amber-900">
+                  Couldn&apos;t load live data
+                </p>
+                <p className="text-[12px] text-amber-800/80">
+                  Values below may be cached or empty. Retry to fetch your real
+                  on-chain balance.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={reloadLive}
+                className="rounded-lg bg-foreground px-3 py-1.5 text-[12px] font-medium text-background transition-colors hover:bg-accent"
+              >
+                Retry
+              </button>
+              <button
+                onClick={() => setLiveError(null)}
+                aria-label="Dismiss"
+                className="text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Vault status banner */}
       {vaultStatus && !vaultStatus.has_vault && (
