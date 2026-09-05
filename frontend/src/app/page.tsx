@@ -27,10 +27,10 @@ import {
   Globe,
   ShieldCheck,
   EyeOff,
-  ChevronRight,
   Clock,
 } from "lucide-react";
 import WorkflowDiagram from "@/components/WorkflowDiagram";
+import SecurityDiagram from "@/components/SecurityDiagram";
 
 /* ─── Animation Variants ─── */
 const fadeUp = {
@@ -561,29 +561,6 @@ function MemoryCard({
   );
 }
 
-/* ─── Architecture Step ─── */
-function ArchStep({ label, sublabel }: { label: string; sublabel?: string }) {
-  return (
-    <div className="flex flex-col items-center gap-2">
-      <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-border bg-card text-[11px] font-medium text-muted-foreground shadow-sm">
-        {label}
-      </div>
-      {sublabel && (
-        <p className="text-[10px] text-muted-foreground">{sublabel}</p>
-      )}
-    </div>
-  );
-}
-
-function ArchArrow() {
-  return (
-    <div className="flex items-center px-1.5">
-      <div className="h-px w-6 bg-border md:w-10" />
-      <ChevronRight className="h-3 w-3 text-muted-foreground/50" />
-    </div>
-  );
-}
-
 /* ─── Main Page ─── */
 export default function LandingPage() {
   const { scrollYProgress } = useScroll();
@@ -975,19 +952,8 @@ export default function LandingPage() {
           </p>
         </motion.div>
 
-        <motion.div
-          variants={fadeUp}
-          className="mx-auto mb-10 flex max-w-3xl flex-wrap items-center justify-center gap-2 md:gap-0"
-        >
-          <ArchStep label="User" sublabel="Define" />
-          <ArchArrow />
-          <ArchStep label="Memory" sublabel="Context" />
-          <ArchArrow />
-          <ArchStep label="Policy" sublabel="Reason" />
-          <ArchArrow />
-          <ArchStep label="Contract" sublabel="Enforce" />
-          <ArchArrow />
-          <ArchStep label="Base" sublabel="Execute" />
+        <motion.div variants={fadeUp} className="mb-10">
+          <SecurityDiagram />
         </motion.div>
 
         <motion.div
