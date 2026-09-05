@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
-import { api, VaultInfo, VaultStatus, Goal, Payment } from "@/lib/api";
+import { api, VaultInfo, VaultStatus, Goal, Payment, Memory } from "@/lib/api";
 import { VAULT_FACTORY_ABI } from "@/lib/abis";
 import { motion } from "framer-motion";
 import {
@@ -14,6 +14,11 @@ import {
   Plus,
   Loader2,
   ExternalLink,
+  ShieldCheck,
+  Target,
+  Brain,
+  Sparkles,
+  Landmark,
 } from "lucide-react";
 import { StatCardSkeleton, TableRowSkeleton } from "@/components/Skeleton";
 
@@ -41,6 +46,7 @@ export default function OverviewPage() {
   const [vaultStatus, setVaultStatus] = useState<VaultStatus | null>(null);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
+  const [memories, setMemories] = useState<Memory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [liveError, setLiveError] = useState<string | null>(null);
@@ -56,7 +62,7 @@ export default function OverviewPage() {
       // getVaultStatus (always 200) drives the live-error banner.
       let statusFailed = false;
       try {
-        const [v, vs, g, p] = await Promise.all([
+        const [v, vs, g, p, mem] = await Promise.all([
           api.getVault(address!).catch(() => null),
           api.getVaultStatus(address!).catch(() => {
             statusFailed = true;
@@ -64,12 +70,14 @@ export default function OverviewPage() {
           }),
           api.getGoals(address!).catch(() => []),
           api.getPayments(address!).catch(() => []),
+          api.getMemory(undefined, address!).catch(() => []),
         ]);
         if (cancelled) return;
         setVault(v);
         setVaultStatus(vs);
         setGoals(g);
         setPayments(p);
+        setMemories(mem);
         // If we couldn't reach the live status, show a recoverable banner
         // instead of silently presenting $0 / "no vault" as fact.
         if (statusFailed) {
@@ -104,11 +112,13 @@ export default function OverviewPage() {
       }),
       api.getGoals(address).catch(() => []),
       api.getPayments(address).catch(() => []),
-    ]).then(([v, vs, g, p]) => {
+      api.getMemory(undefined, address).catch(() => []),
+    ]).then(([v, vs, g, p, mem]) => {
       setVault(v);
       setVaultStatus(vs);
       setGoals(g);
       setPayments(p);
+      setMemories(mem);
       setLiveError(statusFailed ? "Couldn't reach Pact services." : null);
     });
   };
@@ -170,6 +180,9 @@ export default function OverviewPage() {
   const dailyRemaining = vault?.daily_remaining ?? 0;
   const dailyLimit = vault?.daily_limit ?? 1;
   const budgetPct = vault ? (dailyRemaining / dailyLimit) * 100 : 0;
+  const maxPerTx = vault?.max_per_transaction ?? 0;
+  const rules = memories.filter((m) => m.category === "rules");
+  const recentDecisions = memories.filter((m) => m.category === "decisions");
 
   return (
     <motion.div
@@ -284,11 +297,17 @@ export default function OverviewPage() {
               USDC
             </span>
           </div>
-          <div className="relative mt-4 flex items-center gap-1.5">
+          <div className="relative mt-4 flex flex-wrap items-center gap-1.5">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/50 px-2.5 py-1 font-mono text-[10px] font-medium text-muted-foreground">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse-glow" />
               Base Sepolia
             </span>
+            {maxPerTx > 0 && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-muted/30 px-2.5 py-1 font-mono text-[10px] font-medium text-muted-foreground">
+                <ShieldCheck className="h-3 w-3 text-accent" />
+                Max {maxPerTx} USDC / tx
+              </span>
+            )}
           </div>
         </motion.div>
 
@@ -432,32 +451,155 @@ export default function OverviewPage() {
         </motion.div>
       </div>
 
-      {/* CTA */}
+      {/* Pact remembers */}
+      {memories.length > 0 && (
+        <motion.div variants={fadeUp}>
+          <div className="flex items-center gap-2 mb-3">
+            <Brain className="h-4 w-4 text-accent" />
+            <h2 className="text-[13px] font-semibold text-foreground">
+              Pact remembers
+            </h2>
+            <Link
+              href="/app/memory"
+              className="ml-auto text-[11px] font-medium text-accent hover:text-accent/80"
+            >
+              View all
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+            {goal && (
+              <div className="rounded-2xl border border-border bg-card p-4">
+                <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.14em] text-muted-foreground mb-2">
+                  <Target className="h-3.5 w-3.5 text-accent" />
+                  Goal
+                </div>
+                <p className="text-[13px] font-medium text-foreground">
+                  {goal.name}
+                </p>
+                <p className="text-[11px] text-muted-foreground">
+                  ${goal.current?.toFixed(0) ?? 0} / ${goal.target?.toFixed(0) ?? 0}
+                </p>
+              </div>
+            )}
+            {rules.slice(0, 2).map((rule) => (
+              <div
+                key={rule.key}
+                className="rounded-2xl border border-border bg-card p-4"
+              >
+                <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.14em] text-muted-foreground mb-2">
+                  <ShieldCheck className="h-3.5 w-3.5 text-accent" />
+                  Rule
+                </div>
+                <p className="text-[13px] font-medium text-foreground">
+                  {rule.value.type === "spending_limit"
+                    ? "Spending limit"
+                    : rule.value.type === "trusted_merchant"
+                      ? "Trusted merchant"
+                      : "Blocked merchant"}
+                </p>
+                <p className="font-mono text-[11px] text-muted-foreground">
+                  {rule.value.type === "spending_limit"
+                    ? `$${rule.value.value} per tx`
+                    : String(rule.value.value)}
+                </p>
+              </div>
+            ))}
+            {recentDecisions[0] && (
+              <div className="rounded-2xl border border-border bg-card p-4">
+                <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.14em] text-muted-foreground mb-2">
+                  <Sparkles className="h-3.5 w-3.5 text-accent" />
+                  Last call
+                </div>
+                <p className="text-[13px] font-medium text-foreground">
+                  {recentDecisions[0].value.decision === "APPROVE" ||
+                  recentDecisions[0].value.decision === "PAYMENT"
+                    ? "Approved"
+                    : "Blocked"}
+                </p>
+                <p className="truncate font-mono text-[11px] text-muted-foreground">
+                  {String(recentDecisions[0].value.recipient)} · $
+                  {String(recentDecisions[0].value.amount)}
+                </p>
+              </div>
+            )}
+          </div>
+        </motion.div>
+      )}
+
+      {/* Quick actions */}
       <motion.div variants={fadeUp}>
-        <Link
-          href="/app/chat"
-          className="group relative flex items-center justify-between overflow-hidden rounded-2xl border border-border bg-card p-5 transition-all hover:shadow-[0_2px_16px_rgba(0,0,0,0.05)] hover:border-accent/30"
-        >
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute -right-10 -top-20 h-44 w-44 rounded-full opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-            style={{
-              background:
-                "radial-gradient(closest-side, rgba(99,102,241,0.10), transparent)",
-            }}
-          />
-          <div className="relative">
-            <p className="text-[14px] font-medium text-foreground mb-0.5">
-              Talk to your AI CFO
-            </p>
-            <p className="text-[12px] text-muted-foreground">
-              &quot;Can I spend $200 this weekend?&quot;
-            </p>
-          </div>
-          <div className="relative flex h-9 w-9 items-center justify-center rounded-lg bg-foreground text-background transition-colors group-hover:bg-accent">
-            <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-          </div>
-        </Link>
+        <div className="flex items-center gap-2 mb-3">
+          <Landmark className="h-4 w-4 text-accent" />
+          <h2 className="text-[13px] font-semibold text-foreground">
+            Quick actions
+          </h2>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Link
+            href="/app/chat?q=Can I spend $200 this weekend?"
+            className="group relative flex items-center gap-3 overflow-hidden rounded-2xl border border-border bg-card p-4 transition-all hover:shadow-[0_2px_16px_rgba(0,0,0,0.05)] hover:border-accent/30"
+          >
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/10 ring-1 ring-accent/20">
+              <ArrowRight className="h-4 w-4 text-accent transition-transform group-hover:translate-x-0.5" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[13px] font-medium text-foreground">
+                Budget check
+              </p>
+              <p className="text-[11px] text-muted-foreground truncate">
+                Can I spend $200 this weekend?
+              </p>
+            </div>
+          </Link>
+          <Link
+            href="/app/chat?q=Pay Acme $60"
+            className="group relative flex items-center gap-3 overflow-hidden rounded-2xl border border-border bg-card p-4 transition-all hover:shadow-[0_2px_16px_rgba(0,0,0,0.05)] hover:border-accent/30"
+          >
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/10 ring-1 ring-accent/20">
+              <CheckCircle2 className="h-4 w-4 text-accent" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[13px] font-medium text-foreground">
+                Send a payment
+              </p>
+              <p className="text-[11px] text-muted-foreground truncate">
+                Pay Acme $60
+              </p>
+            </div>
+          </Link>
+          <Link
+            href="/app/chat?q=What are my current rules?"
+            className="group relative flex items-center gap-3 overflow-hidden rounded-2xl border border-border bg-card p-4 transition-all hover:shadow-[0_2px_16px_rgba(0,0,0,0.05)] hover:border-accent/30"
+          >
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/10 ring-1 ring-accent/20">
+              <ShieldCheck className="h-4 w-4 text-accent" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[13px] font-medium text-foreground">
+                Review my rules
+              </p>
+              <p className="text-[11px] text-muted-foreground truncate">
+                What are my current rules?
+              </p>
+            </div>
+          </Link>
+          <Link
+            href="/app/chat?q=I%27m saving $2,000 for a MacBook"
+            className="group relative flex items-center gap-3 overflow-hidden rounded-2xl border border-border bg-card p-4 transition-all hover:shadow-[0_2px_16px_rgba(0,0,0,0.05)] hover:border-accent/30"
+          >
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/10 ring-1 ring-accent/20">
+              <Target className="h-4 w-4 text-accent" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[13px] font-medium text-foreground">
+                Start a goal
+              </p>
+              <p className="text-[11px] text-muted-foreground truncate">
+                I&apos;m saving $2,000 for a MacBook
+              </p>
+            </div>
+          </Link>
+        </div>
       </motion.div>
     </motion.div>
   );
