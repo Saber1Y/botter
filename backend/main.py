@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from config import get_settings
-from memory import memory
+from memory import MemoryUnavailable, memory
 from agent import agent
 from schemas import (
     ChatHistoryEntry,
@@ -49,29 +49,40 @@ app.add_middleware(
 @app.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest, wallet: str = "0x0000000000000000000000000000000000000000"):
     """Process a chat message from the user."""
-    # Store user message in history
-    client = memory._client(wallet)
-    ts = time.time()
-    client.set_entity("chat_history", f"msg_{ts}_user", {
-        "role": "user",
-        "content": request.message,
-        "ts": ts,
-    })
+    try:
+        # Store user message in Sibyl before any reasoning occurs.
+        client = memory._client(wallet)
+        ts = time.time()
+        try:
+            client.set_entity("chat_history", f"msg_{ts}_user", {
+                "role": "user",
+                "content": request.message,
+                "ts": ts,
+            })
+        except Exception as exc:
+            raise MemoryUnavailable("Sibyl memory is unavailable") from exc
 
-    result = await agent.process_message(wallet, request.message)
+        result = await agent.process_message(wallet, request.message)
 
-    # Store assistant response in history
-    ts2 = time.time()
-    client.set_entity("chat_history", f"msg_{ts2}_assistant", {
-        "role": "assistant",
-        "content": result.get("response", ""),
-        "intent": result.get("intent", ""),
-        "decision": result.get("decision"),
-        "payment": result.get("payment"),
-        "ts": ts2,
-    })
-
-    return ChatResponse(**result)
+        # Store assistant response in the same Sibyl tenant.
+        ts2 = time.time()
+        try:
+            client.set_entity("chat_history", f"msg_{ts2}_assistant", {
+                "role": "assistant",
+                "content": result.get("response", ""),
+                "intent": result.get("intent", ""),
+                "decision": result.get("decision"),
+                "payment": result.get("payment"),
+                "ts": ts2,
+            })
+        except Exception as exc:
+            raise MemoryUnavailable("Sibyl memory is unavailable") from exc
+        return ChatResponse(**result)
+    except MemoryUnavailable as exc:
+        raise HTTPException(
+            status_code=503,
+            detail={"code": "SIBYL_UNAVAILABLE", "message": str(exc)},
+        ) from exc
 
 
 @app.get("/chat/history", response_model=list[ChatHistoryEntry])
@@ -118,11 +129,22 @@ async def get_memory(wallet: str = "0x0000000000000000000000000000000000000000",
             MemoryResponse(key=f"decision_{i}", category="decisions", value=d)
             for i, d in enumerate(decisions)
         ]
+    elif category == "payments":
+        payments = memory.get_payment_events(wallet)
+        return [
+            MemoryResponse(
+                key=p.get("memory_id", f"payment_{i}"),
+                category="payments",
+                value=p,
+            )
+            for i, p in enumerate(payments)
+        ]
     else:
-        # Return all rules, goals, and recent decisions
+        # Return all user-facing Sibyl memory tiers.
         rules = memory.get_all_rules(wallet)
         goals = memory.get_goals(wallet)
         decisions = memory.get_decisions(wallet, limit=10)
+        payments = memory.get_payment_events(wallet, limit=20)
         results = [
             MemoryResponse(key=r["key"], category="rules", value=r["value"])
             for r in rules
@@ -134,6 +156,14 @@ async def get_memory(wallet: str = "0x0000000000000000000000000000000000000000",
         results += [
             MemoryResponse(key=f"decision_{i}", category="decisions", value=d)
             for i, d in enumerate(decisions)
+        ]
+        results += [
+            MemoryResponse(
+                key=p.get("memory_id", f"payment_{i}"),
+                category="payments",
+                value=p,
+            )
+            for i, p in enumerate(payments)
         ]
         return results
 
@@ -212,7 +242,36 @@ async def delete_goal(name: str, wallet: str = "0x000000000000000000000000000000
 
 @app.get("/payments", response_model=list[PaymentResponse])
 async def get_payments(wallet: str = "0x0000000000000000000000000000000000000000"):
-    """Get all payments from decisions (WARM) and journal (COLD)."""
+    """Get the linked decision and payment audit trail from Sibyl."""
+    def normalize_decision(value: str) -> str:
+        return {
+            "APPROVED": "APPROVE",
+            "APPROVE": "APPROVE",
+            "REQUIRE_APPROVAL": "REQUIRE_APPROVAL",
+            "DENIED": "DENY",
+            "DENY": "DENY",
+        }.get(value.upper(), "DENY")
+
+    events = memory.get_payment_events(wallet, limit=50)
+    if events:
+        return [
+            PaymentResponse(
+                id=p.get("decision_id") or p.get("memory_id", f"payment_{i}"),
+                recipient=p.get("recipient", ""),
+                amount=p.get("amount", "0"),
+                token=p.get("token", "USDC"),
+                decision=normalize_decision(p.get("decision", "UNKNOWN")),
+                reason=p.get("reason", ""),
+                tx_hash=p.get("tx_hash") or None,
+                status=("completed" if p.get("tx_hash") else p.get("decision", "pending").lower()),
+                memory_references=p.get("memory_references", []),
+                memory_details=p.get("memory_details", []),
+                timestamp=str(p.get("ts", "")),
+            )
+            for i, p in enumerate(events)
+        ]
+
+    # Legacy records created before decision_id was added remain readable.
     decisions = memory.get_decisions(wallet, limit=20)
     payments = []
     for d in decisions:
@@ -221,7 +280,7 @@ async def get_payments(wallet: str = "0x0000000000000000000000000000000000000000
             recipient=d.get("recipient", ""),
             amount=d.get("amount", "0"),
             token="USDC",
-            decision=d.get("decision", "UNKNOWN").upper(),
+            decision=normalize_decision(d.get("decision", "UNKNOWN")),
             reason=d.get("reason", ""),
             tx_hash=None,
             status=d.get("decision", "pending").lower(),
@@ -229,6 +288,16 @@ async def get_payments(wallet: str = "0x0000000000000000000000000000000000000000
             timestamp=str(d.get("ts", "")),
         ))
     return payments
+
+
+@app.get("/memory/status")
+async def get_memory_status(wallet: str = "0x0000000000000000000000000000000000000000"):
+    """Report whether this wallet's Sibyl tenant is available."""
+    try:
+        memory.get_memory_context(wallet)
+        return {"available": True, "provider": "sibyl", "tenant": "wallet-scoped"}
+    except Exception:
+        return {"available": False, "provider": "sibyl", "tenant": "wallet-scoped"}
 
 
 # --- Vault Endpoints ---
