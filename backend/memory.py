@@ -18,6 +18,10 @@ from typing import Any, Optional
 from sibyl_memory_client import MemoryClient
 
 
+class MemoryUnavailable(RuntimeError):
+    """Raised when Sibyl cannot be reached for a required operation."""
+
+
 def _normalize_wallet(wallet: str) -> str:
     """Normalize a wallet address to a stable tenant ID.
 
@@ -46,11 +50,24 @@ class PactMemory:
         """Get or create a MemoryClient for a wallet's tenant."""
         tenant = _normalize_wallet(wallet)
         if tenant not in self._clients:
-            self._clients[tenant] = MemoryClient.local(
-                self._db_path,
-                tenant_id=tenant,
-            )
+            try:
+                self._clients[tenant] = MemoryClient.local(
+                    self._db_path,
+                    tenant_id=tenant,
+                )
+            except Exception as exc:
+                raise MemoryUnavailable("Sibyl memory is unavailable") from exc
         return self._clients[tenant]
+
+    @staticmethod
+    def _required(operation):
+        """Translate SDK failures into a stable outage signal."""
+        try:
+            return operation()
+        except MemoryUnavailable:
+            raise
+        except Exception as exc:
+            raise MemoryUnavailable("Sibyl memory is unavailable") from exc
 
     # ─── WARM: Rules ────────────────────────────────────────────
 
@@ -75,14 +92,16 @@ class PactMemory:
         """
         client = self._client(wallet)
         name = rule_id or rule_type
-        return client.set_entity(
-            "rules",
-            name,
-            {
-                "type": rule_type,
-                "value": value,
-                "updated_at": time.time(),
-            },
+        return self._required(
+            lambda: client.set_entity(
+                "rules",
+                name,
+                {
+                    "type": rule_type,
+                    "value": value,
+                    "updated_at": time.time(),
+                },
+            )
         )
 
     def get_rule(self, wallet: str, rule_type: str) -> Optional[dict]:
@@ -98,6 +117,7 @@ class PactMemory:
         return [
             {
                 "key": e.get("name", ""),
+                "memory_id": f"rules:{e.get('name', '')}",
                 "value": e.get("body", {}),
             }
             for e in entities
@@ -115,22 +135,31 @@ class PactMemory:
     ) -> dict:
         """Store or update a financial goal (upsert)."""
         client = self._client(wallet)
-        return client.set_entity(
-            "goals",
-            name,
-            {
-                "name": name,
-                "target": target,
-                "current": current,
-                "updated_at": time.time(),
-            },
+        return self._required(
+            lambda: client.set_entity(
+                "goals",
+                name,
+                {
+                    "name": name,
+                    "target": target,
+                    "current": current,
+                    "updated_at": time.time(),
+                },
+            )
         )
 
     def get_goals(self, wallet: str) -> list[dict]:
         """Get all goals for a user."""
         client = self._client(wallet)
         entities = client.list_entities("goals")
-        return [e.get("body", {}) for e in entities if e.get("status") != "archived"]
+        return [
+            {
+                **e.get("body", {}),
+                "memory_id": f"goals:{e.get('name', '')}",
+            }
+            for e in entities
+            if e.get("status") != "archived"
+        ]
 
     def delete_goal(self, wallet: str, name: str) -> bool:
         """Delete a goal by name."""
@@ -156,10 +185,12 @@ class PactMemory:
           "acme_rejected_count" → {"merchant": "Acme", "rejections": 2}
         """
         client = self._client(wallet)
-        return client.set_entity(
-            "policy_facts",
-            fact_id,
-            {**fact, "updated_at": time.time()},
+        return self._required(
+            lambda: client.set_entity(
+                "policy_facts",
+                fact_id,
+                {**fact, "updated_at": time.time()},
+            )
         )
 
     def get_policy_fact(self, wallet: str, fact_id: str) -> Optional[dict]:
@@ -185,6 +216,7 @@ class PactMemory:
         decision: str,
         reason: str,
         merchant: str = "",
+        memory_references: list[str] | None = None,
     ) -> dict:
         """Store a payment decision as a searchable WARM fact.
 
@@ -192,17 +224,21 @@ class PactMemory:
         e.g. "user rejected Acme twice last month".
         """
         client = self._client(wallet)
-        return client.set_entity(
-            "decisions",
-            decision_id,
-            {
-                "recipient": recipient,
-                "amount": amount,
-                "decision": decision,
-                "reason": reason,
-                "merchant": merchant,
-                "ts": time.time(),
-            },
+        return self._required(
+            lambda: client.set_entity(
+                "decisions",
+                decision_id,
+                {
+                    "recipient": recipient,
+                    "amount": amount,
+                    "decision": decision,
+                    "reason": reason,
+                    "merchant": merchant,
+                    "memory_references": memory_references or [],
+                    "decision_id": decision_id,
+                    "ts": time.time(),
+                },
+            )
         )
 
     def get_decisions(
@@ -214,7 +250,13 @@ class PactMemory:
         """Get recent decisions."""
         client = self._client(wallet)
         results = client.search_entities("decision", category="decisions", limit=limit)
-        return [r.get("body", {}) for r in results]
+        return [
+            {
+                **r.get("body", {}),
+                "memory_id": f"decisions:{r.get('name', '')}",
+            }
+            for r in results
+        ]
 
     # ─── COLD: Payment events ───────────────────────────────────
 
@@ -229,6 +271,9 @@ class PactMemory:
         tx_hash: str = "",
         merchant: str = "",
         reason: str = "",
+        decision_id: str = "",
+        memory_references: list[str] | None = None,
+        memory_details: list[dict] | None = None,
     ) -> str:
         """Record a payment event in the COLD journal.
 
@@ -244,10 +289,16 @@ class PactMemory:
             "decision": decision,
             "tx_hash": tx_hash,
             "reason": reason,
+            "decision_id": decision_id,
+            "memory_references": memory_references or [],
+            "memory_details": memory_details or [],
+            "ts": time.time(),
         }
-        return client.write_event(
-            acted=[f"Payment {decision}: {amount} {token} to {recipient}"],
-            extra=event,
+        return self._required(
+            lambda: client.write_event(
+                acted=[f"Payment {decision}: {amount} {token} to {recipient}"],
+                extra=event,
+            )
         )
 
     def get_payment_events(
@@ -263,8 +314,24 @@ class PactMemory:
         for ev in events:
             extra = ev.get("extra")
             if isinstance(extra, dict) and extra.get("type") == "payment":
-                payments.append(extra)
+                payments.append({
+                    **extra,
+                    "memory_id": f"payments:{ev.get('id', ev.get('event_id', ''))}",
+                })
         return payments
+
+    def get_all_policy_facts(self, wallet: str) -> list[dict]:
+        """Get merchant and policy facts stored in Sibyl WARM memory."""
+        client = self._client(wallet)
+        entities = client.list_entities("policy_facts")
+        return [
+            {
+                **e.get("body", {}),
+                "memory_id": f"policy_facts:{e.get('name', '')}",
+            }
+            for e in entities
+            if e.get("status") != "archived"
+        ]
 
     # ─── HOT: Session state ─────────────────────────────────────
 
@@ -297,6 +364,7 @@ class PactMemory:
         goals = self.get_goals(wallet)
         decisions = self.get_decisions(wallet, limit=10)
         recent_payments = self.get_payment_events(wallet, limit=10)
+        policy_facts = self.get_all_policy_facts(wallet)
 
         # Build structured context
         spending_limit = None
@@ -321,11 +389,59 @@ class PactMemory:
             "goals": goals,
             "recent_decisions": decisions,
             "recent_payments": recent_payments,
+            "policy_facts": policy_facts,
+            "memory_records": [
+                *[
+                    {
+                        "id": rule.get("memory_id", f"rules:{rule.get('key', '')}"),
+                        "category": "rules",
+                        "label": rule.get("key", "rule"),
+                        "value": rule.get("value", {}),
+                    }
+                    for rule in rules
+                ],
+                *[
+                    {
+                        "id": goal.get("memory_id", f"goals:{goal.get('name', '')}"),
+                        "category": "goals",
+                        "label": goal.get("name", "goal"),
+                        "value": goal,
+                    }
+                    for goal in goals
+                ],
+                *[
+                    {
+                        "id": decision.get("memory_id", f"decisions:{decision.get('decision_id', '')}"),
+                        "category": "decisions",
+                        "label": decision.get("recipient", "decision"),
+                        "value": decision,
+                    }
+                    for decision in decisions
+                ],
+                *[
+                    {
+                        "id": payment.get("memory_id", f"payments:{i}"),
+                        "category": "payments",
+                        "label": payment.get("recipient", "payment"),
+                        "value": payment,
+                    }
+                    for i, payment in enumerate(recent_payments)
+                ],
+                *[
+                    {
+                        "id": fact.get("memory_id", f"policy_facts:{i}"),
+                        "category": "policy_facts",
+                        "label": fact.get("merchant", fact.get("recipient", "merchant")),
+                        "value": fact,
+                    }
+                    for i, fact in enumerate(policy_facts)
+                ],
+            ],
         }
 
-    def format_for_llm(self, wallet: str) -> str:
+    def format_for_llm(self, wallet: str, context: dict | None = None) -> str:
         """Format memory context into a readable string for the LLM."""
-        ctx = self.get_memory_context(wallet)
+        ctx = context or self.get_memory_context(wallet)
         lines = []
 
         if ctx["spending_limit"] is not None:
@@ -345,6 +461,13 @@ class PactMemory:
             decision = d.get("decision", "unknown")
             amount = d.get("amount", "?")
             lines.append(f"- Past decision: {decision} ${amount} to {merchant}")
+        for fact in ctx.get("policy_facts", [])[:10]:
+            merchant = fact.get("merchant", fact.get("recipient", "unknown"))
+            lines.append(
+                f"- Merchant history: {merchant} - "
+                f"{fact.get('approved_count', 0)} approved, "
+                f"{fact.get('denied_count', 0)} denied"
+            )
 
         return "\n".join(lines) if lines else "No memories stored yet."
 
