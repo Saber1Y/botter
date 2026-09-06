@@ -1,5 +1,12 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
+export interface MemoryEvidence {
+  id: string;
+  category: string;
+  label: string;
+  value: Record<string, unknown>;
+}
+
 export interface ChatMessage {
   response: string;
   intent: string;
@@ -10,6 +17,7 @@ export interface ChatMessage {
     token: string;
     reason: string;
     memory_references: string[];
+    memory_details?: MemoryEvidence[];
     tx_hash?: string;
     status?: string;
   };
@@ -28,6 +36,7 @@ export interface ChatHistoryEntry {
     token: string;
     reason: string;
     memory_references: string[];
+    memory_details?: MemoryEvidence[];
     tx_hash?: string;
     status?: string;
   };
@@ -56,6 +65,7 @@ export interface Payment {
   tx_hash?: string;
   status: string;
   memory_references: string[];
+  memory_details?: MemoryEvidence[];
   timestamp: string;
 }
 
@@ -75,6 +85,12 @@ export interface VaultStatus {
   daily_remaining?: number;
   max_per_transaction?: number;
   daily_limit?: number;
+}
+
+export interface MemoryStatus {
+  available: boolean;
+  provider: "sibyl";
+  tenant: "wallet-scoped";
 }
 
 async function fetchAPI<T>(path: string, options?: RequestInit): Promise<T> {
@@ -108,6 +124,8 @@ export const api = {
   // Memory
   getMemory: (category?: string, wallet?: string) =>
     fetchAPI<Memory[]>(`/memory${category ? `?category=${category}` : ""}${wallet ? `&wallet=${wallet}` : ""}`),
+  getMemoryStatus: (wallet?: string) =>
+    fetchAPI<MemoryStatus>(`/memory/status${wallet ? `?wallet=${wallet}` : ""}`),
 
   // Rules
   getRules: (wallet?: string) =>
