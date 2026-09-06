@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { api, ChatMessage, ChatHistoryEntry } from "@/lib/api";
+import { api, ChatMessage } from "@/lib/api";
 import { useToast } from "@/components/Toast";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAccount } from "wagmi";
 import {
   Send,
   Bot,
@@ -17,6 +18,7 @@ import {
   Sparkles,
   ArrowRight,
   Trash2,
+  ChevronDown,
 } from "lucide-react";
 
 interface Message {
@@ -26,6 +28,7 @@ interface Message {
 }
 
 function DecisionCard({ data }: { data: ChatMessage }) {
+  const [showEvidence, setShowEvidence] = useState(false);
   if (!data.payment) return null;
 
   const isApproved = data.decision === "APPROVE";
@@ -88,12 +91,38 @@ function DecisionCard({ data }: { data: ChatMessage }) {
             </a>
           )}
           {data.payment.memory_references && data.payment.memory_references.length > 0 && (
-            <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+            <button
+              type="button"
+              onClick={() => setShowEvidence((visible) => !visible)}
+              className="flex items-center gap-1 text-[10px] text-muted-foreground transition-colors hover:text-foreground"
+            >
               <Brain className="h-3 w-3" />
               {data.payment.memory_references.length} memories used
-            </span>
+              <ChevronDown className={`h-3 w-3 transition-transform ${showEvidence ? "rotate-180" : ""}`} />
+            </button>
           )}
         </div>
+        {showEvidence && data.payment.memory_details && data.payment.memory_details.length > 0 && (
+          <div className="mt-3 space-y-2 border-t border-border pt-3">
+            <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+              Sibyl evidence
+            </p>
+            {data.payment.memory_details.map((memory) => (
+              <div key={memory.id} className="rounded-lg bg-muted/60 px-3 py-2">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[11px] font-medium text-foreground">{memory.label}</span>
+                  <span className="font-mono text-[9px] text-muted-foreground">{memory.id}</span>
+                </div>
+                <p className="mt-1 text-[10px] text-muted-foreground">
+                  {Object.entries(memory.value)
+                    .filter(([key]) => key !== "updated_at" && key !== "ts")
+                    .map(([key, value]) => `${key}: ${String(value)}`)
+                    .join(" · ")}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </motion.div>
   );
@@ -107,6 +136,7 @@ const suggestions = [
 ];
 
 export default function ChatPage() {
+  const { address } = useAccount();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState(() => {
     if (typeof window === "undefined") return "";
@@ -115,14 +145,20 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(false);
   const [historyLoading, setHistoryLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [sibylAvailable, setSibylAvailable] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   // Load chat history on mount
   useEffect(() => {
-    api.getChatHistory()
-      .then((history) => {
+    if (!address) {
+      return;
+    }
+
+    Promise.all([api.getChatHistory(address), api.getMemoryStatus(address)])
+      .then(([history, status]) => {
+        setSibylAvailable(status.available);
         const loaded: Message[] = history.map((h) => ({
           role: h.role,
           content: h.content,
@@ -136,9 +172,9 @@ export default function ChatPage() {
         }));
         setMessages(loaded);
       })
-      .catch(() => {})
+      .catch(() => setSibylAvailable(false))
       .finally(() => setHistoryLoading(false));
-  }, []);
+  }, [address]);
 
   useEffect(() => {
     if (input) setTimeout(() => inputRef.current?.focus(), 300);
@@ -150,7 +186,7 @@ export default function ChatPage() {
   }, [messages]);
 
   const handleSend = useCallback(async () => {
-    if (!input.trim() || loading) return;
+    if (!input.trim() || loading || !address) return;
 
     const userMessage = input.trim();
     setInput("");
@@ -159,7 +195,7 @@ export default function ChatPage() {
     setLoading(true);
 
     try {
-      const response = await api.chat(userMessage);
+      const response = await api.chat(userMessage, address);
       setMessages((prev) => [
         ...prev,
         { role: "assistant", content: response.response, data: response },
@@ -167,14 +203,14 @@ export default function ChatPage() {
       if (response.memory_stored?.length > 0) {
         toast(`Stored ${response.memory_stored.length} item(s) to memory`, "success");
       }
-    } catch (err) {
+    } catch {
       setError("Failed to get response. Please try again.");
       toast("Failed to get response", "error");
     } finally {
       setLoading(false);
       inputRef.current?.focus();
     }
-  }, [input, loading, toast]);
+  }, [address, input, loading, toast]);
 
   const handleClearChat = useCallback(() => {
     setMessages([]);
@@ -213,8 +249,15 @@ export default function ChatPage() {
         </div>
       </div>
 
+      {!sibylAvailable && (
+        <div className="mx-4 mt-3 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-[11px] text-amber-800 sm:mx-6">
+          <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600" />
+          <span>Sibyl memory is unavailable. Pact has paused autonomous decisions until your financial context is restored.</span>
+        </div>
+      )}
+
       <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4">
-        {historyLoading ? (
+        {historyLoading && address ? (
           <div className="flex flex-col items-center justify-center h-full">
             <Loader2 className="h-5 w-5 animate-spin text-accent mb-3" />
             <span className="text-[13px] text-muted-foreground">Loading chat history...</span>
@@ -344,12 +387,12 @@ export default function ChatPage() {
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask Pact anything..."
             className="flex-1 rounded-xl border border-border bg-card px-4 py-2.5 text-[13px] text-foreground placeholder-muted-foreground transition-all focus:outline-none focus:border-accent/30 focus:ring-2 focus:ring-accent/10"
-            disabled={loading}
+            disabled={loading || !address || !sibylAvailable}
             autoComplete="off"
           />
           <button
             type="submit"
-            disabled={loading || !input.trim()}
+            disabled={loading || !input.trim() || !address || !sibylAvailable}
             className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-white transition-all hover:bg-indigo-500 disabled:opacity-30 disabled:hover:bg-accent"
             aria-label="Send message"
           >
