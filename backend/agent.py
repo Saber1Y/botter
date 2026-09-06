@@ -108,6 +108,22 @@ Respond with a JSON object containing your intent, response, and any actions to 
         # Process intent
         result = await self._handle_intent(wallet, agent_response, context, vault_balance)
 
+        try:
+            memory.set_session_state(
+                wallet,
+                "last_decision",
+                {
+                    "intent": result["intent"],
+                    "decision": result["decision"],
+                    "memory_references": result.get("payment", {}).get("memory_references", [])
+                    if result.get("payment")
+                    else [],
+                    "ts": time.time(),
+                },
+            )
+        except Exception as exc:
+            raise MemoryUnavailable("Sibyl memory is unavailable") from exc
+
         return result
 
     async def _handle_intent(
