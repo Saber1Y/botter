@@ -1,9 +1,10 @@
 """LLM Agent for Pact - orchestrates the memory -> reasoning -> policy loop."""
 import json
 import hashlib
+import time
 from openai import AsyncOpenAI
 from config import get_settings
-from memory import memory
+from memory import MemoryUnavailable, memory
 from policy import Decision, PaymentRequest, MemoryContext, PolicyDecision, evaluate_payment
 from executor import get_executor
 
@@ -63,7 +64,10 @@ class PactAgent:
         """Process a user message and return the agent's response."""
 
         # Retrieve user's memory context from Sibyl
-        memory_ctx = memory.get_memory_context(wallet)
+        try:
+            memory_ctx = memory.get_memory_context(wallet)
+        except Exception as exc:
+            raise MemoryUnavailable("Sibyl memory is unavailable") from exc
         context = self._build_memory_context(memory_ctx)
 
         # Get vault info for this user
@@ -76,7 +80,7 @@ class PactAgent:
             vault_addr = None
 
         # Build conversation context
-        memory_summary = memory.format_for_llm(wallet)
+        memory_summary = memory.format_for_llm(wallet, memory_ctx)
 
         user_prompt = f"""Current memory context:
 {memory_summary}
@@ -171,11 +175,12 @@ Respond with a JSON object containing your intent, response, and any actions to 
                 "merchant": merchant,
                 "reason": policy_decision.reason,
                 "memory_references": policy_decision.memory_references,
+                "memory_details": policy_decision.memory_details,
             }
 
             # Store decision as WARM fact (for future policy reasoning)
             decision_id = hashlib.sha256(
-                f"{wallet}_{request.recipient}_{request.amount}".encode()
+                f"{wallet}_{request.recipient}_{request.amount}_{time.time_ns()}".encode()
             ).hexdigest()[:16]
             memory.store_decision(
                 wallet,
@@ -185,6 +190,29 @@ Respond with a JSON object containing your intent, response, and any actions to 
                 decision=policy_decision.decision.value,
                 reason=policy_decision.reason,
                 merchant=merchant,
+                memory_references=policy_decision.memory_references,
+            )
+
+            merchant_key = (merchant or request.recipient).strip().lower()
+            previous = [
+                payment
+                for payment in context.previous_payments
+                if payment.get("recipient", "").lower() == request.recipient.lower()
+                or (merchant and payment.get("merchant", "").lower() == merchant.lower())
+            ]
+            approved_count = sum(1 for payment in previous if payment.get("decision") in {"APPROVE", "approved"})
+            denied_count = len(previous) - approved_count
+            memory.store_policy_fact(
+                wallet,
+                f"merchant_{hashlib.sha256(merchant_key.encode()).hexdigest()[:16]}",
+                {
+                    "merchant": merchant or request.recipient,
+                    "recipient": request.recipient,
+                    "approved_count": approved_count + (1 if policy_decision.decision == Decision.APPROVE else 0),
+                    "denied_count": denied_count + (1 if policy_decision.decision != Decision.APPROVE else 0),
+                    "last_decision": policy_decision.decision.value,
+                    "last_reason": policy_decision.reason,
+                },
             )
 
             # Execute if approved
@@ -196,7 +224,7 @@ Respond with a JSON object containing your intent, response, and any actions to 
                     try:
                         executor = get_executor()
                         payment_id = hashlib.sha256(
-                            f"{wallet}_{request.recipient}_{request.amount}".encode()
+                            f"{wallet}_{request.recipient}_{request.amount}_{decision_id}".encode()
                         ).hexdigest()[:32]
 
                         tx_result = executor.execute_payment(
@@ -218,6 +246,10 @@ Respond with a JSON object containing your intent, response, and any actions to 
                             decision="approved",
                             tx_hash=tx_result["tx_hash"],
                             merchant=merchant,
+                            reason=policy_decision.reason,
+                            decision_id=decision_id,
+                            memory_references=policy_decision.memory_references,
+                            memory_details=policy_decision.memory_details,
                         )
                     except Exception as e:
                         result["payment"]["status"] = "error"
@@ -233,6 +265,9 @@ Respond with a JSON object containing your intent, response, and any actions to 
                     decision=policy_decision.decision.value,
                     merchant=merchant,
                     reason=policy_decision.reason,
+                    decision_id=decision_id,
+                    memory_references=policy_decision.memory_references,
+                    memory_details=policy_decision.memory_details,
                 )
 
         return result
@@ -248,6 +283,8 @@ Respond with a JSON object containing your intent, response, and any actions to 
         context.blocked_merchants = memory_ctx.get("blocked_merchants", [])
         context.goals = memory_ctx.get("goals", [])
         context.previous_payments = memory_ctx.get("recent_payments", [])
+        context.policy_facts = memory_ctx.get("policy_facts", [])
+        context.memory_records = memory_ctx.get("memory_records", [])
 
         return context
 
