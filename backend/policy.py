@@ -94,7 +94,12 @@ def evaluate_payment(
         ),
         None,
     )
-    is_known = bool(prior_payments or merchant_fact)
+    has_approved_history = any(
+        payment.get("decision", "").upper() in {"APPROVE", "APPROVED"}
+        for payment in prior_payments
+    )
+    has_approved_fact = bool(merchant_fact and merchant_fact.get("approved_count", 0) > 0)
+    is_known = has_approved_history or has_approved_fact
 
     # Check spending limit
     if context.spending_limit is not None:
