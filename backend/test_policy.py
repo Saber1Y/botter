@@ -65,6 +65,27 @@ class PaymentPolicyTests(unittest.TestCase):
 
         self.assertEqual(result.decision, Decision.DENY)
 
+    def test_denied_history_does_not_make_recipient_trusted(self):
+        context = MemoryContext(
+            spending_limit=100,
+            previous_payments=[{"recipient": "0xrejected", "decision": "DENY"}],
+            policy_facts=[
+                {
+                    "recipient": "0xrejected",
+                    "approved_count": 0,
+                    "denied_count": 1,
+                }
+            ],
+        )
+
+        result = evaluate_payment(
+            PaymentRequest(recipient="0xrejected", amount="20"),
+            context,
+            vault_balance=100,
+        )
+
+        self.assertEqual(result.decision, Decision.REQUIRE_APPROVAL)
+
 
 if __name__ == "__main__":
     unittest.main()
