@@ -14,6 +14,17 @@ class ChatRequest(BaseModel):
     message: str
 
 
+class ChatSessionCreate(BaseModel):
+    name: Optional[str] = None
+
+
+class ChatSessionResponse(BaseModel):
+    id: str
+    name: str
+    created_at: float
+    updated_at: float
+
+
 class ChatHistoryEntry(BaseModel):
     role: str
     content: str
@@ -21,6 +32,7 @@ class ChatHistoryEntry(BaseModel):
     intent: Optional[str] = None
     decision: Optional[str] = None
     payment: Optional[dict] = None
+    session_id: str = "default"
 
 
 class ChatResponse(BaseModel):
