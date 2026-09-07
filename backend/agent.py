@@ -292,6 +292,72 @@ Respond with a JSON object containing your intent, response, and any actions to 
 
         return result
 
+    async def approve_payment(self, wallet: str, decision_id: str) -> dict:
+        """Execute a user-approved pending payment after hard safety checks."""
+        decision = memory.get_decision(wallet, decision_id)
+        if not decision:
+            raise ValueError("Payment decision not found")
+        if decision.get("decision") != Decision.REQUIRE_APPROVAL.value:
+            raise ValueError("Only pending approval decisions can be approved")
+
+        context_data = memory.get_memory_context(wallet)
+        context = self._build_memory_context(context_data)
+        request = PaymentRequest(
+            recipient=str(decision.get("recipient", "")),
+            amount=str(decision.get("amount", "0")),
+            token=str(decision.get("token", "USDC")),
+            merchant=str(decision.get("merchant", "") or ""),
+        )
+        executor = get_executor()
+        vault_addr = executor.get_user_vault(wallet)
+        vault_balance = executor.get_vault_balance(vault_addr) if vault_addr else 0
+        safety = evaluate_payment(request, context, vault_balance)
+        if safety.decision == Decision.DENY:
+            return {
+                "id": decision_id,
+                "status": "denied",
+                "reason": safety.reason,
+            }
+        if not vault_addr:
+            return {"id": decision_id, "status": "error", "reason": "No vault deployed."}
+
+        tx_result = executor.execute_payment(
+            vault_address=vault_addr,
+            recipient=request.recipient,
+            amount=float(request.amount),
+            payment_id=hashlib.sha256(f"approval_{decision_id}".encode()).hexdigest()[:32],
+        )
+        approval_id = f"approval_{decision_id}"
+        references = decision.get("memory_references", [])
+        memory.store_decision(
+            wallet,
+            decision_id=approval_id,
+            recipient=request.recipient,
+            amount=request.amount,
+            decision=Decision.APPROVE.value,
+            reason=f"Approved by user. Original request required approval: {decision.get('reason', '')}",
+            merchant=request.merchant,
+            memory_references=references,
+        )
+        memory.record_payment(
+            wallet,
+            recipient=request.recipient,
+            amount=request.amount,
+            token=request.token,
+            decision="approved",
+            tx_hash=tx_result["tx_hash"],
+            merchant=request.merchant,
+            reason="Approved by user.",
+            decision_id=decision_id,
+            memory_references=references,
+            memory_details=decision.get("memory_details", []),
+        )
+        return {
+            "id": decision_id,
+            "status": tx_result["status"],
+            "tx_hash": tx_result["tx_hash"],
+        }
+
     def _build_memory_context(self, memory_ctx: dict) -> MemoryContext:
         """Build a MemoryContext from the structured memory dict."""
         context = MemoryContext()
