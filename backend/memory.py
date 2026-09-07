@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import hashlib
 import time
+from uuid import uuid4
 from typing import Any, Optional
 
 from sibyl_memory_client import MemoryClient
@@ -258,6 +259,17 @@ class PactMemory:
             for r in results
         ]
 
+    def get_decision(self, wallet: str, decision_id: str) -> Optional[dict]:
+        """Get one decision by its stable audit ID."""
+        client = self._client(wallet)
+        entity = client.get_entity("decisions", decision_id)
+        if not entity or entity.get("status") == "archived":
+            return None
+        return {
+            **entity.get("body", {}),
+            "memory_id": f"decisions:{decision_id}",
+        }
+
     # ─── COLD: Payment events ───────────────────────────────────
 
     def record_payment(
@@ -334,6 +346,41 @@ class PactMemory:
         ]
 
     # ─── HOT: Session state ─────────────────────────────────────
+
+    def create_chat_session(self, wallet: str, name: str | None = None) -> dict:
+        """Create a named chat session in the wallet's Sibyl tenant."""
+        now = time.time()
+        session_id = uuid4().hex
+        body = {
+            "name": name or "New conversation",
+            "created_at": now,
+            "updated_at": now,
+        }
+        client = self._client(wallet)
+        self._required(lambda: client.set_entity("chat_sessions", session_id, body))
+        return {"id": session_id, **body}
+
+    def get_chat_sessions(self, wallet: str) -> list[dict]:
+        """List chat sessions ordered by most recently updated."""
+        client = self._client(wallet)
+        entities = client.list_entities("chat_sessions")
+        sessions = [
+            {
+                "id": e.get("name", ""),
+                **e.get("body", {}),
+            }
+            for e in entities
+            if e.get("status") != "archived"
+        ]
+        return sorted(sessions, key=lambda session: session.get("updated_at", 0), reverse=True)
+
+    def touch_chat_session(self, wallet: str, session_id: str) -> None:
+        """Update the last-used timestamp for a chat session."""
+        client = self._client(wallet)
+        entity = client.get_entity("chat_sessions", session_id)
+        if entity:
+            body = {**entity.get("body", {}), "updated_at": time.time()}
+            self._required(lambda: client.set_entity("chat_sessions", session_id, body))
 
     def set_session_state(self, wallet: str, key: str, value: dict) -> None:
         """Set current session state (HOT tier)."""
