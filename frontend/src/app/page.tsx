@@ -23,7 +23,6 @@ import {
   Lock,
   Eye,
   Mic,
-
   Sparkles,
   Globe,
   ShieldCheck,
@@ -687,16 +686,6 @@ export default function LandingPage() {
             animate="visible"
             className="max-w-xl"
           >
-            <motion.div
-              variants={fadeUp}
-              className="mb-5 inline-flex items-center gap-2 rounded-full border border-border bg-muted/50 px-3.5 py-1.5"
-            >
-              <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse-glow" />
-              <span className="text-[11px] font-medium tracking-wide text-muted-foreground">
-                AI-native financial agent
-              </span>
-            </motion.div>
-
             <motion.h1
               variants={fadeUp}
               className="mb-5 text-[clamp(2.5rem,5vw,4rem)] font-bold leading-[1.05] tracking-tight text-foreground"
@@ -739,14 +728,18 @@ export default function LandingPage() {
               variants={fadeIn}
               className="flex flex-wrap items-center gap-4 text-[11px] text-muted-foreground"
             >
-              {["Sibyl Memory", "Base", "AI-native", "Voice input", "Non-custodial"].map(
-                (item) => (
-                  <span key={item} className="flex items-center gap-1.5">
-                    <span className="h-1 w-1 rounded-full bg-accent/50" />
-                    {item}
-                  </span>
-                ),
-              )}
+              {[
+                "Sibyl Memory",
+                "Base",
+                "AI-native",
+                "Voice input",
+                "Non-custodial",
+              ].map((item) => (
+                <span key={item} className="flex items-center gap-1.5">
+                  <span className="h-1 w-1 rounded-full bg-accent/50" />
+                  {item}
+                </span>
+              ))}
             </motion.div>
           </motion.div>
 
@@ -902,7 +895,8 @@ export default function LandingPage() {
         >
           <p className="max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
             Pact runs as a workflow: a trigger becomes intent, a policy decides,
-            a vault gates the spend, and every outcome is remembered and journaled.
+            a vault gates the spend, and every outcome is remembered and
+            journaled.
           </p>
         </motion.div>
 

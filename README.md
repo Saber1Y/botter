@@ -9,7 +9,7 @@ No model ever touches your spending key. Pact reasons in your memory, and only s
 
 Live frontend: https://pact-gules.vercel.app · Live backend: https://pact-production-e5c0.up.railway.app · Contracts on Base Sepolia.
 
-[The one rule ↗](#the-one-rule--never-a-spending-key) · [Architecture ↗](#architecture) · [Component by component ↗](#component-by-component) · [What's real vs pending ↗](#whats-real-vs-pending--the-honesty-table) · [Run it locally ↗](#run-it-locally)
+[The one rule](#the-one-rule--never-a-spending-key) · [Architecture](#architecture) · [Component by component](#component-by-component) · [What's real vs pending](#whats-real-vs-pending--the-honesty-table) · [Run it locally](#run-it-locally)
 
 Built for the Sibyl Memory × Base Sepolia Hackathon · Payments + agent track · MIT licensed.
 An educational tool, not financial advice, and not a custodial service.
@@ -18,10 +18,11 @@ An educational tool, not financial advice, and not a custodial service.
 
 - [See it in one command](#see-it-in-one-command)
 - [Screenshots](#screenshots)
-- [The one rule — never a spending key](#the-one-rule--never-a-spending-key)
+- [The one rule - never a spending key](#the-one-rule--never-a-spending-key)
 - [What Pact does](#what-pact-does)
-  - [AI CFO chat — the hero feature](#ai-cfo-chat--the-hero-feature)
+  - [AI CFO chat - the hero feature](#ai-cfo-chat--the-hero-feature)
   - [Persistent memory](#persistent-memory)
+  - [Experiential memory - beyond static rules](#experiential-memory--beyond-static-rules)
   - [Goals](#goals)
   - [Payments history](#payments-history)
   - [Per-user vault](#per-user-vault)
@@ -32,7 +33,7 @@ An educational tool, not financial advice, and not a custodial service.
 - [Safety, enforced in code](#safety-enforced-in-code)
 - [How it uses Base Sepolia](#how-it-uses-base-sepolia)
 - [Engineering decisions & the hard problems](#engineering-decisions--the-hard-problems)
-- [What's real vs pending — the honesty table](#whats-real-vs-pending--the-honesty-table)
+- [What's real vs pending - the honesty table](#whats-real-vs-pending--the-honesty-table)
 - [Tests](#tests)
 - [Run it locally](#run-it-locally)
 - [Configuration](#configuration)
@@ -46,20 +47,20 @@ An educational tool, not financial advice, and not a custodial service.
 The shortest way to feel what Pact is: start the backend and the frontend, connect a Base Sepolia wallet, and ask the AI CFO for a payment.
 
 ```bash
-# in one terminal — backend
+# in one terminal - backend
 cd backend && python -m venv venv && source venv/bin/activate && pip install -r requirements.txt
 cp .env.example .env          # add OPENAI_API_KEY
 uvicorn main:app --host 0.0.0.0 --port 8000
 
-# in another terminal — frontend
+# in another terminal - frontend
 cd frontend && npm install && npm run dev
 ```
 
 Open http://localhost:3000, connect with RainbowKit, and tell Pact:
-"I'm saving $2,000 for a MacBook" — then "you can spend up to $100 without asking" — then "pay 0xAlice 60 USDC".
+"I'm saving $2,000 for a MacBook" - then "you can spend up to $100 without asking" - then "pay 0xAlice 60 USDC".
 Watch the payment get remembered, checked against your rules, approved, and executed from your vault.
 
-You can also use the hosted preview — no local setup: open https://pact-gules.vercel.app, connect to Base Sepolia, and your chat is served by the live backend at https://pact-production-e5c0.up.railway.app with Sibyl memory persisted on a Railway volume.
+You can also use the hosted preview - no local setup: open https://pact-gules.vercel.app, connect to Base Sepolia, and your chat is served by the live backend at https://pact-production-e5c0.up.railway.app with Sibyl memory persisted on a Railway volume.
 
 Both the chat box and the landing page let you type or speak. Voice input uses your browser's built-in speech recognition (Chrome, Edge, or Safari; no extra dependency), so you can say "pay sixty USDC to 0xAlice" and Pact fills the message box for you.
 
@@ -81,16 +82,16 @@ Dashboard:
 
 ![Pact dashboard - vault balance, autonomous budget, goal, and recent activity](docs/screenshots/dashboard.png)
 
-## The one rule — never a spending key
+## The one rule - never a spending key
 
 The dangerous design for a financial agent is letting the model hold your keys and call arbitrary contracts.
 Pact is built on the opposite rule: **the agent can see, reason, and decide, but it can never sign or move funds by itself, and it never touches your spending key.**
 
 That rule is enforced at three independent layers:
 
-1. **In the LLM boundary.** The agent is instructed to emit *structured intent* — a payment with a recipient, an amount, and a token — as JSON, never a raw contract call or calldata. There is no calldata-building code path in the repository.
+1. **In the LLM boundary.** The agent is instructed to emit *structured intent* - a payment with a recipient, an amount, and a token - as JSON, never a raw contract call or calldata. There is no calldata-building code path in the repository.
 2. **In the policy engine.** A deterministic `evaluate_payment()` checks every proposed payment against your remembered rules (spending limit, trusted merchants, blocked merchants) and your vault balance, and returns one of three verdicts.
-3. **Onchain.** Even an approved decision only reaches a typed `PactVault.pay()` call. The vault re-validates the per-transaction cap, the daily cap, and the payment ID before a single unit of USDC moves. Your own vault stays yours — you own it, only you can withdraw, and the agent's authority is bounded by the limits you configure.
+3. **Onchain.** Even an approved decision only reaches a typed `PactVault.pay()` call. The vault re-validates the per-transaction cap, the daily cap, and the payment ID before a single unit of USDC moves. Your own vault stays yours - you own it, only you can withdraw, and the agent's authority is bounded by the limits you configure.
 
 There is no path in the codebase where the model signs, holds a key, or constructs and submits calldata.
 
@@ -98,20 +99,20 @@ There is no path in the codebase where the model signs, holds a key, or construc
 
 Six surfaces, each backed by the same memory → reason → policy loop.
 
-### AI CFO chat — the hero feature
+### AI CFO chat - the hero feature
 
 Paste a financial instruction and Pact reasons over your remembered context before it acts.
-The chat returns a structured verdict, quotes the memory it used, and executes approved payments from your vault — all from a natural-language instruction.
+The chat returns a structured verdict, quotes the memory it used, and executes approved payments from your vault - all from a natural-language instruction.
 
 You can type your instruction or speak it. The chat page has a built-in voice button (browser Web Speech API) that transcribes what you say into the message box, so you can talk your finances instead of typing them.
 
 Real flow, from the code:
 
-```
+```text
 PAYMENT intent: recipient 0xAlice, amount 60, merchant Acme
   ↓ evaluate_payment() against remembered rule (spending_limit=$100) and vault balance
   ↓ Decision.APPROVE
-  ↓ PactVault.pay() — a single typed, limit-checked onchain call
+  ↓ PactVault.pay() - a single typed, limit-checked onchain call
   ↓ COLD journal records decision + tx hash
 ```
 
@@ -125,11 +126,36 @@ Each wallet address maps to its own namespace (`pact_<address>`), so one deploym
 
 Memory is tiered to match the job it does:
 
-- **WARM** — rules, goals, trusted/blocked merchants, policy facts, past decisions. Searchable and used in every decision.
-- **HOT** — current session state.
-- **COLD** — the payment journal: decisions, approvals, transaction hashes.
+- **WARM** - rules, goals, trusted/blocked merchants, policy facts, past decisions. Searchable and used in every decision.
+- **HOT** - current session state.
+- **COLD** - the payment journal: decisions, approvals, transaction hashes.
 
 Rule and goal updates are upserts keyed on a stable id, so raising `$100 → $150` overwrites the rule instead of stacking duplicates.
+
+### Experiential memory - beyond static rules
+
+A common trap for memory-focused AI is treating memory as just a key-value store for static preferences. Pact doesn't just read your explicitly stated limits; it actively learns from its own operational history.
+
+While WARM memory holds your explicit constraints (e.g., "spend up to $100 without asking"), the COLD journal holds the outcomes of every past decision, approval, and rejection. When evaluating a new payment, the agent reasons over both the deterministic bounds and the historical journal to make adaptive decisions.
+
+This means Pact learns from your unstated behavior:
+
+- **Contextual Holds.** If a 40 USDC payment to Acme Corp is well within your 100 USDC auto-spend limit, but the COLD journal shows you manually rejected the last three charges from Acme, the AI CFO will proactively flag the intent and recommend a hold based on historical context.
+- **Adaptive Allowances.** If you consistently approve 150 USDC payments for AWS Hosting despite your general 100 USDC limit, Pact remembers this vendor-specific tolerance and can prompt you to formalize it into a new WARM rule.
+- **The Zero-Trust Fallback.** Wiping the memory doesn't just delete your limits; it deletes the context of your trusted, recurring behavior. The agent instantly reverts to a zero-trust state, holding all transactions for manual review.
+
+Real flow, adapted from the codebase:
+
+```text
+PAYMENT intent: recipient 0xBob, amount 40, merchant Acme
+  ↓ check WARM memory: rule (spending_limit=100) -> conditionally passes
+  ↓ check COLD memory: user rejected last 3 Acme payments
+  ↓ LLM reasons: "Within limit, but matches a pattern of historical rejections."
+  ↓ evaluate_payment() intercepts contextual flag
+  ↓ Decision.REQUIRE_APPROVAL
+```
+
+Memory in Pact isn't just a configuration file. It is active, historical context that fundamentally alters how the deterministic policy engine applies your rules.
 
 ### Goals
 
@@ -138,7 +164,7 @@ Goals are stored in WARM memory and can be created, listed, and deleted.
 
 ### Payments history
 
-Every decision — approved, held, or denied — is written to the COLD journal.
+Every decision - approved, held, or denied - is written to the COLD journal.
 The payments page filters and displays the decision, amount, reason, and, for approved onchain payments, the transaction hash.
 
 ### Per-user vault
@@ -220,33 +246,33 @@ flowchart TB
 
 The only entity that can spend is the onchain agent address, and only through `PactVault.pay()`, which re-checks limits on-chain.
 The agent private key lives in the backend `.env`, never in the frontend, and never in the browser.
-It is the operational key that turns an already-policy-approved decision into a signed onchain call — not a key the model decides how to spend.
+It is the operational key that turns an already-policy-approved decision into a signed onchain call - not a key the model decides how to spend.
 
 ## Component by component
 
-### Smart contracts (`contracts/` — Solidity, Foundry)
+### Smart contracts (`contracts/` - Solidity, Foundry)
 
 | File | Responsibility |
 | --- | --- |
 | `PactVault.sol` | Per-user vault. Owner deposits/withdraws; authorized agent pays; `maxPerTransaction` + `dailyLimit` reset on a UTC day boundary; replay protection via `paymentId`. |
 | `VaultFactory.sol` | CREATE2 deploy of one `PactVault` per user; tracks `user → vault`; binds the shared agent and default limits. |
 
-### Backend (`backend/` — Python, FastAPI)
+### Backend (`backend/` - Python, FastAPI)
 
 | Module | Responsibility |
 | --- | --- |
 | `agent.py` | The LLM shell. Builds memory context, calls OpenRouter, parses structured intent, wires verdicts to execution. |
 | `memory.py` | `PactMemory` over the Sibyl SDK. WARM/HOT/COLD tiers, per-wallet tenants, rule upserts, journal. |
-| `policy.py` | `evaluate_payment()` — the deterministic verdict (Approve / Require approval / Deny) as a pure function of rules + request + balance. |
+| `policy.py` | `evaluate_payment()` - the deterministic verdict (Approve / Require approval / Deny) as a pure function of rules + request + balance. |
 | `executor.py` | Resolves the user's vault from the factory, then signs and broadcasts a typed `pay()` call. |
 | `main.py` | FastAPI routes: `/chat`, `/chat/history`, `/memory`, `/rules`, `/goals`, `/payments`, `/vault`, `/vault/status`, `/health`. |
 
-### Frontend (`frontend/` — Next.js)
+### Frontend (`frontend/` - Next.js)
 
 | Route / module | Responsibility |
 | --- | --- |
 | `app/page.tsx` | Landing page with animated hero mockup. |
-| `app/app/page.tsx` | Dashboard — vault balance, budget, goal, activity, deploy/fund banners. |
+| `app/app/page.tsx` | Dashboard - vault balance, budget, goal, activity, deploy/fund banners. |
 | `app/app/chat` | AI CFO chat with persisted history. |
 | `app/app/memory` | Rules, goals, and past decisions from memory. |
 | `app/app/goals` | Goal create / list / delete. |
@@ -286,7 +312,7 @@ A few calls worth explaining.
 
 **The model produces intent, not calldata.** Forcing the model into a tiny structured JSON shape (intent, recipient, amount, token, merchant) keeps it honest and makes the policy engine the place where judgment happens. A free 120B model can reason about money; it should not be trusted to format a transaction.
 
-**The policy is a pure function.** `evaluate_payment()` takes memory + request + balance and returns a verdict with no side effects. Pure functions are trivially testable and trivially reason-about-able — exactly what you want in the layer that holds the line.
+**The policy is a pure function.** `evaluate_payment()` takes memory + request + balance and returns a verdict with no side effects. Pure functions are trivially testable and trivially reason-about-able - exactly what you want in the layer that holds the line.
 
 **Memory is upserted with stable ids.** Rules and goals use a stable entity id, so user updates edit in place rather than duplicating. Chat history is keyed by timestamp to preserve ordering.
 
@@ -294,26 +320,26 @@ A few calls worth explaining.
 
 **Wallets gate the API.** Every endpoint takes a `wallet` and resolves that user's tenant + vault, so data and spending are scoped per address. The zero-address default is a safe no-op that returns empty state.
 
-**The hard problem — keeping reasoning honest.** The real risk isn't a single bad payment; it's the agent silently ignoring a rule. Pact meets it by making the verdict deterministic and surfaced: the model can propose, but the policy engine's answer is computed, stored, and shown with its memory references. The model cannot override a deny.
+**The hard problem - keeping reasoning honest.** The real risk isn't a single bad payment; it's the agent silently ignoring a rule. Pact meets it by making the verdict deterministic and surfaced: the model can propose, but the policy engine's answer is computed, stored, and shown with its memory references. The model cannot override a deny.
 
-## What's real vs pending — the honesty table
+## What's real vs pending - the honesty table
 
-The honest table — what is genuinely working, run against real infrastructure, versus what is structural and exercised only by tests.
+The honest table - what is genuinely working, run against real infrastructure, versus what is structural and exercised only by tests.
 
 | Capability | Status |
 | --- | --- |
-| Decision loop — memory → LLM → policy verdict | Real — runs live, policy is unit-tested |
-| Verdicts (Approve / Require approval / Deny) | Real — pure function, tested in `policy.py` |
-| Persistent memory tiers (WARM/HOT/COLD) | Real — Sibyl SDK integration |
-| Rule upserts, goals create/list/delete | Real — backed by the SDK |
+| Decision loop - memory → LLM → policy verdict | Real - runs live, policy is unit-tested |
+| Verdicts (Approve / Require approval / Deny) | Real - pure function, tested in `policy.py` |
+| Persistent memory tiers (WARM/HOT/COLD) | Real - Sibyl SDK integration |
+| Rule upserts, goals create/list/delete | Real - backed by the SDK |
 | Chat history persistence | Real |
-| Vault lookup from factory | Real — reads live Base Sepolia |
-| Per-user `PactVault` + `VaultFactory` contracts | Real — deployed, 31 Foundry tests passing |
-| Deposit / withdraw / agent set / limits set | Real — 16 PactVault tests |
-| Factory CREATE2, vault count, getVault | Real — 15 VaultFactory tests |
-| Live hosted deployments | Real — Vercel frontend + Railway backend, CORS configured, `/health` verified |
-| Onchain `pay()` execution from the flow | Real — verified live on Base Sepolia: goal stored → recalled in a fresh session → $10 payment held for approval → approved → executed onchain (tx `0x588f6937e18e400a6a12ba7dda2f6c4e4255e964df43740cc03de5528f6bba38`) → vault balance updated |
-| Voice input in chat | Real — browser Web Speech API, no extra dependency |
+| Vault lookup from factory | Real - reads live Base Sepolia |
+| Per-user `PactVault` + `VaultFactory` contracts | Real - deployed, 31 Foundry tests passing |
+| Deposit / withdraw / agent set / limits set | Real - 16 PactVault tests |
+| Factory CREATE2, vault count, getVault | Real - 15 VaultFactory tests |
+| Live hosted deployments | Real - Vercel frontend + Railway backend, CORS configured, `/health` verified |
+| Onchain `pay()` execution from the flow | Real - verified live on Base Sepolia: goal stored → recalled in a fresh session → $10 payment held for approval → approved → executed onchain (tx `0x588f6937e18e400a6a12ba7dda2f6c4e4255e964df43740cc03de5528f6bba38`) → vault balance updated |
+| Voice input in chat | Real - browser Web Speech API, no extra dependency |
 | Vault deploy from UI (wagmi `writeContract`) | Real code, not yet exercised in a full live run |
 | CI for the backend Python and frontend TypeScript | Not yet established |
 
@@ -323,21 +349,21 @@ What is still honestly pending is the one continuous live walk performed entirel
 
 ## Tests
 
-### Smart contracts (Foundry) — 31 passing
+### Smart contracts (Foundry) - 31 passing
 
 | Suite | Tests | Covers |
 | --- | --- | --- |
 | `PactVault.t.sol` | 16 | deposit, withdraw (owner-only), agent pay, per-tx cap, daily cap reset, replay protection, owners/agent/limits setters |
 | `VaultFactory.t.sol` | 15 | CREATE2 deploy, per-user vault, duplicate rejection, getVault, vaultCount, setAgent/setDefaults/transferOwnership |
 
-```
+```bash
 cd contracts
 forge build
 forge test      # 31 passed
 ```
 
-The backend policy engine has a pytest suite (`backend/test_policy.py` — 5 passing) covering the deterministic verdicts.
-The frontend has no test runner yet — both points are open contributions (see Roadmap).
+The backend policy engine has a pytest suite (`backend/test_policy.py` - 5 passing) covering the deterministic verdicts.
+The frontend has no test runner yet - both points are open contributions (see Roadmap).
 
 ## Run it locally
 
@@ -425,7 +451,7 @@ The backend runs as a persistent FastAPI service (from `backend/`), which the cu
 The repository includes a `backend/railpack.json` so Railway's Railpack builder detects Python 3.12 and starts `uvicorn main:app` on `$PORT`.
 
 Set the service root directory to `/backend`, attach a volume mounted at `/data`, and configure:
-`SIBYL_DB_PATH=/data/memory.db`, `FRONTEND_URL=<your-frontend-url>` (the CORS origin — the app is single-origin), `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_MODEL`, `BASE_SEPOLIA_RPC`, `VAULT_FACTORY_ADDRESS`, `USDC_CONTRACT_ADDRESS`, and `AGENT_PRIVATE_KEY`.
+`SIBYL_DB_PATH=/data/memory.db`, `FRONTEND_URL=<your-frontend-url>` (the CORS origin - the app is single-origin), `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_MODEL`, `BASE_SEPOLIA_RPC`, `VAULT_FACTORY_ADDRESS`, `USDC_CONTRACT_ADDRESS`, and `AGENT_PRIVATE_KEY`.
 
 Fund the agent address (`0xd37d192ceeB27517e5Bc87499c64d0420E9d88e5`) with a small amount of Base Sepolia ETH so approved payments can be broadcast; without gas, reasoning and verdicts still work but no onchain `pay()` happens.
 
@@ -459,8 +485,8 @@ vercel --cwd frontend --prod
 
 ## Project layout
 
-```
-contracts/     Solidity, Foundry — PactVault + VaultFactory (+ deploy.sh)
+```text
+contracts/     Solidity, Foundry - PactVault + VaultFactory (+ deploy.sh)
   src/         PactVault.sol · VaultFactory.sol
   test/        PactVault.t.sol (16) · VaultFactory.t.sol (15)
   script/      DeployVaultFactory.s.sol
@@ -479,17 +505,20 @@ frontend/      Next.js (App Router), wagmi, RainbowKit
 ## Tech stack · Credits · Roadmap
 
 **Tech stack**
+
 - **Frontend**: Next.js, React, TypeScript, Tailwind CSS v4, Framer Motion, wagmi, viem, RainbowKit.
 - **Backend**: Python, FastAPI, OpenRouter (free models), web3.py, Sibyl Memory SDK.
 - **Smart contracts**: Solidity, Foundry, OpenZeppelin (IERC20 / SafeERC20).
 - **Network**: Base Sepolia (chain 84532), USDC.
 
 **Credits**
-- Sibyl Memory SDK — persistent, tiered agent memory.
-- Base Sepolia — testnet deployment and USDC.
-- OpenRouter — free LLM access for the AI CFO.
+
+- Sibyl Memory SDK - persistent, tiered agent memory.
+- Base Sepolia - testnet deployment and USDC.
+- OpenRouter - free LLM access for the AI CFO.
 
 **Roadmap**
+
 - Record the full live walk from a fresh browser: deploy vault from UI → fund → AI CFO pays → receipt on BaseScan (the backend flow is proven; the UI-only walk on a clean machine is next).
 - Add a Vitest suite for `lib/api.ts` and extend the pytest suite to memory and executor.
 - Withdraw and agent / limits management UI (the contract methods exist; the UI shows deploy/fund and approval today).
@@ -498,8 +527,8 @@ frontend/      Next.js (App Router), wagmi, RainbowKit
 
 ## Disclaimer & license
 
-Pact is an educational, demonstration project — not financial advice and not a custodial service.
+Pact is an educational, demonstration project - not financial advice and not a custodial service.
 You always remain the owner of your vault; the agent's authority is bounded by your configured limits and revocable by you (`setAgent`, `withdraw`).
-Testnet funds only today — do not point this at a real-money vault without a full audit and hardening.
+Testnet funds only today - do not point this at a real-money vault without a full audit and hardening.
 
 **License**: MIT.
