@@ -9,6 +9,9 @@ from agent import agent
 from schemas import (
     ChatHistoryEntry,
     ChatRequest,
+    ChatSessionCreate,
+    ChatSessionResponse,
+    ApprovePaymentResponse,
     ChatResponse,
     PaymentResponse,
     GoalCreate,
@@ -47,7 +50,11 @@ app.add_middleware(
 # --- Chat Endpoint ---
 
 @app.post("/chat", response_model=ChatResponse)
-async def chat(request: ChatRequest, wallet: str = "0x0000000000000000000000000000000000000000"):
+async def chat(
+    request: ChatRequest,
+    wallet: str = "0x0000000000000000000000000000000000000000",
+    session_id: str = "default",
+):
     """Process a chat message from the user."""
     try:
         # Store user message in Sibyl before any reasoning occurs.
@@ -57,12 +64,14 @@ async def chat(request: ChatRequest, wallet: str = "0x00000000000000000000000000
             client.set_entity("chat_history", f"msg_{ts}_user", {
                 "role": "user",
                 "content": request.message,
+                "session_id": session_id,
                 "ts": ts,
             })
         except Exception as exc:
             raise MemoryUnavailable("Sibyl memory is unavailable") from exc
 
         result = await agent.process_message(wallet, request.message)
+        memory.touch_chat_session(wallet, session_id)
 
         # Store assistant response in the same Sibyl tenant.
         ts2 = time.time()
@@ -72,8 +81,9 @@ async def chat(request: ChatRequest, wallet: str = "0x00000000000000000000000000
                 "content": result.get("response", ""),
                 "intent": result.get("intent", ""),
                 "decision": result.get("decision"),
-                "payment": result.get("payment"),
-                "ts": ts2,
+            "payment": result.get("payment"),
+            "session_id": session_id,
+            "ts": ts2,
             })
         except Exception as exc:
             raise MemoryUnavailable("Sibyl memory is unavailable") from exc
@@ -86,14 +96,17 @@ async def chat(request: ChatRequest, wallet: str = "0x00000000000000000000000000
 
 
 @app.get("/chat/history", response_model=list[ChatHistoryEntry])
-async def get_chat_history(wallet: str = "0x0000000000000000000000000000000000000000"):
+async def get_chat_history(
+    wallet: str = "0x0000000000000000000000000000000000000000",
+    session_id: str = "default",
+):
     """Get chat history for a wallet."""
     client = memory._client(wallet)
     entities = client.list_entities("chat_history")
     messages = []
     for e in entities:
         body = e.get("body", {})
-        if body.get("role"):
+        if body.get("role") and body.get("session_id", "default") == session_id:
             messages.append(ChatHistoryEntry(
                 role=body["role"],
                 content=body.get("content", ""),
@@ -101,9 +114,27 @@ async def get_chat_history(wallet: str = "0x000000000000000000000000000000000000
                 intent=body.get("intent"),
                 decision=body.get("decision"),
                 payment=body.get("payment"),
+                session_id=body.get("session_id", "default"),
             ))
     messages.sort(key=lambda m: m.ts)
     return messages[-50:]  # last 50 messages
+
+
+@app.get("/chat/sessions", response_model=list[ChatSessionResponse])
+async def get_chat_sessions(
+    wallet: str = "0x0000000000000000000000000000000000000000",
+):
+    """List the wallet's Sibyl-backed chat sessions."""
+    return [ChatSessionResponse(**session) for session in memory.get_chat_sessions(wallet)]
+
+
+@app.post("/chat/sessions", response_model=ChatSessionResponse)
+async def create_chat_session(
+    request: ChatSessionCreate,
+    wallet: str = "0x0000000000000000000000000000000000000000",
+):
+    """Create a new wallet-scoped chat session."""
+    return ChatSessionResponse(**memory.create_chat_session(wallet, request.name))
 
 
 # --- Memory Endpoints ---
@@ -254,6 +285,12 @@ async def get_payments(wallet: str = "0x0000000000000000000000000000000000000000
 
     events = memory.get_payment_events(wallet, limit=50)
     if events:
+        latest_events = {}
+        for event in events:
+            event_id = event.get("decision_id") or event.get("memory_id")
+            previous = latest_events.get(event_id)
+            if not previous or event.get("ts", 0) >= previous.get("ts", 0):
+                latest_events[event_id] = event
         return [
             PaymentResponse(
                 id=p.get("decision_id") or p.get("memory_id", f"payment_{i}"),
@@ -268,7 +305,7 @@ async def get_payments(wallet: str = "0x0000000000000000000000000000000000000000
                 memory_details=p.get("memory_details", []),
                 timestamp=str(p.get("ts", "")),
             )
-            for i, p in enumerate(events)
+            for i, p in enumerate(latest_events.values())
         ]
 
     # Legacy records created before decision_id was added remain readable.
@@ -288,6 +325,25 @@ async def get_payments(wallet: str = "0x0000000000000000000000000000000000000000
             timestamp=str(d.get("ts", "")),
         ))
     return payments
+
+
+@app.post("/payments/{decision_id}/approve", response_model=ApprovePaymentResponse)
+async def approve_payment(
+    decision_id: str,
+    wallet: str = "0x0000000000000000000000000000000000000000",
+):
+    """Approve and execute one pending payment after rechecking hard safety limits."""
+    try:
+        return ApprovePaymentResponse(**await agent.approve_payment(wallet, decision_id))
+    except MemoryUnavailable as exc:
+        raise HTTPException(
+            status_code=503,
+            detail={"code": "SIBYL_UNAVAILABLE", "message": str(exc)},
+        ) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
 @app.get("/memory/status")
