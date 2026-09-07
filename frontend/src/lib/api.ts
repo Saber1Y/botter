@@ -40,6 +40,14 @@ export interface ChatHistoryEntry {
     tx_hash?: string;
     status?: string;
   };
+  session_id?: string;
+}
+
+export interface ChatSession {
+  id: string;
+  name: string;
+  created_at: number;
+  updated_at: number;
 }
 
 export interface Memory {
@@ -112,14 +120,26 @@ async function fetchAPI<T>(path: string, options?: RequestInit): Promise<T> {
 
 export const api = {
   // Chat
-  chat: (message: string, wallet?: string) =>
-    fetchAPI<ChatMessage>(`/chat${wallet ? `?wallet=${wallet}` : ""}`, {
+  chat: (message: string, wallet?: string, sessionId?: string) =>
+    fetchAPI<ChatMessage>(
+      `/chat?${wallet ? `wallet=${encodeURIComponent(wallet)}` : ""}${sessionId ? `${wallet ? "&" : ""}session_id=${encodeURIComponent(sessionId)}` : ""}`,
+      {
       method: "POST",
       body: JSON.stringify({ message }),
-    }),
+      }
+    ),
 
-  getChatHistory: (wallet?: string) =>
-    fetchAPI<ChatHistoryEntry[]>(`/chat/history${wallet ? `?wallet=${wallet}` : ""}`),
+  getChatHistory: (wallet?: string, sessionId?: string) =>
+    fetchAPI<ChatHistoryEntry[]>(
+      `/chat/history?${wallet ? `wallet=${encodeURIComponent(wallet)}` : ""}${sessionId ? `${wallet ? "&" : ""}session_id=${encodeURIComponent(sessionId)}` : ""}`
+    ),
+  getChatSessions: (wallet?: string) =>
+    fetchAPI<ChatSession[]>(`/chat/sessions${wallet ? `?wallet=${encodeURIComponent(wallet)}` : ""}`),
+  createChatSession: (name: string, wallet?: string) =>
+    fetchAPI<ChatSession>(`/chat/sessions${wallet ? `?wallet=${encodeURIComponent(wallet)}` : ""}`, {
+      method: "POST",
+      body: JSON.stringify({ name }),
+    }),
 
   // Memory
   getMemory: (category?: string, wallet?: string) =>
@@ -153,6 +173,11 @@ export const api = {
   // Payments
   getPayments: (wallet?: string) =>
     fetchAPI<Payment[]>(`/payments${wallet ? `?wallet=${wallet}` : ""}`),
+  approvePayment: (paymentId: string, wallet?: string) =>
+    fetchAPI<{ id: string; status: string; tx_hash?: string }>(
+      `/payments/${encodeURIComponent(paymentId)}/approve${wallet ? `?wallet=${encodeURIComponent(wallet)}` : ""}`,
+      { method: "POST" }
+    ),
 
   // Vault
   getVaultStatus: (wallet: string) =>
