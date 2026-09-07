@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { api, Payment } from "@/lib/api";
+import { useAccount } from "wagmi";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   CheckCircle2,
@@ -140,6 +141,7 @@ const filters = [
 ] as const;
 
 export default function PaymentsPage() {
+  const { address } = useAccount();
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -147,12 +149,15 @@ export default function PaymentsPage() {
   const [selected, setSelected] = useState<Payment | null>(null);
 
   useEffect(() => {
+    if (!address) {
+      return;
+    }
     api
-      .getPayments()
+      .getPayments(address)
       .then(setPayments)
       .catch(() => setError("Failed to load payments."))
       .finally(() => setLoading(false));
-  }, []);
+  }, [address]);
 
   const filtered = payments.filter((p) => {
     if (filter === "all") return true;
