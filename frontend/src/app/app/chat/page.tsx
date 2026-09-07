@@ -19,6 +19,7 @@ import {
   ArrowRight,
   Trash2,
   ChevronDown,
+  Plus,
 } from "lucide-react";
 
 interface Message {
@@ -138,6 +139,8 @@ const suggestions = [
 export default function ChatPage() {
   const { address } = useAccount();
   const [messages, setMessages] = useState<Message[]>([]);
+  const [sessions, setSessions] = useState<{ id: string; name: string }[]>([]);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [input, setInput] = useState(() => {
     if (typeof window === "undefined") return "";
     return new URLSearchParams(window.location.search).get("q") ?? "";
@@ -156,9 +159,26 @@ export default function ChatPage() {
       return;
     }
 
-    Promise.all([api.getChatHistory(address), api.getMemoryStatus(address)])
-      .then(([history, status]) => {
+    Promise.all([api.getChatSessions(address), api.getMemoryStatus(address)])
+      .then(([loadedSessions, status]) => {
         setSibylAvailable(status.available);
+        const availableSessions = [
+          { id: "default", name: "General" },
+          ...loadedSessions.filter((session) => session.id !== "default"),
+        ];
+        setSessions(availableSessions);
+        setActiveSessionId((current) => current ?? availableSessions[0].id);
+      })
+      .catch(() => setSibylAvailable(false))
+      .finally(() => {
+        if (!address) setHistoryLoading(false);
+      });
+  }, [address]);
+
+  useEffect(() => {
+    if (!address || !activeSessionId) return;
+    api.getChatHistory(address, activeSessionId)
+      .then((history) => {
         const loaded: Message[] = history.map((h) => ({
           role: h.role,
           content: h.content,
@@ -174,7 +194,7 @@ export default function ChatPage() {
       })
       .catch(() => setSibylAvailable(false))
       .finally(() => setHistoryLoading(false));
-  }, [address]);
+  }, [activeSessionId, address]);
 
   useEffect(() => {
     if (input) setTimeout(() => inputRef.current?.focus(), 300);
@@ -195,7 +215,7 @@ export default function ChatPage() {
     setLoading(true);
 
     try {
-      const response = await api.chat(userMessage, address);
+      const response = await api.chat(userMessage, address, activeSessionId ?? undefined);
       setMessages((prev) => [
         ...prev,
         { role: "assistant", content: response.response, data: response },
@@ -210,7 +230,20 @@ export default function ChatPage() {
       setLoading(false);
       inputRef.current?.focus();
     }
-  }, [address, input, loading, toast]);
+  }, [activeSessionId, address, input, loading, toast]);
+
+  const handleNewSession = useCallback(async () => {
+    if (!address || !sibylAvailable) return;
+    try {
+      const session = await api.createChatSession("New conversation", address);
+      setSessions((current) => [session, ...current]);
+      setActiveSessionId(session.id);
+      setMessages([]);
+      setInput("");
+    } catch {
+      setError("Failed to create a new conversation.");
+    }
+  }, [address, sibylAvailable]);
 
   const handleClearChat = useCallback(() => {
     setMessages([]);
@@ -255,6 +288,36 @@ export default function ChatPage() {
           <span>Sibyl memory is unavailable. Pact has paused autonomous decisions until your financial context is restored.</span>
         </div>
       )}
+
+      <div className="flex items-center gap-2 overflow-x-auto border-b border-border px-4 py-2.5 sm:px-6">
+        <button
+          type="button"
+          onClick={handleNewSession}
+          disabled={!address || !sibylAvailable}
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-foreground px-2.5 py-1.5 text-[11px] font-medium text-background transition-colors hover:bg-accent disabled:opacity-40"
+        >
+          <Plus className="h-3 w-3" />
+          New chat
+        </button>
+        {sessions.map((session) => (
+          <button
+            key={session.id}
+            type="button"
+            onClick={() => {
+              setHistoryLoading(true);
+              setMessages([]);
+              setActiveSessionId(session.id);
+            }}
+            className={`shrink-0 rounded-lg px-3 py-1.5 text-[11px] transition-colors ${
+              activeSessionId === session.id
+                ? "bg-accent/10 font-medium text-accent ring-1 ring-accent/20"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            }`}
+          >
+            {session.name}
+          </button>
+        ))}
+      </div>
 
       <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4">
         {historyLoading && address ? (
