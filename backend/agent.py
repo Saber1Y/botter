@@ -103,7 +103,10 @@ Respond with a JSON object containing your intent, response, and any actions to 
         )
 
         # Parse response
-        agent_response = json.loads(response.choices[0].message.content)
+        content = response.choices[0].message.content if response.choices else None
+        if not content:
+            raise RuntimeError("LLM returned an empty response")
+        agent_response = json.loads(content)
 
         # Process intent
         result = await self._handle_intent(wallet, agent_response, context, vault_balance)
@@ -177,7 +180,8 @@ Respond with a JSON object containing your intent, response, and any actions to 
         # Handle payments
         if intent == "PAYMENT" and agent_response.get("payment"):
             payment_data = agent_response["payment"]
-            merchant = payment_data.get("merchant", "")
+            merchant = payment_data.get("merchant") or ""
+            payment_data["merchant"] = merchant
             request = PaymentRequest(**payment_data)
 
             # Evaluate against policy
