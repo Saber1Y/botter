@@ -393,6 +393,18 @@ class PactMemory:
         if session_id != "default":
             self._required(lambda: client.delete_entity("chat_sessions", session_id))
 
+    def truncate_chat_history(self, wallet: str, session_id: str, from_ts: float) -> None:
+        """Remove a message and everything after it in one chat session."""
+        client = self._client(wallet)
+        entities = client.list_entities("chat_history")
+        for entity in entities:
+            body = entity.get("body", {})
+            if (
+                body.get("session_id", "default") == session_id
+                and float(body.get("ts", 0)) >= from_ts
+            ):
+                self._required(lambda entity=entity: client.delete_entity("chat_history", entity.get("name", "")))
+
     def set_session_state(self, wallet: str, key: str, value: dict) -> None:
         """Set current session state (HOT tier)."""
         client = self._client(wallet)
