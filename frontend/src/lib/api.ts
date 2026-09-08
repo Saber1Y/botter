@@ -140,6 +140,11 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ name }),
     }),
+  deleteChatSession: (sessionId: string, wallet?: string) =>
+    fetchAPI<{ status: string; deleted: string }>(
+      `/chat/sessions/${encodeURIComponent(sessionId)}${wallet ? `?wallet=${encodeURIComponent(wallet)}` : ""}`,
+      { method: "DELETE" }
+    ),
 
   // Memory
   getMemory: (category?: string, wallet?: string) =>
