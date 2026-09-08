@@ -137,6 +137,22 @@ async def create_chat_session(
     return ChatSessionResponse(**memory.create_chat_session(wallet, request.name))
 
 
+@app.delete("/chat/sessions/{session_id}")
+async def delete_chat_session(
+    session_id: str,
+    wallet: str = "0x0000000000000000000000000000000000000000",
+):
+    """Delete a chat session and its wallet-scoped messages."""
+    try:
+        memory.delete_chat_session(wallet, session_id)
+        return {"status": "ok", "deleted": session_id}
+    except MemoryUnavailable as exc:
+        raise HTTPException(
+            status_code=503,
+            detail={"code": "SIBYL_UNAVAILABLE", "message": str(exc)},
+        ) from exc
+
+
 # --- Memory Endpoints ---
 
 @app.get("/memory", response_model=list[MemoryResponse])
