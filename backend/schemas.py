@@ -26,6 +26,7 @@ class ChatSessionResponse(BaseModel):
 
 
 class ChatHistoryEntry(BaseModel):
+    id: str = ""
     role: str
     content: str
     ts: float
