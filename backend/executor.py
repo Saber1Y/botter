@@ -154,7 +154,11 @@ class PaymentExecutor:
         amount_wei = int(amount * 1e6)
 
         # Generate payment ID
-        payment_id_bytes = Web3.to_bytes(text=payment_id)
+        try:
+            payment_id_bytes = bytes.fromhex(payment_id)
+        except ValueError:
+            payment_id_bytes = Web3.to_bytes(text=payment_id)
+        payment_id_bytes = payment_id_bytes[:32].ljust(32, b"\x00")
 
         # Build transaction
         tx = vault.functions.pay(
