@@ -64,7 +64,15 @@ function PaymentRow({ payment, isSelected }: { payment: Payment; isSelected: boo
   );
 }
 
-function PaymentDetail({ payment }: { payment: Payment }) {
+function PaymentDetail({
+  payment,
+  approving,
+  onApprove,
+}: {
+  payment: Payment;
+  approving: boolean;
+  onApprove: () => void;
+}) {
   const isApproved = payment.decision === "APPROVE";
   const isPending = payment.decision === "REQUIRE_APPROVAL";
   const Icon = isApproved ? CheckCircle2 : isPending ? AlertTriangle : XCircle;
@@ -129,6 +137,16 @@ function PaymentDetail({ payment }: { payment: Payment }) {
           View on BaseScan
         </a>
       )}
+      {isPending && (
+        <button
+          type="button"
+          onClick={onApprove}
+          disabled={approving}
+          className="ml-3 inline-flex items-center rounded-lg bg-foreground px-3 py-2 text-[12px] font-medium text-background transition-colors hover:bg-accent disabled:opacity-50"
+        >
+          {approving ? "Approving..." : "Approve payment"}
+        </button>
+      )}
     </motion.div>
   );
 }
@@ -147,6 +165,7 @@ export default function PaymentsPage() {
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "approved" | "pending" | "denied">("all");
   const [selected, setSelected] = useState<Payment | null>(null);
+  const [approving, setApproving] = useState(false);
 
   useEffect(() => {
     if (!address) {
@@ -189,7 +208,26 @@ export default function PaymentsPage() {
       </motion.div>
 
       <AnimatePresence>
-        {selected && <PaymentDetail payment={selected} />}
+        {selected && (
+          <PaymentDetail
+            payment={selected}
+            approving={approving}
+            onApprove={async () => {
+              if (!address) return;
+              setApproving(true);
+              try {
+                await api.approvePayment(selected.id, address);
+                const refreshed = await api.getPayments(address);
+                setPayments(refreshed);
+                setSelected(refreshed.find((payment) => payment.id === selected.id) ?? null);
+              } catch {
+                setError("Failed to approve payment. The vault or Sibyl state may have changed.");
+              } finally {
+                setApproving(false);
+              }
+            }}
+          />
+        )}
       </AnimatePresence>
 
       {error && (
