@@ -141,6 +141,8 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [sessions, setSessions] = useState<{ id: string; name: string }[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  const [deletingSessionId, setDeletingSessionId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [input, setInput] = useState(() => {
     if (typeof window === "undefined") return "";
     return new URLSearchParams(window.location.search).get("q") ?? "";
@@ -245,6 +247,36 @@ export default function ChatPage() {
     }
   }, [address, sibylAvailable]);
 
+  const handleDeleteSession = useCallback((session: { id: string; name: string }) => {
+    if (!address || !sibylAvailable) return;
+    setDeleteTarget(session);
+  }, [address, sibylAvailable]);
+
+  const confirmDeleteSession = useCallback(async () => {
+    if (!address || !sibylAvailable || !deleteTarget) return;
+
+    setDeletingSessionId(deleteTarget.id);
+    try {
+      await api.deleteChatSession(deleteTarget.id, address);
+      if (deleteTarget.id === "default") {
+        setMessages([]);
+        setActiveSessionId("default");
+      } else {
+        setSessions((current) => current.filter((session) => session.id !== deleteTarget.id));
+        if (activeSessionId === deleteTarget.id) {
+          setHistoryLoading(true);
+          setMessages([]);
+          setActiveSessionId("default");
+        }
+      }
+      setDeleteTarget(null);
+    } catch {
+      setError("Failed to delete conversation.");
+    } finally {
+      setDeletingSessionId(null);
+    }
+  }, [activeSessionId, address, deleteTarget, sibylAvailable]);
+
   const handleClearChat = useCallback(() => {
     setMessages([]);
     toast("Chat cleared (memory preserved)", "info");
@@ -300,22 +332,38 @@ export default function ChatPage() {
           New chat
         </button>
         {sessions.map((session) => (
-          <button
+          <div
             key={session.id}
-            type="button"
-            onClick={() => {
-              setHistoryLoading(true);
-              setMessages([]);
-              setActiveSessionId(session.id);
-            }}
-            className={`shrink-0 rounded-lg px-3 py-1.5 text-[11px] transition-colors ${
-              activeSessionId === session.id
-                ? "bg-accent/10 font-medium text-accent ring-1 ring-accent/20"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            className={`group inline-flex shrink-0 items-center rounded-lg transition-colors ${
+              activeSessionId === session.id ? "bg-accent/10 ring-1 ring-accent/20" : "hover:bg-muted"
             }`}
           >
-            {session.name}
-          </button>
+            <button
+              type="button"
+              onClick={() => {
+                setHistoryLoading(true);
+                setMessages([]);
+                setActiveSessionId(session.id);
+              }}
+              className={`rounded-l-lg px-3 py-1.5 text-[11px] transition-colors ${
+                activeSessionId === session.id
+                  ? "font-medium text-accent"
+                  : "text-muted-foreground group-hover:text-foreground"
+              }`}
+            >
+              {session.name}
+            </button>
+            <button
+              type="button"
+              onClick={() => handleDeleteSession(session)}
+              disabled={deletingSessionId === session.id}
+              aria-label={`Delete ${session.name}`}
+              title={`Delete ${session.name}`}
+              className="mr-1 flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground/0 transition-colors group-hover:text-muted-foreground hover:bg-red-50 hover:text-red-500 disabled:opacity-50"
+            >
+              <Trash2 className="h-3 w-3" />
+            </button>
+          </div>
         ))}
       </div>
 
@@ -421,6 +469,60 @@ export default function ChatPage() {
         )}
         <div ref={messagesEndRef} />
       </div>
+
+      <AnimatePresence>
+        {deleteTarget && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/25 px-4 backdrop-blur-sm"
+            role="presentation"
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget && !deletingSessionId) setDeleteTarget(null);
+            }}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 10, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 6, scale: 0.98 }}
+              transition={{ duration: 0.2 }}
+              className="w-full max-w-sm rounded-2xl border border-border bg-card p-5 shadow-xl"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="delete-conversation-title"
+            >
+              <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-500 ring-1 ring-red-200">
+                <Trash2 className="h-4 w-4" />
+              </div>
+              <h2 id="delete-conversation-title" className="text-[15px] font-semibold text-foreground">
+                Delete conversation?
+              </h2>
+              <p className="mt-1.5 text-[12px] leading-relaxed text-muted-foreground">
+                This will permanently remove <span className="font-medium text-foreground">{deleteTarget.name}</span> and its messages from your Sibyl memory.
+              </p>
+              <div className="mt-5 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDeleteTarget(null)}
+                  disabled={!!deletingSessionId}
+                  className="rounded-lg border border-border px-3 py-2 text-[12px] font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmDeleteSession}
+                  disabled={!!deletingSessionId}
+                  className="rounded-lg bg-red-500 px-3 py-2 text-[12px] font-medium text-white transition-colors hover:bg-red-600 disabled:opacity-50"
+                >
+                  {deletingSessionId ? "Deleting..." : "Delete conversation"}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {error && (
         <div className="mx-4 sm:mx-6 mb-2 flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-[11px] text-red-600 ring-1 ring-red-200">
