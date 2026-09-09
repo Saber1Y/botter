@@ -5,6 +5,7 @@ import { api, ChatMessage } from "@/lib/api";
 import { useToast } from "@/components/Toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAccount } from "wagmi";
+import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import {
   Send,
   Bot,
@@ -20,11 +21,15 @@ import {
   Trash2,
   ChevronDown,
   Plus,
+  Mic,
+  MicOff,
+  Pencil,
 } from "lucide-react";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
+  ts?: number;
   data?: ChatMessage;
 }
 
@@ -143,6 +148,7 @@ export default function ChatPage() {
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [deletingSessionId, setDeletingSessionId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [editingMessageIndex, setEditingMessageIndex] = useState<number | null>(null);
   const [input, setInput] = useState(() => {
     if (typeof window === "undefined") return "";
     return new URLSearchParams(window.location.search).get("q") ?? "";
@@ -154,6 +160,11 @@ export default function ChatPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const handleVoiceTranscript = useCallback((transcript: string) => {
+    setInput(transcript);
+    setEditingMessageIndex(null);
+  }, []);
+  const speech = useSpeechRecognition(handleVoiceTranscript);
 
   // Load chat history on mount
   useEffect(() => {
@@ -184,6 +195,7 @@ export default function ChatPage() {
         const loaded: Message[] = history.map((h) => ({
           role: h.role,
           content: h.content,
+          ts: h.ts,
           data: h.payment ? {
             response: h.content,
             intent: h.intent || "CONVERSATION",
@@ -211,12 +223,20 @@ export default function ChatPage() {
     if (!input.trim() || loading || !address) return;
 
     const userMessage = input.trim();
+    const editIndex = editingMessageIndex;
+    const editedMessage = editIndex === null ? null : messages[editIndex];
     setInput("");
     setError(null);
-    setMessages((prev) => [...prev, { role: "user", content: userMessage }]);
     setLoading(true);
 
     try {
+      if (editIndex !== null) {
+        if (!editedMessage?.ts) throw new Error("This message cannot be edited yet.");
+        await api.truncateChatHistory(activeSessionId ?? "default", editedMessage.ts, address);
+        setMessages((prev) => prev.slice(0, editIndex));
+        setEditingMessageIndex(null);
+      }
+      setMessages((prev) => [...prev, { role: "user", content: userMessage, ts: Date.now() / 1000 }]);
       const response = await api.chat(userMessage, address, activeSessionId ?? undefined);
       setMessages((prev) => [
         ...prev,
@@ -232,7 +252,7 @@ export default function ChatPage() {
       setLoading(false);
       inputRef.current?.focus();
     }
-  }, [activeSessionId, address, input, loading, toast]);
+  }, [activeSessionId, address, editingMessageIndex, input, loading, messages, toast]);
 
   const handleNewSession = useCallback(async () => {
     if (!address || !sibylAvailable) return;
@@ -281,6 +301,14 @@ export default function ChatPage() {
     setMessages([]);
     toast("Chat cleared (memory preserved)", "info");
   }, [toast]);
+
+  const handleEditMessage = useCallback((index: number) => {
+    const message = messages[index];
+    if (message.role !== "user" || !message.ts) return;
+    setEditingMessageIndex(index);
+    setInput(message.content);
+    inputRef.current?.focus();
+  }, [messages]);
 
   return (
     <div className="flex flex-col h-full">
@@ -410,7 +438,7 @@ export default function ChatPage() {
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] as const }}
-                className={`mb-4 flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                className={`group mb-4 flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 <div
                   className={`flex items-start gap-2.5 max-w-[85%] sm:max-w-[75%] ${
@@ -430,16 +458,27 @@ export default function ChatPage() {
                       <Bot className="h-3 w-3 text-accent" />
                     )}
                   </div>
-                  <div
-                    className={`rounded-2xl px-4 py-3 ${
+                   <div
+                     className={`relative rounded-2xl px-4 py-3 ${
                       msg.role === "user"
                         ? "rounded-br-md bg-accent text-[13px] text-white"
                         : "rounded-bl-md bg-card border border-border text-[13px] text-foreground shadow-sm"
-                    }`}
-                  >
-                    <div className="whitespace-pre-wrap">{msg.content}</div>
-                    {msg.data && <DecisionCard data={msg.data} />}
-                  </div>
+                     }`}
+                   >
+                     <div className="whitespace-pre-wrap">{msg.content}</div>
+                     {msg.data && <DecisionCard data={msg.data} />}
+                     {msg.role === "user" && msg.ts && (
+                       <button
+                         type="button"
+                         onClick={() => handleEditMessage(i)}
+                         aria-label="Edit message"
+                         title="Edit message"
+                         className="absolute -left-9 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground opacity-0 shadow-sm transition-all hover:bg-muted hover:text-foreground group-hover:opacity-100"
+                       >
+                         <Pencil className="h-3 w-3" />
+                       </button>
+                     )}
+                   </div>
                 </div>
               </motion.div>
             ))}
@@ -535,6 +574,21 @@ export default function ChatPage() {
       )}
 
       <div className="border-t border-border px-4 sm:px-6 py-4">
+        {editingMessageIndex !== null && (
+          <div className="mb-2 flex items-center justify-between rounded-lg bg-accent/5 px-3 py-2 text-[11px] text-accent ring-1 ring-accent/15">
+            <span>Editing message. Sending will replace it and the replies after it.</span>
+            <button
+              type="button"
+              onClick={() => {
+                setEditingMessageIndex(null);
+                setInput("");
+              }}
+              className="font-medium hover:text-foreground"
+            >
+              Cancel
+            </button>
+          </div>
+        )}
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -552,9 +606,31 @@ export default function ChatPage() {
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask Pact anything..."
             className="flex-1 rounded-xl border border-border bg-card px-4 py-2.5 text-[13px] text-foreground placeholder-muted-foreground transition-all focus:outline-none focus:border-accent/30 focus:ring-2 focus:ring-accent/10"
-            disabled={loading || !address || !sibylAvailable}
-            autoComplete="off"
+           disabled={loading || !address || !sibylAvailable}
+           autoComplete="off"
           />
+          <button
+            type="button"
+            onClick={speech.isListening ? speech.stopListening : speech.startListening}
+            disabled={!speech.supported || speech.offline || loading || !address || !sibylAvailable}
+            aria-label={speech.isListening ? "Stop voice input" : "Start voice input"}
+            title={
+              !speech.supported
+                ? "Voice input is not supported in this browser"
+                : speech.offline
+                  ? "Voice input needs an internet connection"
+                  : speech.isListening
+                    ? "Stop voice input"
+                    : "Use voice input"
+            }
+            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition-all disabled:opacity-30 ${
+              speech.isListening
+                ? "border-red-200 bg-red-50 text-red-500"
+                : "border-border bg-card text-muted-foreground hover:border-accent/30 hover:text-accent"
+            }`}
+          >
+            {speech.isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+          </button>
           <button
             type="submit"
             disabled={loading || !input.trim() || !address || !sibylAvailable}
@@ -564,6 +640,9 @@ export default function ChatPage() {
             <Send className="h-4 w-4" />
           </button>
         </form>
+        {speech.error && (
+          <p className="mt-2 text-[11px] text-red-500">{speech.error}</p>
+        )}
       </div>
     </div>
   );
