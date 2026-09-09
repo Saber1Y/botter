@@ -25,6 +25,7 @@ export interface ChatMessage {
 }
 
 export interface ChatHistoryEntry {
+  id?: string;
   role: "user" | "assistant";
   content: string;
   ts: number;
@@ -143,6 +144,11 @@ export const api = {
   deleteChatSession: (sessionId: string, wallet?: string) =>
     fetchAPI<{ status: string; deleted: string }>(
       `/chat/sessions/${encodeURIComponent(sessionId)}${wallet ? `?wallet=${encodeURIComponent(wallet)}` : ""}`,
+      { method: "DELETE" }
+    ),
+  truncateChatHistory: (sessionId: string, fromTs: number, wallet?: string) =>
+    fetchAPI<{ status: string; session_id: string }>(
+      `/chat/sessions/${encodeURIComponent(sessionId)}/messages?from_ts=${fromTs}${wallet ? `&wallet=${encodeURIComponent(wallet)}` : ""}`,
       { method: "DELETE" }
     ),
 
