@@ -616,8 +616,8 @@ export default function LandingPage() {
       </div>
 
       {/* ─── Navbar ─── */}
-      <nav className="fixed top-0 z-50 w-full border-b border-border/60 bg-background/70 backdrop-blur-xl">
-        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
+      <nav className="fixed left-1/2 top-4 z-50 w-[calc(100%-2rem)] max-w-6xl -translate-x-1/2 overflow-hidden rounded-2xl border border-border/80 bg-background/85 shadow-[0_8px_30px_rgba(28,25,23,0.08)] backdrop-blur-xl">
+        <div className="grid h-14 w-full grid-cols-[auto_1fr_auto] items-center gap-3 px-3 sm:px-5">
           <Link href="/" className="flex items-center gap-2.5">
             <Image
               src="/logo.svg"
@@ -631,7 +631,7 @@ export default function LandingPage() {
             </span>
           </Link>
 
-          <div className="hidden items-center gap-7 md:flex">
+          <div className="hidden items-center justify-self-center gap-5 md:flex lg:gap-7">
             {["Product", "How it works", "Memory", "Security"].map((item) => (
               <a
                 key={item}
@@ -643,7 +643,7 @@ export default function LandingPage() {
             ))}
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center justify-self-end gap-3 sm:gap-4">
             <a
               href="https://github.com/Saber1Y/Pact"
               target="_blank"
