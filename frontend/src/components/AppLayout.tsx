@@ -6,7 +6,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar />
-      <main className="relative flex-1 overflow-y-auto lg:pt-20">
+      <main className="relative flex-1 overflow-y-auto">
         {/* Ambient fading pattern */}
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0">
           <div
