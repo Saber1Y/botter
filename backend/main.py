@@ -109,6 +109,7 @@ async def get_chat_history(
         if body.get("role") and body.get("session_id", "default") == session_id:
             messages.append(ChatHistoryEntry(
                 role=body["role"],
+                id=e.get("name", ""),
                 content=body.get("content", ""),
                 ts=body.get("ts", 0),
                 intent=body.get("intent"),
@@ -146,6 +147,23 @@ async def delete_chat_session(
     try:
         memory.delete_chat_session(wallet, session_id)
         return {"status": "ok", "deleted": session_id}
+    except MemoryUnavailable as exc:
+        raise HTTPException(
+            status_code=503,
+            detail={"code": "SIBYL_UNAVAILABLE", "message": str(exc)},
+        ) from exc
+
+
+@app.delete("/chat/sessions/{session_id}/messages")
+async def truncate_chat_history(
+    session_id: str,
+    from_ts: float,
+    wallet: str = "0x0000000000000000000000000000000000000000",
+):
+    """Delete one message and later messages for an edit-and-resubmit flow."""
+    try:
+        memory.truncate_chat_history(wallet, session_id, from_ts)
+        return {"status": "ok", "session_id": session_id, "from_ts": from_ts}
     except MemoryUnavailable as exc:
         raise HTTPException(
             status_code=503,
