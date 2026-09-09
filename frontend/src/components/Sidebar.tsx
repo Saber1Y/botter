@@ -53,13 +53,13 @@ export function Sidebar() {
         )}
       </AnimatePresence>
 
-      {/* Floating desktop navigation, slide-in navigation on mobile */}
+      {/* Sidebar - desktop always visible, mobile slide-in */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-56 flex-col border-r border-border bg-card transition-transform duration-300 lg:inset-y-auto lg:left-1/2 lg:top-4 lg:z-40 lg:h-14 lg:w-auto lg:max-w-[calc(100vw-2rem)] lg:-translate-x-1/2 lg:flex-row lg:items-center lg:rounded-2xl lg:border lg:bg-card/95 lg:shadow-[0_8px_30px_rgba(28,25,23,0.08)] lg:backdrop-blur-xl ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-56 flex-col border-r border-border bg-card transition-transform duration-300 lg:static lg:translate-x-0 ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="border-b border-border p-4 lg:border-b-0 lg:border-r lg:p-2.5 lg:pl-3">
+        <div className="border-b border-border p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <Image src="/logo.svg" alt="Pact" width={30} height={30} className="rounded-lg" />
@@ -78,7 +78,7 @@ export function Sidebar() {
           </div>
         </div>
 
-        <nav className="flex-1 space-y-1 p-2.5 lg:flex lg:items-center lg:gap-0.5 lg:space-y-0 lg:p-1.5" role="navigation" aria-label="Main navigation">
+        <nav className="flex-1 space-y-1 p-2.5" role="navigation" aria-label="Main navigation">
           {navItems.map((item) => {
             const isActive = pathname === item.href;
             const Icon = item.icon;
@@ -88,7 +88,7 @@ export function Sidebar() {
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
                 aria-current={isActive ? "page" : undefined}
-                className={`relative flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] transition-all lg:gap-2 lg:px-2.5 lg:py-2 ${
+                className={`relative flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] transition-all ${
                   isActive
                     ? "bg-accent/10 text-accent"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -108,7 +108,7 @@ export function Sidebar() {
           })}
         </nav>
 
-        <div className="border-t border-border p-3 lg:border-t-0 lg:p-2 lg:pr-3">
+        <div className="border-t border-border p-3">
           <div className="mb-2 flex items-center gap-1.5 px-1">
             <p className="text-[9px] font-medium uppercase tracking-widest text-muted-foreground">Wallet</p>
           </div>
