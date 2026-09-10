@@ -17,7 +17,7 @@ interface SpeechRecognitionEventLike {
 }
 
 interface SpeechRecognitionErrorEventLike {
-  error: string;
+  error: "aborted" | "audio-capture" | "network" | "no-speech" | "not-allowed" | "service-not-allowed" | string;
 }
 
 interface SpeechRecognitionInstance {
@@ -45,8 +45,12 @@ declare global {
 
 export function useSpeechRecognition(onTranscript?: (text: string) => void) {
   const [isListening, setIsListening] = useState(false);
-  const [supported, setSupported] = useState(false);
-  const [offline, setOffline] = useState(false);
+  const [supported] = useState(() =>
+    typeof window !== "undefined" && Boolean(window.SpeechRecognition || window.webkitSpeechRecognition)
+  );
+  const [offline, setOffline] = useState(() =>
+    typeof navigator !== "undefined" && !navigator.onLine
+  );
   const [error, setError] = useState<string | null>(null);
   const onTranscriptRef = useRef(onTranscript);
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
@@ -56,12 +60,6 @@ export function useSpeechRecognition(onTranscript?: (text: string) => void) {
   }, [onTranscript]);
 
   useEffect(() => {
-    const recognitionSupported = Boolean(
-      window.SpeechRecognition || window.webkitSpeechRecognition
-    );
-    setSupported(recognitionSupported);
-    setOffline(!navigator.onLine);
-
     const handleOnline = () => setOffline(false);
     const handleOffline = () => {
       setOffline(true);
@@ -111,12 +109,24 @@ export function useSpeechRecognition(onTranscript?: (text: string) => void) {
       if (cleanTranscript) onTranscriptRef.current?.(cleanTranscript);
     };
     recognition.onerror = (event) => {
-      setError(event.error === "not-allowed" ? "Microphone permission was denied." : "Voice input failed. Try again.");
+      const messages: Record<string, string> = {
+        "audio-capture": "No microphone was found. Connect a microphone and try again.",
+        network: "The browser voice service is unavailable. Check your connection or try Chrome/Safari.",
+        "no-speech": "No speech was detected. Try speaking closer to the microphone.",
+        "not-allowed": "Microphone permission was denied. Allow microphone access in your browser settings.",
+        "service-not-allowed": "The browser voice service is not allowed for this page.",
+      };
+      if (event.error !== "aborted") setError(messages[event.error] ?? `Voice input failed (${event.error}). Try again.`);
       setIsListening(false);
     };
     recognition.onend = () => setIsListening(false);
     recognitionRef.current = recognition;
-    recognition.start();
+    try {
+      recognition.start();
+    } catch {
+      setError("Voice input could not start. Check microphone permission and try again.");
+      setIsListening(false);
+    }
   }, [offline]);
 
   return {
