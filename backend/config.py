@@ -18,6 +18,9 @@ class Settings(BaseSettings):
     # Sibyl Memory
     sibyl_db_path: str = "~/.sibyl-memory/memory.db"
 
+    # Frontend
+    frontend_url: str = "http://localhost:3000"
+
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
 
