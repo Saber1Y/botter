@@ -411,6 +411,38 @@ cd contracts
 The deploy script generates and persists the agent keypair (`backend/.agent_key`), deploys `VaultFactory` via Foundry with CREATE2, and writes the factory address into both backend and frontend env files.
 Then users deploy their own vault from the UI (calls `factory.createVault()`), deposit USDC, and the AI CFO executes payments from each user's vault.
 
+### Deploy the frontend to Vercel
+
+The frontend can be deployed to Vercel as a Next.js project.
+
+Set the Vercel project root directory to `frontend`.
+
+Use the `frontend` framework preset `Next.js`.
+
+Configure these Vercel environment variables for Preview and Production:
+
+| Variable | Value |
+| --- | --- |
+| `NEXT_PUBLIC_API_URL` | Public HTTPS URL of the deployed Pact backend |
+| `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` | WalletConnect project ID |
+| `NEXT_PUBLIC_BASE_SEPOLIA_RPC` | Base Sepolia RPC URL |
+| `NEXT_PUBLIC_VAULT_FACTORY_ADDRESS` | Deployed VaultFactory address |
+
+Do not set `NEXT_PUBLIC_API_URL` to `localhost` in Vercel.
+
+The backend must be deployed separately as a persistent service because the current Sibyl local database and transaction executor are not suitable for a Vercel-only frontend deployment.
+
+Recommended backend requirements are persistent Sibyl storage, a server-only `AGENT_PRIVATE_KEY`, Base Sepolia gas for the relayer, CORS access for the Vercel domain, and an HTTPS API URL.
+
+After deploying the backend, verify `/health`, `/memory/status`, `/vault/status`, and `/chat` against its public URL before deploying the frontend.
+
+Deploy from the repository root with the Vercel CLI after linking the project:
+
+```bash
+vercel --cwd frontend
+vercel --cwd frontend --prod
+```
+
 ## Project layout
 
 ```
