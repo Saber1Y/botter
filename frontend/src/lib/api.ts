@@ -153,8 +153,13 @@ export const api = {
     ),
 
   // Memory
-  getMemory: (category?: string, wallet?: string) =>
-    fetchAPI<Memory[]>(`/memory${category ? `?category=${category}` : ""}${wallet ? `&wallet=${wallet}` : ""}`),
+  getMemory: (category?: string, wallet?: string) => {
+    const params = new URLSearchParams();
+    if (category) params.set("category", category);
+    if (wallet) params.set("wallet", wallet);
+    const qs = params.toString();
+    return fetchAPI<Memory[]>(`/memory${qs ? `?${qs}` : ""}`);
+  },
   getMemoryStatus: (wallet?: string) =>
     fetchAPI<MemoryStatus>(`/memory/status${wallet ? `?wallet=${wallet}` : ""}`),
 
