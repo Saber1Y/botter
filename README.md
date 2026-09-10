@@ -1,5 +1,11 @@
 # Pact
 
+![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)
+![Tests](https://img.shields.io/badge/tests-31%20passing-brightgreen)
+![Onchain](https://img.shields.io/badge/onchain-Base%20Sepolia-blue)
+![Loop](https://img.shields.io/badge/loop-memory--driven%20policy-blueviolet)
+![Stack](https://img.shields.io/badge/stack-Foundry%20+%20FastAPI%20+%20Next.js%20+%20Sibyl-orange)
+
 **Your money. Your rules. Remembered.**
 
 Every AI financial agent asks you to hand over control, then hopes the model behaves.
