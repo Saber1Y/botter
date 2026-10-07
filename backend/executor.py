@@ -2,6 +2,7 @@
 from decimal import Decimal, ROUND_DOWN
 
 from web3 import Web3
+from web3.middleware import ExtraDataToPOAMiddleware
 from eth_account import Account
 from config import get_settings
 
@@ -111,6 +112,7 @@ class PaymentExecutor:
     def __init__(self):
         settings = get_settings()
         self.w3 = Web3(Web3.HTTPProvider(settings.bot_chain_rpc))
+        self.w3.middleware_onion.inject(ExtraDataToPOAMiddleware, layer=0)
         self.chain_id = settings.bot_chain_id
         self.agent_account = Account.from_key(settings.agent_private_key)
         self.token_address = settings.token_contract_address
