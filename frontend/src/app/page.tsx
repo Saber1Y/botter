@@ -223,7 +223,7 @@ function HeroChatMockup() {
                 </div>
                 <div className="flex items-center gap-2 rounded-2xl rounded-bl-md bg-emerald-50 px-4 py-2.5 text-[13px] text-emerald-700 ring-1 ring-emerald-200">
                   <CheckCircle2 className="h-3.5 w-3.5" />
-                  Executed on Base
+                  Executed on BOT Chain
                 </div>
               </motion.div>
             )}
@@ -730,7 +730,7 @@ export default function LandingPage() {
             >
               {[
                 "Sibyl Memory",
-                "Base",
+                "BOT Chain",
                 "AI-native",
                 "Voice input",
                 "Non-custodial",

@@ -81,7 +81,7 @@ const NODES: NodeDef[] = [
     height: 118,
     icon: <Send className="h-5 w-5" strokeWidth={1.75} />,
     label: "BotterVault.pay()",
-    sublabel: "typed call · Base onchain",
+    sublabel: "typed call · BOT Chain onchain",
     tint: {
       iconWrap: "bg-indigo-50 text-indigo-600 border border-indigo-200",
     },
