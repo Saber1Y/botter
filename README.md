@@ -13,7 +13,7 @@ Botter asks the opposite question: what if the agent remembered your rules, your
 On BOT Chain Testnet, in USDT, with each user's money isolated in a vault they own and the agent's spending bounded by limits the contract enforces on every single call.
 No model ever touches your spending key. Botter reasons in your memory, and only signs the exact, policy-verified payments your vault authorizes.
 
-Target network: BOT Chain Testnet (chainId 968, `https://rpc.bohr.life`). Frontend and backend deployments are pending - see [Run it locally](#run-it-locally) and the deploy sections below.
+Target network: BOT Chain Testnet (chainId 968, `https://rpc.bohr.life`). The contracts are deployed (`VaultFactory` at `0x338b99e0733E6235f12038fA9402Ce531AE0d9F8`); frontend and backend hosting is pending - see [Run it locally](#run-it-locally) and the deploy sections below.
 
 [The one rule](#the-one-rule--never-a-spending-key) · [Architecture](#architecture) · [Component by component](#component-by-component) · [What's real vs pending](#whats-real-vs-pending--the-honesty-table) · [Run it locally](#run-it-locally)
 
@@ -339,12 +339,12 @@ The honest table - what is genuinely working, run against real infrastructure, v
 | Persistent memory tiers (WARM/HOT/COLD) | Real - Sibyl SDK integration |
 | Rule upserts, goals create/list/delete | Real - backed by the SDK |
 | Chat history persistence | Real |
-| Vault lookup from factory | Real code path - was live on Base Sepolia during Pact development; BOT Chain Testnet redeploy pending |
-| Per-user `BotterVault` + `VaultFactory` contracts | 31 Foundry tests passing; BOT Chain Testnet deployment pending |
+| Vault lookup from factory | Real - live on BOT Chain Testnet (factory `0x338b99e0733E6235f12038fA9402Ce531AE0d9F8`) |
+| Per-user `BotterVault` + `VaultFactory` contracts | 47 Foundry tests passing; deployed on BOT Chain Testnet (factory `0x338b99e0733E6235f12038fA9402Ce531AE0d9F8`) |
 | Deposit / withdraw / agent set / limits set | Real - 16 BotterVault tests |
 | Factory CREATE2, vault count, getVault | Real - 15 VaultFactory tests |
 | Live hosted deployments | Pending - Botter is not yet deployed to Vercel or Railway |
-| Onchain `pay()` execution from the flow | Verified end-to-end on Base Sepolia during Pact development (tx `0x588f6937e18e400a6a12ba7dda2f6c4e4255e964df43740cc03de5528f6bba38`); BOT Chain Testnet verification pending |
+| Onchain `pay()` execution from the flow | Verified end-to-end on BOT Chain Testnet: vault `0x3BeabD1D08B671888f4073D2F29eFc002434DFFE` created, 500 tUSDT deposited, 50 tUSDT paid by the agent (vault 450 / spent 50 / recipient 50), replay of the same `paymentId` reverted, and a non-agent `pay()` reverted. Factory deployed in tx `0x45cbb93b07dce8fa703e907475cde4c2f3c0a61478c97fee4bb3e32502cbb560` |
 | Voice input in chat | Real - browser Web Speech API, no extra dependency |
 | Vault deploy from UI (wagmi `writeContract`) | Real code, not yet exercised in a full live run |
 | CI for the backend Python and frontend TypeScript | Not yet established |
@@ -355,20 +355,20 @@ What is still honestly pending is the one continuous live walk performed entirel
 
 ## Tests
 
-### Smart contracts (Foundry) - 31 passing
+### Smart contracts (Foundry) - 47 passing
 
 | Suite | Tests | Covers |
 | --- | --- | --- |
-| `BotterVault.t.sol` | 16 | deposit, withdraw (owner-only), agent pay, per-tx cap, daily cap reset, replay protection, owners/agent/limits setters |
-| `VaultFactory.t.sol` | 15 | CREATE2 deploy, per-user vault, duplicate rejection, getVault, vaultCount, setAgent/setDefaults/transferOwnership |
+| `BotterVault.t.sol` | 25 | deposit, withdraw (owner-only), agent pay, per-tx cap, daily cap reset, replay protection, owners/agent/limits setters, constructor + limit validation, payment accounting |
+| `VaultFactory.t.sol` | 22 | CREATE2 deploy + deterministic address, per-user vault, duplicate rejection, getVault, vaultCount, setAgent/setDefaults/transferOwnership, constructor + limit validation |
 
 ```bash
 cd contracts
 forge build
-forge test      # 31 passed
+forge test      # 47 passed
 ```
 
-The backend policy engine has a pytest suite (`backend/test_policy.py` - 5 passing) covering the deterministic verdicts.
+The backend policy engine has a pytest suite (`backend/test_policy.py` - 5 passing, plus `backend/test_executor.py` - 7 passing) covering the deterministic verdicts and exact token-unit conversion.
 The frontend has no test runner yet - both points are open contributions (see Roadmap).
 
 ## Run it locally

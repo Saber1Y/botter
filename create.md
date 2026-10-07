@@ -28,9 +28,9 @@ Payment and decision written back to Sibyl
 
 Botter targets BOT Chain Testnet (chainId `968`, RPC `https://rpc.bohr.life`, explorer `https://scan.bohr.life`).
 
-Botter is not deployed yet. The contracts, backend, and frontend all need to be pointed at BOT Chain Testnet and deployed first:
+The contracts are deployed on BOT Chain Testnet (`VaultFactory` at `0x338b99e0733E6235f12038fA9402Ce531AE0d9F8`, deploy tx `0x45cbb93b07dce8fa703e907475cde4c2f3c0a61478c97fee4bb3e32502cbb560`). The backend and frontend still need to be hosted:
 
-- Contracts: run `./contracts/deploy.sh` to deploy `VaultFactory` on BOT Chain Testnet; set `NEXT_PUBLIC_VAULT_FACTORY_ADDRESS` and `VAULT_FACTORY_ADDRESS` to the returned address.
+- Contracts: already deployed; to re-run, use `./contracts/deploy.sh` then set `NEXT_PUBLIC_VAULT_FACTORY_ADDRESS` and `VAULT_FACTORY_ADDRESS` to the returned address.
 - Payment token: BOT Chain Testnet USDT `0x75edC9335175Fc0552D51D48439F229c10420fe3` (6 decimals), configured as `TOKEN_CONTRACT_ADDRESS` in the backend and `TOKEN_ADDRESS` in the deploy script.
 - Frontend: deploy from `frontend/` to Vercel with `NEXT_PUBLIC_BOT_CHAIN_RPC=https://rpc.bohr.life`.
 - Backend: deploy from `backend/` (for example to Railway) with a volume for `SIBYL_DB_PATH`, and set the CORS origin `FRONTEND_URL` to the deployed frontend URL.
