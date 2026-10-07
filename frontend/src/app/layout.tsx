@@ -22,9 +22,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Pact — Your money. Your rules. Remembered.",
+  title: "Botter — Your money. Your rules. Remembered.",
   description:
-    "Pact is an AI financial agent powered by persistent memory. It remembers your spending rules, goals, and preferences before it acts. Set the rules once. Pact remembers them every time.",
+    "Botter is an AI financial agent powered by persistent memory. It remembers your spending rules, goals, and preferences before it acts. Set the rules once. Botter remembers them every time.",
   icons: {
     icon: "/favicon.svg",
   },

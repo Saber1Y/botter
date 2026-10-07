@@ -6,22 +6,22 @@ import {VaultFactory} from "../src/VaultFactory.sol";
 
 contract DeployVaultFactory is Script {
     function run() external {
-        // Base Sepolia USDC
-        address usdc = vm.envOr("USDC_ADDRESS", address(0x036CbD53842c5426634e7929541eC2318f3dCF7e));
+        // BOT Chain Testnet USDT
+        address token = vm.envOr("TOKEN_ADDRESS", address(0x75edC9335175Fc0552D51D48439F229c10420fe3));
 
         // Agent address (the backend wallet that executes payments)
         address agent = vm.envAddress("AGENT_ADDRESS");
 
-        // Default limits in USDC (6 decimals): $500/tx, $1000/day
-        uint256 defaultMaxPerTx = vm.envOr("MAX_PER_TX", uint256(500_000_000));   // 500 USDC
-        uint256 defaultDailyLimit = vm.envOr("DAILY_LIMIT", uint256(1000_000_000)); // 1000 USDC
+        // Default limits in USDT (6 decimals): $500/tx, $1000/day
+        uint256 defaultMaxPerTx = vm.envOr("MAX_PER_TX", uint256(500_000_000));   // 500 USDT
+        uint256 defaultDailyLimit = vm.envOr("DAILY_LIMIT", uint256(1000_000_000)); // 1000 USDT
 
         uint256 deployerKey = vm.envUint("PRIVATE_KEY");
 
         vm.startBroadcast(deployerKey);
 
         VaultFactory factory = new VaultFactory(
-            usdc,
+            token,
             agent,
             defaultMaxPerTx,
             defaultDailyLimit
@@ -31,8 +31,8 @@ contract DeployVaultFactory is Script {
 
         console.log("VaultFactory deployed at:", address(factory));
         console.log("Agent:", agent);
-        console.log("USDC:", usdc);
-        console.log("Default max per tx:", defaultMaxPerTx / 1e6, "USDC");
-        console.log("Default daily limit:", defaultDailyLimit / 1e6, "USDC");
+        console.log("USDT:", token);
+        console.log("Default max per tx:", defaultMaxPerTx / 1e6, "USDT");
+        console.log("Default daily limit:", defaultDailyLimit / 1e6, "USDT");
     }
 }

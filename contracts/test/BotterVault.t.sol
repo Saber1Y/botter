@@ -2,11 +2,11 @@
 pragma solidity ^0.8.20;
 
 import {Test} from "forge-std/Test.sol";
-import {PactVault} from "../src/PactVault.sol";
+import {BotterVault} from "../src/BotterVault.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /// @dev Minimal mock USDC for testing (6 decimals)
-contract MockUSDC {
+contract MockUSDT {
     string public name = "USD Coin";
     string public symbol = "USDC";
     uint8 public decimals = 6;
@@ -44,9 +44,9 @@ contract MockUSDC {
     }
 }
 
-contract PactVaultTest is Test {
-    PactVault public vault;
-    MockUSDC public usdc;
+contract BotterVaultTest is Test {
+    BotterVault public vault;
+    MockUSDT public token;
 
     address public owner = makeAddr("owner");
     address public agent = makeAddr("agent");
@@ -57,21 +57,21 @@ contract PactVaultTest is Test {
 
     function setUp() public {
         vm.prank(owner);
-        usdc = new MockUSDC();
+        token = new MockUSDT();
 
         vm.prank(owner);
-        vault = new PactVault(
+        vault = new BotterVault(
             owner,
-            address(usdc),
+            address(token),
             agent,
             MAX_PER_TX,
             DAILY_LIMIT
         );
 
         // Fund the vault
-        usdc.mint(owner, 1000e6);
+        token.mint(owner, 1000e6);
         vm.prank(owner);
-        usdc.approve(address(vault), 1000e6);
+        token.approve(address(vault), 1000e6);
         vm.prank(owner);
         vault.deposit(1000e6);
     }
@@ -83,12 +83,12 @@ contract PactVaultTest is Test {
     }
 
     function test_deposit_emits_event() public {
-        usdc.mint(owner, 200e6);
+        token.mint(owner, 200e6);
         vm.prank(owner);
-        usdc.approve(address(vault), 200e6);
+        token.approve(address(vault), 200e6);
 
         vm.expectEmit(true, false, false, true);
-        emit PactVault.Deposit(owner, 200e6);
+        emit BotterVault.Deposit(owner, 200e6);
 
         vm.prank(owner);
         vault.deposit(200e6);
@@ -105,7 +105,7 @@ contract PactVaultTest is Test {
 
     function test_withdraw_fails_for_non_owner() public {
         vm.prank(agent);
-        vm.expectRevert(PactVault.NotOwner.selector);
+        vm.expectRevert(BotterVault.NotOwner.selector);
         vault.withdraw(100e6);
     }
 
@@ -117,7 +117,7 @@ contract PactVaultTest is Test {
         vm.prank(agent);
         vault.pay(recipient, 60e6, paymentId);
 
-        assertEq(usdc.balanceOf(recipient), 60e6);
+        assertEq(token.balanceOf(recipient), 60e6);
         assertTrue(vault.paymentExecuted(paymentId));
     }
 
@@ -125,12 +125,12 @@ contract PactVaultTest is Test {
         bytes32 paymentId = keccak256(abi.encodePacked("payment-2"));
 
         vm.expectEmit(true, true, false, true);
-        emit PactVault.PaymentExecuted(paymentId, recipient, 60e6, block.timestamp);
+        emit BotterVault.PaymentExecuted(paymentId, recipient, 60e6, block.timestamp);
 
         vm.prank(agent);
         vault.pay(recipient, 60e6, paymentId);
 
-        assertEq(usdc.balanceOf(recipient), 60e6);
+        assertEq(token.balanceOf(recipient), 60e6);
     }
 
     function test_pay_reverts_above_max_per_tx() public {
@@ -139,7 +139,7 @@ contract PactVaultTest is Test {
         vm.prank(agent);
         vm.expectRevert(
             abi.encodeWithSelector(
-                PactVault.ExceedsMaxPerTransaction.selector,
+                BotterVault.ExceedsMaxPerTransaction.selector,
                 150e6,
                 MAX_PER_TX
             )
@@ -160,7 +160,7 @@ contract PactVaultTest is Test {
         vm.prank(agent);
         vm.expectRevert(
             abi.encodeWithSelector(
-                PactVault.DailyLimitExceeded.selector,
+                BotterVault.DailyLimitExceeded.selector,
                 60e6,
                 50e6 // 500 - 450 = 50 remaining
             )
@@ -177,7 +177,7 @@ contract PactVaultTest is Test {
         vm.prank(agent);
         vm.expectRevert(
             abi.encodeWithSelector(
-                PactVault.DuplicatePayment.selector,
+                BotterVault.DuplicatePayment.selector,
                 paymentId
             )
         );
@@ -188,7 +188,7 @@ contract PactVaultTest is Test {
         bytes32 paymentId = keccak256(abi.encodePacked("payment-4"));
 
         vm.prank(owner);
-        vm.expectRevert(PactVault.NotAgent.selector);
+        vm.expectRevert(BotterVault.NotAgent.selector);
         vault.pay(recipient, 10e6, paymentId);
     }
 
@@ -196,7 +196,7 @@ contract PactVaultTest is Test {
         bytes32 paymentId = keccak256(abi.encodePacked("payment-5"));
 
         vm.prank(agent);
-        vm.expectRevert(PactVault.InvalidRecipient.selector);
+        vm.expectRevert(BotterVault.InvalidRecipient.selector);
         vault.pay(address(0), 10e6, paymentId);
     }
 
@@ -204,7 +204,7 @@ contract PactVaultTest is Test {
         bytes32 paymentId = keccak256(abi.encodePacked("payment-6"));
 
         vm.prank(agent);
-        vm.expectRevert(PactVault.InvalidAmount.selector);
+        vm.expectRevert(BotterVault.InvalidAmount.selector);
         vault.pay(recipient, 0, paymentId);
     }
 
@@ -220,7 +220,7 @@ contract PactVaultTest is Test {
 
     function test_set_limits_reverts_for_non_owner() public {
         vm.prank(agent);
-        vm.expectRevert(PactVault.NotOwner.selector);
+        vm.expectRevert(BotterVault.NotOwner.selector);
         vault.setLimits(200e6, 1000e6);
     }
 
@@ -258,4 +258,68 @@ contract PactVaultTest is Test {
         assertEq(vault.spentToday(), 80e6);
         assertEq(vault.getDailyRemaining(), 420e6);
     }
+
+    // --- Constructor Validation Tests ---
+
+    function test_constructor_reverts_zero_owner() public {
+        vm.expectRevert(BotterVault.InvalidRecipient.selector);
+        new BotterVault(address(0), address(token), agent, MAX_PER_TX, DAILY_LIMIT);
+    }
+
+    function test_constructor_reverts_zero_token() public {
+        vm.expectRevert(BotterVault.InvalidRecipient.selector);
+        new BotterVault(owner, address(0), agent, MAX_PER_TX, DAILY_LIMIT);
+    }
+
+    function test_constructor_reverts_zero_agent() public {
+        vm.expectRevert(BotterVault.InvalidRecipient.selector);
+        new BotterVault(owner, address(token), address(0), MAX_PER_TX, DAILY_LIMIT);
+    }
+
+    function test_constructor_reverts_max_above_daily() public {
+        vm.expectRevert(BotterVault.InvalidLimits.selector);
+        new BotterVault(owner, address(token), agent, 600e6, DAILY_LIMIT);
+    }
+
+    function test_constructor_reverts_zero_max_per_tx() public {
+        vm.expectRevert(BotterVault.InvalidLimits.selector);
+        new BotterVault(owner, address(token), agent, 0, DAILY_LIMIT);
+    }
+
+    function test_setLimits_reverts_max_above_daily() public {
+        vm.prank(owner);
+        vm.expectRevert(BotterVault.InvalidLimits.selector);
+        vault.setLimits(DAILY_LIMIT + 1, DAILY_LIMIT);
+    }
+
+    function test_setLimits_reverts_zero_max_per_tx() public {
+        vm.prank(owner);
+        vm.expectRevert(BotterVault.InvalidLimits.selector);
+        vault.setLimits(0, DAILY_LIMIT);
+    }
+
+    // --- Payment Accounting Tests ---
+
+    function test_pay_exact_amount_and_daily_remaining() public {
+        bytes32 paymentId = keccak256(abi.encodePacked("exact-1"));
+        vm.prank(agent);
+        vault.pay(recipient, 100e6, paymentId);
+
+        assertEq(token.balanceOf(recipient), 100e6, "recipient got exact amount");
+        assertEq(vault.getBalance(), 900e6, "vault debited exactly");
+        assertEq(vault.spentToday(), 100e6, "spentToday tracked");
+        assertEq(vault.getDailyRemaining(), DAILY_LIMIT - 100e6, "daily remaining reduced");
+    }
+
+    function test_pay_reverts_when_vault_empty() public {
+        uint256 balance = vault.getBalance();
+        vm.prank(owner);
+        vault.withdraw(balance);
+
+        bytes32 paymentId = keccak256(abi.encodePacked("empty-vault"));
+        vm.prank(agent);
+        vm.expectRevert();
+        vault.pay(recipient, 10e6, paymentId);
+    }
+
 }

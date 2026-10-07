@@ -29,7 +29,7 @@ export const VAULT_FACTORY_ABI = [
   },
   {
     inputs: [],
-    name: "usdc",
+    name: "token",
     outputs: [{ name: "", type: "address" }],
     stateMutability: "view",
     type: "function",

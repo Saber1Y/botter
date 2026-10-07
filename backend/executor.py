@@ -1,10 +1,28 @@
-"""Payment executor for per-user Base Sepolia vaults."""
+"""Payment executor for per-user BOT Chain Testnet vaults."""
+from decimal import Decimal, ROUND_DOWN
+
 from web3 import Web3
 from eth_account import Account
 from config import get_settings
 
+TOKEN_DECIMALS = 6
 
-# PactVault ABI (subset for payment execution)
+
+def to_token_units(amount: float | str, decimals: int = TOKEN_DECIMALS) -> int:
+    """Convert a human-readable token amount to exact integer atomic units.
+
+    Uses Decimal on the string form of the amount so values like 0.1 never
+    become 99999 or 100001 atomic units, and rounds down so the caller can
+    never spend more than the requested amount.
+    """
+    value = Decimal(str(amount))
+    if value <= 0:
+        raise ValueError("amount must be positive")
+    units = value * (Decimal(10) ** decimals)
+    return int(units.to_integral_value(rounding=ROUND_DOWN))
+
+
+# BotterVault ABI (subset for payment execution)
 VAULT_ABI = [
     {
         "inputs": [
@@ -88,13 +106,14 @@ FACTORY_ABI = [
 
 
 class PaymentExecutor:
-    """Handles onchain payment execution on Base Sepolia per-user vaults."""
+    """Handles onchain payment execution on BOT Chain Testnet per-user vaults."""
 
     def __init__(self):
         settings = get_settings()
-        self.w3 = Web3(Web3.HTTPProvider(settings.base_sepolia_rpc))
+        self.w3 = Web3(Web3.HTTPProvider(settings.bot_chain_rpc))
+        self.chain_id = settings.bot_chain_id
         self.agent_account = Account.from_key(settings.agent_private_key)
-        self.usdc_address = settings.usdc_contract_address
+        self.token_address = settings.token_contract_address
 
         # Factory contract (for vault lookup)
         factory_addr = Web3.to_checksum_address(settings.vault_factory_address)
@@ -117,10 +136,10 @@ class PaymentExecutor:
         return self.get_user_vault(wallet) is not None
 
     def get_vault_balance(self, vault_address: str) -> float:
-        """Get a vault's USDC balance."""
+        """Get a vault's USDT balance."""
         vault = self._get_vault_contract(vault_address)
         balance = vault.functions.getBalance().call()
-        return balance / 1e6  # USDC has 6 decimals
+        return balance / 1e6  # USDT has 6 decimals
 
     def get_daily_remaining(self, vault_address: str) -> float:
         """Get remaining daily budget for a vault."""
@@ -147,11 +166,11 @@ class PaymentExecutor:
         amount: float,
         payment_id: str,
     ) -> dict:
-        """Execute a payment from a user's vault on Base Sepolia."""
+        """Execute a payment from a user's vault on BOT Chain Testnet."""
         vault = self._get_vault_contract(vault_address)
 
-        # Convert to USDC units (6 decimals)
-        amount_wei = int(amount * 1e6)
+        # Convert to USDT units (6 decimals) without float rounding error
+        amount_wei = to_token_units(amount)
 
         # Generate payment ID
         try:
@@ -167,10 +186,10 @@ class PaymentExecutor:
             payment_id_bytes,
         ).build_transaction({
             "from": self.agent_account.address,
-            "nonce": self.w3.eth.get_transaction_count(self.agent_account.address),
+            "nonce": self.w3.eth.get_transaction_count(self.agent_account.address, "pending"),
             "gas": 200000,
             "gasPrice": self.w3.eth.gas_price,
-            "chainId": 84532,  # Base Sepolia
+            "chainId": self.chain_id
         })
 
         # Sign and send

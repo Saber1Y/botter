@@ -1,14 +1,40 @@
-import { http, createConfig } from "wagmi";
-import { baseSepolia } from "wagmi/chains";
+import { http } from "wagmi";
 import { getDefaultConfig } from "@rainbow-me/rainbowkit";
 
+// BOT Chain Testnet (Bohr Testnet) - chainId 968
+export const botChainTestnet = {
+  id: 968,
+  name: "BOT Chain Testnet",
+  network: "bot-chain-testnet",
+  nativeCurrency: {
+    decimals: 18,
+    name: "BOT",
+    symbol: "BOT",
+  },
+  rpcUrls: {
+    default: {
+      http: ["https://rpc.bohr.life"],
+    },
+    public: {
+      http: ["https://rpc.bohr.life"],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: "BOTScan",
+      url: "https://scan.bohr.life",
+    },
+  },
+  testnet: true,
+} as const;
+
 export const config = getDefaultConfig({
-  appName: "Pact",
+  appName: "Botter",
   projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "",
-  chains: [baseSepolia],
+  chains: [botChainTestnet],
   transports: {
-    [baseSepolia.id]: http(
-      process.env.NEXT_PUBLIC_BASE_SEPOLIA_RPC || "https://sepolia.base.org"
+    [botChainTestnet.id]: http(
+      process.env.NEXT_PUBLIC_BOT_CHAIN_RPC || "https://rpc.bohr.life"
     ),
   },
 });

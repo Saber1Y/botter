@@ -85,7 +85,7 @@ export default function OverviewPage() {
         // instead of silently presenting $0 / "no vault" as fact.
         if (statusFailed) {
           setLiveError(
-            "Couldn't reach Pact services. Showing cached/empty values - retry to load live data."
+            "Couldn't reach Botter services. Showing cached/empty values - retry to load live data."
           );
         } else {
           setLiveError(null);
@@ -122,7 +122,7 @@ export default function OverviewPage() {
       setGoals(g);
       setPayments(p);
       setMemories(mem);
-      setLiveError(statusFailed ? "Couldn't reach Pact services." : null);
+      setLiveError(statusFailed ? "Couldn't reach Botter services." : null);
     });
   };
 
@@ -310,18 +310,18 @@ export default function OverviewPage() {
               {balance.toFixed(2)}
             </span>
             <span className="text-[13px] font-medium text-muted-foreground">
-              USDC
+              USDT
             </span>
           </div>
           <div className="relative mt-4 flex flex-wrap items-center gap-1.5">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/50 px-2.5 py-1 font-mono text-[10px] font-medium text-muted-foreground">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse-glow" />
-              Base Sepolia
+              BOT Chain Testnet
             </span>
             {maxPerTx > 0 && (
               <span className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-muted/30 px-2.5 py-1 font-mono text-[10px] font-medium text-muted-foreground">
                 <ShieldCheck className="h-3 w-3 text-accent" />
-                Max {maxPerTx} USDC / tx
+                Max {maxPerTx} USDT / tx
               </span>
             )}
           </div>
@@ -506,7 +506,7 @@ export default function OverviewPage() {
                   No payments yet
                 </p>
                 <p className="text-[11px] text-muted-foreground/60">
-                  Ask Pact to pay someone or set a rule
+                  Ask Botter to pay someone or set a rule
                 </p>
               </div>
             ) : (
@@ -547,7 +547,7 @@ export default function OverviewPage() {
                 No spending rules yet
               </p>
               <p className="text-[11px] text-muted-foreground/60 mt-1">
-                Tell Pact your limits in chat to guard your vault
+                Tell Botter your limits in chat to guard your vault
               </p>
             </div>
           ) : (
@@ -606,7 +606,7 @@ export default function OverviewPage() {
                 No approvals queued
               </p>
               <p className="text-[11px] text-muted-foreground/60 mt-1">
-                Payments Pact can&apos;t auto-approve will wait here
+                Payments Botter can&apos;t auto-approve will wait here
               </p>
             </div>
           ) : (
@@ -645,13 +645,13 @@ export default function OverviewPage() {
         </motion.div>
       </div>
 
-      {/* Pact remembers */}
+      {/* Botter remembers */}
       {memories.length > 0 && (
         <motion.div variants={fadeUp}>
           <div className="flex items-center gap-2 mb-3">
             <Brain className="h-4 w-4 text-accent" />
             <h2 className="text-[13px] font-semibold text-foreground">
-              Pact remembers
+              Botter remembers
             </h2>
             <Link
               href="/app/memory"
@@ -880,7 +880,7 @@ function VaultDeployBanner({
             Deploy your vault to start
           </p>
           <p className="text-[12px] text-muted-foreground">
-            Create a PactVault on Base Sepolia to hold USDC and execute payments.
+            Create a BotterVault on BOT Chain Testnet to hold USDT and execute payments.
           </p>
         </div>
         <button
@@ -923,16 +923,16 @@ function VaultFundBanner({
             Fund your vault
           </p>
           <p className="text-[12px] text-muted-foreground truncate">
-            Send USDC to{" "}
+            Send USDT to{" "}
             <code className="font-mono text-[11px]">{vaultAddress.slice(0, 6)}...{vaultAddress.slice(-4)}</code>
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <a
-            href={`https://sepolia.basescan.org/address/${vaultAddress}`}
+            href={`https://scan.bohr.life/address/${vaultAddress}`}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="View vault on BaseScan"
+            aria-label="View vault on BOTScan"
             className="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <ExternalLink className="h-3.5 w-3.5" />

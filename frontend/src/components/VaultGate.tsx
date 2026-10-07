@@ -13,22 +13,24 @@ interface VaultGateProps {
 
 export function VaultGate({ children }: VaultGateProps) {
   const { address, isConnected } = useAccount();
-  const [vaultStatus, setVaultStatus] = useState<VaultStatus | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [vaultStatus, setVaultStatus] = useState<{ owner: string; status: VaultStatus } | null>(null);
 
   const refresh = () => {
     if (!address) return;
-    setLoading(true);
-    api.getVaultStatus(address).then(setVaultStatus).catch(() => setVaultStatus({ has_vault: false })).finally(() => setLoading(false));
+    const owner = address;
+    api.getVaultStatus(owner)
+      .then((status) => setVaultStatus({ owner, status }))
+      .catch(() => setVaultStatus({ owner, status: { has_vault: false } }));
   };
 
   useEffect(() => {
-    if (!isConnected || !address) {
-      setLoading(false);
-      return;
-    }
+    if (!isConnected || !address) return;
     refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [address, isConnected]);
+
+  const status = vaultStatus && vaultStatus.owner === address ? vaultStatus.status : null;
+  const loading = isConnected && !!address && status === null;
 
   if (!isConnected) {
     return (
@@ -46,12 +48,12 @@ export function VaultGate({ children }: VaultGateProps) {
     );
   }
 
-  if (!vaultStatus?.has_vault) {
+  if (!status?.has_vault) {
     return <DeployVaultPrompt onDeployed={refresh} />;
   }
 
-  if (vaultStatus.balance === 0) {
-    return <FundVaultPrompt vaultAddress={vaultStatus.vault_address!} onFunded={refresh} />;
+  if (status.balance === 0) {
+    return <FundVaultPrompt vaultAddress={status.vault_address!} onFunded={refresh} />;
   }
 
   return <>{children}</>;
@@ -95,8 +97,8 @@ function DeployVaultPrompt({ onDeployed }: { onDeployed: () => void }) {
           Deploy your vault
         </h1>
         <p className="text-[13px] text-muted-foreground mb-6 leading-relaxed">
-          Create a personal PactVault on Base Sepolia.
-          This is where your USDC lives and where Pact executes payments.
+          Create a personal BotterVault on BOT Chain Testnet.
+          This is where your USDT lives and where Botter executes payments.
         </p>
 
         <button
@@ -154,7 +156,7 @@ function FundVaultPrompt({
           Fund your vault
         </h1>
         <p className="text-[13px] text-muted-foreground mb-6 leading-relaxed">
-          Send USDC on Base Sepolia to your vault address, then click below.
+          Send USDT on BOT Chain Testnet to your vault address, then click below.
         </p>
 
         <div className="mb-4 rounded-xl border border-border bg-muted/50 p-3">
@@ -167,20 +169,20 @@ function FundVaultPrompt({
         </div>
 
         <a
-          href={`https://sepolia.basescan.org/address/${vaultAddress}`}
+          href={`https://scan.bohr.life/address/${vaultAddress}`}
           target="_blank"
           rel="noopener noreferrer"
           className="mb-5 flex items-center gap-1.5 text-[12px] text-muted-foreground hover:text-foreground transition-colors"
         >
           <ExternalLink className="h-3 w-3" />
-          View on BaseScan
+          View on BOTScan
         </a>
 
         <button
           onClick={onFunded}
           className="w-full rounded-xl bg-foreground px-5 py-2.5 text-[13px] font-medium text-background transition-all hover:opacity-90"
         >
-          I've deposited USDC
+          I&apos;ve deposited USDT
         </button>
       </motion.div>
     </div>

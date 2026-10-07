@@ -3,7 +3,7 @@
 import { User, Sparkles, ShieldCheck, Send, Lock } from "lucide-react";
 import { motion } from "framer-motion";
 
-/* ─── Pact security-boundary diagram ───
+/* ─── Botter security-boundary diagram ───
  * Contrasts the sandboxed AI layer (left, red zone) with the deterministic
  * enforcement chain (right, indigo zone). The only thing that crosses the
  * boundary is validated intent JSON - never an unfettered contract call.
@@ -38,7 +38,7 @@ const NODES: NodeDef[] = [
     height: 118,
     icon: <User className="h-5 w-5" strokeWidth={1.75} />,
     label: "Intent",
-    sublabel: "pay 0xAlice 60 USDC",
+    sublabel: "pay 0xAlice 60 USDT",
     tint: {
       iconWrap: "bg-emerald-50 text-emerald-600 border border-emerald-200",
     },
@@ -80,7 +80,7 @@ const NODES: NodeDef[] = [
     width: 215,
     height: 118,
     icon: <Send className="h-5 w-5" strokeWidth={1.75} />,
-    label: "PactVault.pay()",
+    label: "BotterVault.pay()",
     sublabel: "typed call · Base onchain",
     tint: {
       iconWrap: "bg-indigo-50 text-indigo-600 border border-indigo-200",

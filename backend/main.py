@@ -1,4 +1,4 @@
-"""Pact Backend - AI Financial Agent with Persistent Memory."""
+"""Botter Backend - AI Financial Agent with Persistent Memory."""
 import time
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
@@ -30,7 +30,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Pact API",
+    title="Botter API",
     description="AI Financial Agent with Persistent Memory",
     version="0.1.0",
     lifespan=lifespan,
@@ -330,7 +330,7 @@ async def get_payments(wallet: str = "0x0000000000000000000000000000000000000000
                 id=p.get("decision_id") or p.get("memory_id", f"payment_{i}"),
                 recipient=p.get("recipient", ""),
                 amount=p.get("amount", "0"),
-                token=p.get("token", "USDC"),
+                token=p.get("token", "USDT"),
                 decision=normalize_decision(p.get("decision", "UNKNOWN")),
                 reason=p.get("reason", ""),
                 tx_hash=p.get("tx_hash") or None,
@@ -350,7 +350,7 @@ async def get_payments(wallet: str = "0x0000000000000000000000000000000000000000
             id=f"decision_{d.get('recipient', '')}_{d.get('amount', '')}",
             recipient=d.get("recipient", ""),
             amount=d.get("amount", "0"),
-            token="USDC",
+            token="USDT",
             decision=normalize_decision(d.get("decision", "UNKNOWN")),
             reason=d.get("reason", ""),
             tx_hash=None,
@@ -439,7 +439,7 @@ async def get_vault_info(wallet: str):
 
 @app.get("/health")
 async def health():
-    return {"status": "ok", "service": "pact-api"}
+    return {"status": "ok", "service": "botter-api"}
 
 
 if __name__ == "__main__":

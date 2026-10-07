@@ -128,13 +128,13 @@ function PaymentDetail({
 
       {payment.tx_hash && (
         <a
-          href={`https://sepolia.basescan.org/tx/${payment.tx_hash}`}
+          href={`https://scan.bohr.life/tx/${payment.tx_hash}`}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 text-[12px] text-accent hover:text-accent/80 transition-colors"
         >
           <ExternalLink className="h-3 w-3" />
-          View on BaseScan
+          View on BOTScan
         </a>
       )}
       {isPending && (
@@ -203,7 +203,7 @@ export default function PaymentsPage() {
           <h1 className="text-xl font-bold tracking-tight text-foreground">Payments</h1>
         </div>
         <p className="text-[13px] text-muted-foreground sm:ml-11">
-          All payments executed by Pact on Base Sepolia.
+          All payments executed by Botter on BOT Chain Testnet.
         </p>
       </motion.div>
 
@@ -260,7 +260,7 @@ export default function PaymentsPage() {
             <Clock className="mx-auto mb-3 h-8 w-8 text-muted-foreground/40" />
             <div className="text-[15px] font-medium text-foreground/40 mb-1">No payments yet</div>
             <div className="text-[13px] text-muted-foreground">
-              Payments will appear here after Pact executes them.
+              Payments will appear here after Botter executes them.
             </div>
           </div>
         ) : (

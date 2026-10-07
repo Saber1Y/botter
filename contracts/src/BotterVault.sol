@@ -4,12 +4,12 @@ pragma solidity ^0.8.20;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-/// @title PactVault
-/// @notice Holds USDC and authorizes agent payments with enforced spending limits.
+/// @title BotterVault
+/// @notice Holds USDT and authorizes agent payments with enforced spending limits.
 /// @dev The owner deposits funds and configures limits. The authorized agent can
 ///      execute payments up to the configured limits. Daily limits reset at the
 ///      start of each UTC day.
-contract PactVault {
+contract BotterVault {
     using SafeERC20 for IERC20;
 
     // --- State ---
@@ -17,7 +17,7 @@ contract PactVault {
     address public owner;
     address public agent;
 
-    IERC20 public usdc;
+    IERC20 public token;
 
     uint256 public maxPerTransaction;
     uint256 public dailyLimit;
@@ -51,6 +51,7 @@ contract PactVault {
     error InvalidRecipient();
     error InvalidAmount();
     error DuplicatePayment(bytes32 paymentId);
+    error InvalidLimits();
     error TransferFailed();
     error ResetFailed();
 
@@ -70,14 +71,20 @@ contract PactVault {
 
     constructor(
         address _owner,
-        address _usdc,
+        address _token,
         address _agent,
         uint256 _maxPerTransaction,
         uint256 _dailyLimit
     ) {
+        if (_owner == address(0) || _token == address(0) || _agent == address(0)) {
+            revert InvalidRecipient();
+        }
+        if (_maxPerTransaction == 0 || _maxPerTransaction > _dailyLimit) {
+            revert InvalidLimits();
+        }
         owner = _owner;
         agent = _agent;
-        usdc = IERC20(_usdc);
+        token = IERC20(_token);
         maxPerTransaction = _maxPerTransaction;
         dailyLimit = _dailyLimit;
         lastReset = block.timestamp;
@@ -85,22 +92,22 @@ contract PactVault {
 
     // --- External Functions ---
 
-    /// @notice Deposit USDC into the vault.
-    /// @param amount The amount of USDC (6 decimals) to deposit.
+    /// @notice Deposit USDT into the vault.
+    /// @param amount The amount of USDT (6 decimals) to deposit.
     function deposit(uint256 amount) external {
         if (amount == 0) revert InvalidAmount();
-        usdc.safeTransferFrom(msg.sender, address(this), amount);
+        token.safeTransferFrom(msg.sender, address(this), amount);
         emit Deposit(msg.sender, amount);
     }
 
-    /// @notice Withdraw USDC from the vault (owner only).
-    /// @param amount The amount of USDC (6 decimals) to withdraw.
+    /// @notice Withdraw USDT from the vault (owner only).
+    /// @param amount The amount of USDT (6 decimals) to withdraw.
     function withdraw(uint256 amount) external onlyOwner {
         if (amount == 0) revert InvalidAmount();
-        if (amount > usdc.balanceOf(address(this))) {
-            revert InsufficientBalance(amount, usdc.balanceOf(address(this)));
+        if (amount > token.balanceOf(address(this))) {
+            revert InsufficientBalance(amount, token.balanceOf(address(this)));
         }
-        usdc.safeTransfer(owner, amount);
+        token.safeTransfer(owner, amount);
         emit Withdraw(owner, amount);
     }
 
@@ -113,12 +120,15 @@ contract PactVault {
     }
 
     /// @notice Update spending limits (owner only).
-    /// @param _maxPerTransaction Maximum per-transaction amount in USDC (6 decimals).
-    /// @param _dailyLimit Maximum total daily spending in USDC (6 decimals).
+    /// @param _maxPerTransaction Maximum per-transaction amount in USDT (6 decimals).
+    /// @param _dailyLimit Maximum total daily spending in USDT (6 decimals).
     function setLimits(
         uint256 _maxPerTransaction,
         uint256 _dailyLimit
     ) external onlyOwner {
+        if (_maxPerTransaction == 0 || _maxPerTransaction > _dailyLimit) {
+            revert InvalidLimits();
+        }
         maxPerTransaction = _maxPerTransaction;
         dailyLimit = _dailyLimit;
         emit LimitsUpdated(_maxPerTransaction, _dailyLimit);
@@ -126,7 +136,7 @@ contract PactVault {
 
     /// @notice Execute a payment (agent only).
     /// @param recipient The address to pay.
-    /// @param amount The amount of USDC (6 decimals) to send.
+    /// @param amount The amount of USDT (6 decimals) to send.
     /// @param paymentId Unique ID for this payment to prevent replays.
     function pay(
         address recipient,
@@ -155,7 +165,7 @@ contract PactVault {
         paymentExecuted[paymentId] = true;
         spentToday += amount;
 
-        usdc.safeTransfer(recipient, amount);
+        token.safeTransfer(recipient, amount);
 
         emit PaymentExecuted(
             paymentId,
@@ -167,9 +177,9 @@ contract PactVault {
 
     // --- View Functions ---
 
-    /// @notice Get the vault's USDC balance.
+    /// @notice Get the vault's USDT balance.
     function getBalance() external view returns (uint256) {
-        return usdc.balanceOf(address(this));
+        return token.balanceOf(address(this));
     }
 
     /// @notice Get remaining daily budget.

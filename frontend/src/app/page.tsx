@@ -91,7 +91,7 @@ function HeroChatMockup() {
             <div className="h-2.5 w-2.5 rounded-full bg-border" />
           </div>
           <span className="ml-2 text-[11px] font-medium tracking-wide text-muted-foreground">
-            Pact AI CFO
+            Botter AI CFO
           </span>
           <div className="ml-auto flex items-center gap-1.5">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
@@ -154,7 +154,7 @@ function HeroChatMockup() {
                             $150
                           </p>
                           <p className="text-[11px] text-muted-foreground">
-                            USDC
+                            USDT
                           </p>
                         </div>
                       </div>
@@ -263,9 +263,9 @@ function DashboardMockup() {
             </div>
             <div>
               <p className="text-sm font-medium text-foreground">
-                Pact Dashboard
+                Botter Dashboard
               </p>
-              <p className="text-[11px] text-muted-foreground">Base Sepolia</p>
+              <p className="text-[11px] text-muted-foreground">BOT Chain Testnet</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -290,7 +290,7 @@ function DashboardMockup() {
                   $482.40
                 </p>
                 <p className="mt-0.5 text-[10px] text-muted-foreground">
-                  USDC on Base
+                  USDT on BOT Chain
                 </p>
               </div>
               <div className="rounded-xl border border-border bg-muted/50 p-4">
@@ -637,13 +637,13 @@ export default function LandingPage() {
           <Link href="/" className="flex items-center gap-2.5">
             <Image
               src="/logo.svg"
-              alt="Pact"
+              alt="Botter"
               width={26}
               height={26}
               className="rounded-lg"
             />
             <span className="text-[16px] font-semibold tracking-tight text-foreground font-display">
-              Pact
+              Botter
             </span>
           </Link>
 
@@ -661,7 +661,7 @@ export default function LandingPage() {
 
           <div className="flex items-center justify-self-end gap-3 sm:gap-4">
             <a
-              href="https://github.com/Saber1Y/Pact"
+              href="https://github.com/Saber1Y/botter"
               target="_blank"
               rel="noreferrer"
               className="hidden text-[13px] text-muted-foreground transition-colors hover:text-foreground md:block"
@@ -703,7 +703,7 @@ export default function LandingPage() {
               variants={fadeUp}
               className="mb-8 max-w-md text-[15px] leading-relaxed text-muted-foreground"
             >
-              Type or speak your financial instructions. Pact remembers them
+              Type or speak your financial instructions. Botter remembers them
               across sessions, makes decisions using your financial context, and
               executes approved actions onchain.
             </motion.p>
@@ -713,7 +713,7 @@ export default function LandingPage() {
                 href="/app"
                 className="inline-flex h-11 items-center gap-2 rounded-xl bg-accent px-5 text-[13px] font-semibold text-white transition-all hover:bg-indigo-500 hover:shadow-lg hover:shadow-accent/20"
               >
-                Start with Pact
+                Start with Botter
                 <ArrowRight className="h-3.5 w-3.5" />
               </Link>
               <a
@@ -797,12 +797,12 @@ export default function LandingPage() {
           >
             <div className="mb-5 inline-flex items-center gap-1.5 rounded-full bg-accent/10 px-3 py-1 text-[10px] font-medium text-accent ring-1 ring-accent/20">
               <Eye className="h-3 w-3" />
-              With Pact
+              With Botter
             </div>
             <div className="space-y-3">
               {[
                 "User sets rule once",
-                "Pact stores it permanently",
+                "Botter stores it permanently",
                 "New session begins",
                 "Agent retrieves context, makes correct decision",
               ].map((step, i) => (
@@ -826,7 +826,7 @@ export default function LandingPage() {
             Powered by Sibyl Memory
           </Badge>
           <h2 className="mb-4 text-[clamp(1.75rem,3.5vw,3rem)] font-bold tracking-tight text-foreground">
-            Pact doesn&apos;t just remember your data.
+            Botter doesn&apos;t just remember your data.
             <br />
             It remembers your decisions.
           </h2>
@@ -894,7 +894,7 @@ export default function LandingPage() {
           className="mb-6 flex flex-wrap items-center justify-center gap-2 text-center"
         >
           <p className="max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
-            Pact runs as a workflow: a trigger becomes intent, a policy decides,
+            Botter runs as a workflow: a trigger becomes intent, a policy decides,
             a vault gates the spend, and every outcome is remembered and
             journaled.
           </p>
@@ -914,17 +914,17 @@ export default function LandingPage() {
           <StepCard
             number="01"
             title="Remember"
-            description="Pact stores your financial goals, rules, preferences, and history."
+            description="Botter stores your financial goals, rules, preferences, and history."
           />
           <StepCard
             number="02"
             title="Understand"
-            description="When you request an action, Pact retrieves the context that matters."
+            description="When you request an action, Botter retrieves the context that matters."
           />
           <StepCard
             number="03"
             title="Decide"
-            description="Pact determines whether to approve, ask, or deny based on your rules."
+            description="Botter determines whether to approve, ask, or deny based on your rules."
           />
           <StepCard
             number="04"
@@ -1053,7 +1053,7 @@ export default function LandingPage() {
               that remembers.
             </h2>
             <p className="mx-auto mb-8 max-w-sm text-[15px] text-muted-foreground">
-              Set the rules once. Pact remembers them every time.
+              Set the rules once. Botter remembers them every time.
             </p>
             <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Link
@@ -1064,7 +1064,7 @@ export default function LandingPage() {
                 <ArrowRight className="h-3.5 w-3.5" />
               </Link>
               <a
-                href="https://github.com/Saber1Y/Pact"
+                href="https://github.com/Saber1Y/botter"
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex h-11 items-center rounded-xl border border-border bg-card px-5 text-[13px] font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
@@ -1082,13 +1082,13 @@ export default function LandingPage() {
           <div className="flex items-center gap-2">
             <Image
               src="/logo.svg"
-              alt="Pact"
+              alt="Botter"
               width={22}
               height={22}
               className="rounded-md"
             />
             <span className="text-[13px] font-semibold text-muted-foreground">
-              Pact
+              Botter
             </span>
           </div>
 
@@ -1098,7 +1098,7 @@ export default function LandingPage() {
                 key={item}
                 href={
                   item === "GitHub"
-                    ? "https://github.com/Saber1Y/Pact"
+                    ? "https://github.com/Saber1Y/botter"
                     : `#${item.toLowerCase()}`
                 }
                 target={item === "GitHub" ? "_blank" : undefined}

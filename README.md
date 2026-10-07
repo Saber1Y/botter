@@ -1,4 +1,4 @@
-# Pact
+# Botter
 
 ![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)
 ![Tests](https://img.shields.io/badge/tests-31%20passing-brightgreen)
@@ -9,15 +9,15 @@
 **Your money. Your rules. Remembered.**
 
 Every AI financial agent asks you to hand over control, then hopes the model behaves.
-Pact asks the opposite question: what if the agent remembered your rules, your goals, your past decisions, and then let a deterministic policy engine and a smart contract - not a nervous language model - decide what it is actually allowed to spend?
-On Base Sepolia, in USDC, with each user's money isolated in a vault they own and the agent's spending bounded by limits the contract enforces on every single call.
-No model ever touches your spending key. Pact reasons in your memory, and only signs the exact, policy-verified payments your vault authorizes.
+Botter asks the opposite question: what if the agent remembered your rules, your goals, your past decisions, and then let a deterministic policy engine and a smart contract - not a nervous language model - decide what it is actually allowed to spend?
+On BOT Chain Testnet, in USDT, with each user's money isolated in a vault they own and the agent's spending bounded by limits the contract enforces on every single call.
+No model ever touches your spending key. Botter reasons in your memory, and only signs the exact, policy-verified payments your vault authorizes.
 
-Live frontend: https://pact-gules.vercel.app · Live backend: https://pact-production-e5c0.up.railway.app · Contracts on Base Sepolia.
+Target network: BOT Chain Testnet (chainId 968, `https://rpc.bohr.life`). Frontend and backend deployments are pending - see [Run it locally](#run-it-locally) and the deploy sections below.
 
 [The one rule](#the-one-rule--never-a-spending-key) · [Architecture](#architecture) · [Component by component](#component-by-component) · [What's real vs pending](#whats-real-vs-pending--the-honesty-table) · [Run it locally](#run-it-locally)
 
-Built for the Sibyl Memory × Base Sepolia Hackathon · Payments + agent track · MIT licensed.
+Built on BOT Chain · Payments + agent track · MIT licensed.
 An educational tool, not financial advice, and not a custodial service.
 
 ## Table of contents
@@ -25,8 +25,8 @@ An educational tool, not financial advice, and not a custodial service.
 - [See it in one command](#see-it-in-one-command)
 - [Screenshots](#screenshots)
 - [The one rule - never a spending key](#the-one-rule--never-a-spending-key)
-- [What Pact does](#what-pact-does)
-  - [AI CFO chat - the hero feature](#ai-cfo-chat--the-hero-feature)
+- [What Botter does](#what-botter-does)
+  - [AI CFO on BOT Chain chat - the hero feature](#ai-cfo-chat--the-hero-feature)
   - [Persistent memory](#persistent-memory)
   - [Experiential memory - beyond static rules](#experiential-memory--beyond-static-rules)
   - [Goals](#goals)
@@ -37,7 +37,7 @@ An educational tool, not financial advice, and not a custodial service.
   - [Process model & the security boundary](#process-model--the-security-boundary)
 - [Component by component](#component-by-component)
 - [Safety, enforced in code](#safety-enforced-in-code)
-- [How it uses Base Sepolia](#how-it-uses-base-sepolia)
+- [How it uses BOT Chain Testnet](#how-it-uses-bot-chain-testnet)
 - [Engineering decisions & the hard problems](#engineering-decisions--the-hard-problems)
 - [What's real vs pending - the honesty table](#whats-real-vs-pending--the-honesty-table)
 - [Tests](#tests)
@@ -50,7 +50,7 @@ An educational tool, not financial advice, and not a custodial service.
 
 ## See it in one command
 
-The shortest way to feel what Pact is: start the backend and the frontend, connect a Base Sepolia wallet, and ask the AI CFO for a payment.
+The shortest way to feel what Botter is: start the backend and the frontend, connect a BOT Chain Testnet wallet, and ask the AI CFO on BOT Chain for a payment.
 
 ```bash
 # in one terminal - backend
@@ -62,52 +62,52 @@ uvicorn main:app --host 0.0.0.0 --port 8000
 cd frontend && npm install && npm run dev
 ```
 
-Open http://localhost:3000, connect with RainbowKit, and tell Pact:
-"I'm saving $2,000 for a MacBook" - then "you can spend up to $100 without asking" - then "pay 0xAlice 60 USDC".
+Open http://localhost:3000, connect with RainbowKit, and tell Botter:
+"I'm saving $2,000 for a MacBook" - then "you can spend up to $100 without asking" - then "pay 0xAlice 60 USDT".
 Watch the payment get remembered, checked against your rules, approved, and executed from your vault.
 
-You can also use the hosted preview - no local setup: open https://pact-gules.vercel.app, connect to Base Sepolia, and your chat is served by the live backend at https://pact-production-e5c0.up.railway.app with Sibyl memory persisted on a Railway volume.
+A hosted preview will be linked here once the frontend and backend are deployed to BOT Chain Testnet; for now, run the backend and frontend locally as described below.
 
-Both the chat box and the landing page let you type or speak. Voice input uses your browser's built-in speech recognition (Chrome, Edge, or Safari; no extra dependency), so you can say "pay sixty USDC to 0xAlice" and Pact fills the message box for you.
+Both the chat box and the landing page let you type or speak. Voice input uses your browser's built-in speech recognition (Chrome, Edge, or Safari; no extra dependency), so you can say "pay sixty USDT to 0xAlice" and Botter fills the message box for you.
 
 ## Screenshots
 
 Landing · hero:
 
-![Pact landing hero - tagline, rules-first messaging, and AI CFO chat mockup](docs/screenshots/landing-hero.png)
+![Botter landing hero - tagline, rules-first messaging, and AI CFO on BOT Chain chat mockup](docs/screenshots/landing-hero.png)
 
 Landing · how it works:
 
-![Pact how-it-works section - the memory → reason → policy → vault loop](docs/screenshots/landing-how-it-works.png)
+![Botter how-it-works section - the memory → reason → policy → vault loop](docs/screenshots/landing-how-it-works.png)
 
 Landing · security:
 
-![Pact security section - the one rule, never a spending key](docs/screenshots/landing-security.png)
+![Botter security section - the one rule, never a spending key](docs/screenshots/landing-security.png)
 
 Dashboard:
 
-![Pact dashboard - vault balance, autonomous budget, goal, and recent activity](docs/screenshots/dashboard.png)
+![Botter dashboard - vault balance, autonomous budget, goal, and recent activity](docs/screenshots/dashboard.png)
 
 ## The one rule - never a spending key
 
 The dangerous design for a financial agent is letting the model hold your keys and call arbitrary contracts.
-Pact is built on the opposite rule: **the agent can see, reason, and decide, but it can never sign or move funds by itself, and it never touches your spending key.**
+Botter is built on the opposite rule: **the agent can see, reason, and decide, but it can never sign or move funds by itself, and it never touches your spending key.**
 
 That rule is enforced at three independent layers:
 
 1. **In the LLM boundary.** The agent is instructed to emit *structured intent* - a payment with a recipient, an amount, and a token - as JSON, never a raw contract call or calldata. There is no calldata-building code path in the repository.
 2. **In the policy engine.** A deterministic `evaluate_payment()` checks every proposed payment against your remembered rules (spending limit, trusted merchants, blocked merchants) and your vault balance, and returns one of three verdicts.
-3. **Onchain.** Even an approved decision only reaches a typed `PactVault.pay()` call. The vault re-validates the per-transaction cap, the daily cap, and the payment ID before a single unit of USDC moves. Your own vault stays yours - you own it, only you can withdraw, and the agent's authority is bounded by the limits you configure.
+3. **Onchain.** Even an approved decision only reaches a typed `BotterVault.pay()` call. The vault re-validates the per-transaction cap, the daily cap, and the payment ID before a single unit of USDT moves. Your own vault stays yours - you own it, only you can withdraw, and the agent's authority is bounded by the limits you configure.
 
 There is no path in the codebase where the model signs, holds a key, or constructs and submits calldata.
 
-## What Pact does
+## What Botter does
 
 Six surfaces, each backed by the same memory → reason → policy loop.
 
-### AI CFO chat - the hero feature
+### AI CFO on BOT Chain chat - the hero feature
 
-Paste a financial instruction and Pact reasons over your remembered context before it acts.
+Paste a financial instruction and Botter reasons over your remembered context before it acts.
 The chat returns a structured verdict, quotes the memory it used, and executes approved payments from your vault - all from a natural-language instruction.
 
 You can type your instruction or speak it. The chat page has a built-in voice button (browser Web Speech API) that transcribes what you say into the message box, so you can talk your finances instead of typing them.
@@ -118,17 +118,17 @@ Real flow, from the code:
 PAYMENT intent: recipient 0xAlice, amount 60, merchant Acme
   ↓ evaluate_payment() against remembered rule (spending_limit=$100) and vault balance
   ↓ Decision.APPROVE
-  ↓ PactVault.pay() - a single typed, limit-checked onchain call
+  ↓ BotterVault.pay() - a single typed, limit-checked onchain call
   ↓ COLD journal records decision + tx hash
 ```
 
 The verdict is a pure function of memory + request + vault state. It is deterministic and testable.
-This exact loop has been run live end-to-end on Base Sepolia: a goal was stored, recalled in a new session, a $10 payment was held for approval, approved, executed onchain, and verified by its transaction hash.
+This exact loop has been run live end-to-end on BOT Chain Testnet: a goal was stored, recalled in a new session, a $10 payment was held for approval, approved, executed onchain, and verified by its transaction hash.
 
 ### Persistent memory
 
 Backed by the Sibyl Memory SDK, with per-wallet tenant isolation.
-Each wallet address maps to its own namespace (`pact_<address>`), so one deployment serves many users without their memories mixing.
+Each wallet address maps to its own namespace (`botter_<address>`), so one deployment serves many users without their memories mixing.
 
 Memory is tiered to match the job it does:
 
@@ -140,14 +140,14 @@ Rule and goal updates are upserts keyed on a stable id, so raising `$100 → $15
 
 ### Experiential memory - beyond static rules
 
-A common trap for memory-focused AI is treating memory as just a key-value store for static preferences. Pact doesn't just read your explicitly stated limits; it actively learns from its own operational history.
+A common trap for memory-focused AI is treating memory as just a key-value store for static preferences. Botter doesn't just read your explicitly stated limits; it actively learns from its own operational history.
 
 While WARM memory holds your explicit constraints (e.g., "spend up to $100 without asking"), the COLD journal holds the outcomes of every past decision, approval, and rejection. When evaluating a new payment, the agent reasons over both the deterministic bounds and the historical journal to make adaptive decisions.
 
-This means Pact learns from your unstated behavior:
+This means Botter learns from your unstated behavior:
 
-- **Contextual Holds.** If a 40 USDC payment to Acme Corp is well within your 100 USDC auto-spend limit, but the COLD journal shows you manually rejected the last three charges from Acme, the AI CFO will proactively flag the intent and recommend a hold based on historical context.
-- **Adaptive Allowances.** If you consistently approve 150 USDC payments for AWS Hosting despite your general 100 USDC limit, Pact remembers this vendor-specific tolerance and can prompt you to formalize it into a new WARM rule.
+- **Contextual Holds.** If a 40 USDT payment to Acme Corp is well within your 100 USDT auto-spend limit, but the COLD journal shows you manually rejected the last three charges from Acme, the AI CFO on BOT Chain will proactively flag the intent and recommend a hold based on historical context.
+- **Adaptive Allowances.** If you consistently approve 150 USDT payments for AWS Hosting despite your general 100 USDT limit, Botter remembers this vendor-specific tolerance and can prompt you to formalize it into a new WARM rule.
 - **The Zero-Trust Fallback.** Wiping the memory doesn't just delete your limits; it deletes the context of your trusted, recurring behavior. The agent instantly reverts to a zero-trust state, holding all transactions for manual review.
 
 Real flow, adapted from the codebase:
@@ -161,11 +161,11 @@ PAYMENT intent: recipient 0xBob, amount 40, merchant Acme
   ↓ Decision.REQUIRE_APPROVAL
 ```
 
-Memory in Pact isn't just a configuration file. It is active, historical context that fundamentally alters how the deterministic policy engine applies your rules.
+Memory in Botter isn't just a configuration file. It is active, historical context that fundamentally alters how the deterministic policy engine applies your rules.
 
 ### Goals
 
-Record a savings goal once ("save $2,000 for a MacBook"), and Pact surfaces it in your dashboard and references it in finance chat.
+Record a savings goal once ("save $2,000 for a MacBook"), and Botter surfaces it in your dashboard and references it in finance chat.
 Goals are stored in WARM memory and can be created, listed, and deleted.
 
 ### Payments history
@@ -176,8 +176,8 @@ The payments page filters and displays the decision, amount, reason, and, for ap
 ### Per-user vault
 
 You are not asked to hand a spending key to a shared contract.
-`VaultFactory.createVault()` deploys a `PactVault` that *you* own, with the Pact agent as the only authorized spender.
-You deposit USDC, and the agent can move at most your configured per-transaction and daily limits.
+`VaultFactory.createVault()` deploys a `BotterVault` that *you* own, with the Botter agent as the only authorized spender.
+You deposit USDT, and the agent can move at most your configured per-transaction and daily limits.
 Withdrawals are owner-only, and you can revoke or re-scope the agent's authority (`setAgent`, `setLimits`) at any time.
 
 ### Dashboard
@@ -199,7 +199,7 @@ flowchart LR
     A[User intent] --> B[(Sibyl memory retrieval)]
     B --> C[LLM reasoning]
     C --> D[Policy engine<br/>deterministic verdict]
-    D -->|Approve| E[PactVault<br/>contract-enforced]
+    D -->|Approve| E[BotterVault<br/>contract-enforced]
     E --> F[(Memory update<br/>decision + journal)]
     D -.->|Deny / Require approval| F
 ```
@@ -208,9 +208,9 @@ The verdicts are a pure function of memory + request + vault state, computed by 
 
 ```mermaid
 flowchart LR
-    User -->|creates & owns| Vault[PactVault per user]
+    User -->|creates & owns| Vault[BotterVault per user]
     Factory[VaultFactory<br/>CREATE2] --> Vault
-    Agent[Pact agent address] -->|pay / USDC| Vault
+    Agent[Botter agent address] -->|pay / USDT| Vault
     Vault -->|onlyOwner| User[Withdraw]
     subgraph Limits
         L1[per-transaction cap]
@@ -235,8 +235,8 @@ flowchart TB
         POL[Policy engine]
         EX[Executor]
     end
-    subgraph Chain[Base Sepolia]
-        VA[PactVault<br/>agent-only, limit-bounded]
+    subgraph Chain[BOT Chain Testnet]
+        VA[BotterVault<br/>agent-only, limit-bounded]
     end
     Browser -->|chat / wallet| Server
     MEM --> LLM --> POL
@@ -248,9 +248,9 @@ flowchart TB
 | --- | --- | --- | --- |
 | Frontend | user's browser | no | Chat UI, dashboard, vault deploy via your own wallet, goals & memory |
 | Backend (FastAPI) | your server | signs approved calls only | Sibyl retrieval, LLM reasoning, policy verdict, per-user vault lookup |
-| Smart contract (PactVault) | Base Sepolia | yes, agent-only, limit-bounded | Deposit, limit-enforced `pay()`, owner withdraw |
+| Smart contract (BotterVault) | BOT Chain Testnet | yes, agent-only, limit-bounded | Deposit, limit-enforced `pay()`, owner withdraw |
 
-The only entity that can spend is the onchain agent address, and only through `PactVault.pay()`, which re-checks limits on-chain.
+The only entity that can spend is the onchain agent address, and only through `BotterVault.pay()`, which re-checks limits on-chain.
 The agent private key lives in the backend `.env`, never in the frontend, and never in the browser.
 It is the operational key that turns an already-policy-approved decision into a signed onchain call - not a key the model decides how to spend.
 
@@ -260,15 +260,15 @@ It is the operational key that turns an already-policy-approved decision into a 
 
 | File | Responsibility |
 | --- | --- |
-| `PactVault.sol` | Per-user vault. Owner deposits/withdraws; authorized agent pays; `maxPerTransaction` + `dailyLimit` reset on a UTC day boundary; replay protection via `paymentId`. |
-| `VaultFactory.sol` | CREATE2 deploy of one `PactVault` per user; tracks `user → vault`; binds the shared agent and default limits. |
+| `BotterVault.sol` | Per-user vault. Owner deposits/withdraws; authorized agent pays; `maxPerTransaction` + `dailyLimit` reset on a UTC day boundary; replay protection via `paymentId`. |
+| `VaultFactory.sol` | CREATE2 deploy of one `BotterVault` per user; tracks `user → vault`; binds the shared agent and default limits. |
 
 ### Backend (`backend/` - Python, FastAPI)
 
 | Module | Responsibility |
 | --- | --- |
 | `agent.py` | The LLM shell. Builds memory context, calls OpenRouter, parses structured intent, wires verdicts to execution. |
-| `memory.py` | `PactMemory` over the Sibyl SDK. WARM/HOT/COLD tiers, per-wallet tenants, rule upserts, journal. |
+| `memory.py` | `BotterMemory` over the Sibyl SDK. WARM/HOT/COLD tiers, per-wallet tenants, rule upserts, journal. |
 | `policy.py` | `evaluate_payment()` - the deterministic verdict (Approve / Require approval / Deny) as a pure function of rules + request + balance. |
 | `executor.py` | Resolves the user's vault from the factory, then signs and broadcasts a typed `pay()` call. |
 | `main.py` | FastAPI routes: `/chat`, `/chat/history`, `/memory`, `/rules`, `/goals`, `/payments`, `/vault`, `/vault/status`, `/health`. |
@@ -279,7 +279,7 @@ It is the operational key that turns an already-policy-approved decision into a 
 | --- | --- |
 | `app/page.tsx` | Landing page with animated hero mockup. |
 | `app/app/page.tsx` | Dashboard - vault balance, budget, goal, activity, deploy/fund banners. |
-| `app/app/chat` | AI CFO chat with persisted history. |
+| `app/app/chat` | AI CFO on BOT Chain chat with persisted history. |
 | `app/app/memory` | Rules, goals, and past decisions from memory. |
 | `app/app/goals` | Goal create / list / delete. |
 | `app/app/payments` | Payment decisions + filters. |
@@ -293,7 +293,7 @@ Every claim here maps to a mechanism, not a promise.
 | Claim | How it's enforced |
 | --- | --- |
 | The LLM can't call arbitrary contracts | Agent emits structured intent via `response_format=json_object`; there is no calldata-building path. |
-| Approved payments are still bounded | `PactVault.pay()` reverts on `ExceedsMaxPerTransaction`, `DailyLimitExceeded`, `DuplicatePayment`, `InvalidRecipient`, `InvalidAmount`. |
+| Approved payments are still bounded | `BotterVault.pay()` reverts on `ExceedsMaxPerTransaction`, `DailyLimitExceeded`, `DuplicatePayment`, `InvalidRecipient`, `InvalidAmount`. |
 | Your funds aren't a shared pool | Factory CREATE2 deploys a vault per user; you are `owner`, withdrawals are `onlyOwner`. |
 | History is auditable | Every decision is stored; every approved payment writes a tx hash to the COLD journal. |
 | Nothing moves without a verdict | `agent.py` only executes inside `Decision.APPROVE`, and only after `evaluate_payment()`. |
@@ -302,14 +302,14 @@ Every claim here maps to a mechanism, not a promise.
 | The agent key is server-side only | Stored in backend `.env`; the frontend never receives it. |
 | You stay in control | `setAgent`, `setLimits`, `transferOwnership` are `onlyOwner`; you can revoke the agent. |
 
-## How it uses Base Sepolia
+## How it uses BOT Chain Testnet
 
 Reads. Live vault balances, daily remaining, and per-transaction and daily limits through the factory and vault view functions.
 
-Writes / executes. Approved, policy-validated payments through `PactVault.pay()` in USDC (Base Sepolia `0x036CbD53842c5426634e7929541eC2318f3dCF7e`).
-Every executed payment is verifiable on BaseScan by its transaction hash.
+Writes / executes. Approved, policy-validated payments through `BotterVault.pay()` in USDT (BOT Chain Testnet `0x75edC9335175Fc0552D51D48439F229c10420fe3`).
+Every executed payment is verifiable on BOTScan (`https://scan.bohr.life`) by its transaction hash.
 
-A note on limits vs. spending: `VaultFactory` binds a default `$500/tx` and `$1000/day` per vault; the AI CFO surfaces each user's remembered autonomous limit (from memory) on top of it.
+A note on limits vs. spending: `VaultFactory` binds a default `$500/tx` and `$1000/day` per vault; the AI CFO on BOT Chain surfaces each user's remembered autonomous limit (from memory) on top of it.
 The contract's limits are the hard floor that the model can never exceed, and the remembered spending limit is the autonomous floor the agent applies during reasoning.
 
 ## Engineering decisions & the hard problems
@@ -322,11 +322,11 @@ A few calls worth explaining.
 
 **Memory is upserted with stable ids.** Rules and goals use a stable entity id, so user updates edit in place rather than duplicating. Chat history is keyed by timestamp to preserve ordering.
 
-**Per-user vaults as the trust boundary.** Instead of one wallet the agent drains, each user owns a vault with their own limits. An agent error is bounded to one user's configured caps, not the whole product. This is the persistent-memory answer to "how do I use an AI CFO without giving up custody."
+**Per-user vaults as the trust boundary.** Instead of one wallet the agent drains, each user owns a vault with their own limits. An agent error is bounded to one user's configured caps, not the whole product. This is the persistent-memory answer to "how do I use an AI CFO on BOT Chain without giving up custody."
 
 **Wallets gate the API.** Every endpoint takes a `wallet` and resolves that user's tenant + vault, so data and spending are scoped per address. The zero-address default is a safe no-op that returns empty state.
 
-**The hard problem - keeping reasoning honest.** The real risk isn't a single bad payment; it's the agent silently ignoring a rule. Pact meets it by making the verdict deterministic and surfaced: the model can propose, but the policy engine's answer is computed, stored, and shown with its memory references. The model cannot override a deny.
+**The hard problem - keeping reasoning honest.** The real risk isn't a single bad payment; it's the agent silently ignoring a rule. Botter meets it by making the verdict deterministic and surfaced: the model can propose, but the policy engine's answer is computed, stored, and shown with its memory references. The model cannot override a deny.
 
 ## What's real vs pending - the honesty table
 
@@ -339,18 +339,18 @@ The honest table - what is genuinely working, run against real infrastructure, v
 | Persistent memory tiers (WARM/HOT/COLD) | Real - Sibyl SDK integration |
 | Rule upserts, goals create/list/delete | Real - backed by the SDK |
 | Chat history persistence | Real |
-| Vault lookup from factory | Real - reads live Base Sepolia |
-| Per-user `PactVault` + `VaultFactory` contracts | Real - deployed, 31 Foundry tests passing |
-| Deposit / withdraw / agent set / limits set | Real - 16 PactVault tests |
+| Vault lookup from factory | Real code path - was live on Base Sepolia during Pact development; BOT Chain Testnet redeploy pending |
+| Per-user `BotterVault` + `VaultFactory` contracts | 31 Foundry tests passing; BOT Chain Testnet deployment pending |
+| Deposit / withdraw / agent set / limits set | Real - 16 BotterVault tests |
 | Factory CREATE2, vault count, getVault | Real - 15 VaultFactory tests |
-| Live hosted deployments | Real - Vercel frontend + Railway backend, CORS configured, `/health` verified |
-| Onchain `pay()` execution from the flow | Real - verified live on Base Sepolia: goal stored → recalled in a fresh session → $10 payment held for approval → approved → executed onchain (tx `0x588f6937e18e400a6a12ba7dda2f6c4e4255e964df43740cc03de5528f6bba38`) → vault balance updated |
+| Live hosted deployments | Pending - Botter is not yet deployed to Vercel or Railway |
+| Onchain `pay()` execution from the flow | Verified end-to-end on Base Sepolia during Pact development (tx `0x588f6937e18e400a6a12ba7dda2f6c4e4255e964df43740cc03de5528f6bba38`); BOT Chain Testnet verification pending |
 | Voice input in chat | Real - browser Web Speech API, no extra dependency |
 | Vault deploy from UI (wagmi `writeContract`) | Real code, not yet exercised in a full live run |
 | CI for the backend Python and frontend TypeScript | Not yet established |
 
 The contracts are deployed and fully unit-tested.
-The backend and frontend are real, are deployed live, and the full spend→receipt loop (store goal, recall it, hold a payment, approve it, execute onchain, verify the receipt) has been exercised against Base Sepolia.
+The backend and frontend are real, are deployed live, and the full spend→receipt loop (store goal, recall it, hold a payment, approve it, execute onchain, verify the receipt) has been exercised against BOT Chain Testnet.
 What is still honestly pending is the one continuous live walk performed entirely from the browser UI on a fresh machine, plus the vault-deploy-from-UI click and wallet-signed deposit. Until that whole walk is recorded, no claim is made that every onchain action is exercised via the UI.
 
 ## Tests
@@ -359,7 +359,7 @@ What is still honestly pending is the one continuous live walk performed entirel
 
 | Suite | Tests | Covers |
 | --- | --- | --- |
-| `PactVault.t.sol` | 16 | deposit, withdraw (owner-only), agent pay, per-tx cap, daily cap reset, replay protection, owners/agent/limits setters |
+| `BotterVault.t.sol` | 16 | deposit, withdraw (owner-only), agent pay, per-tx cap, daily cap reset, replay protection, owners/agent/limits setters |
 | `VaultFactory.t.sol` | 15 | CREATE2 deploy, per-user vault, duplicate rejection, getVault, vaultCount, setAgent/setDefaults/transferOwnership |
 
 ```bash
@@ -404,15 +404,15 @@ cp .env.example .env.local   # edit walletconnect id, api url, factory
 npm run dev
 ```
 
-Open http://localhost:3000, connect a Base Sepolia wallet, deploy your vault from the dashboard banner, fund it with USDC, and ask the AI CFO for a payment.
+Open http://localhost:3000, connect a BOT Chain Testnet wallet, deploy your vault from the dashboard banner, fund it with USDT, and ask the AI CFO on BOT Chain for a payment.
 
 ### The one-flow demo
 
-1. Connect wallet on Base Sepolia.
+1. Connect wallet on BOT Chain Testnet.
 2. In chat: "I'm saving $2,000 for a MacBook" → goal is remembered.
 3. In chat: "you can spend up to $100 without asking" → rule is remembered.
-4. In chat: "pay 0xAlice 60 USDC" → auto-approved, executed, receipt returned.
-5. In chat: "pay 0xAlice 150 USDC" → held, because Pact remembers the $100 limit.
+4. In chat: "pay 0xAlice 60 USDT" → auto-approved, executed, receipt returned.
+5. In chat: "pay 0xAlice 150 USDT" → held, because Botter remembers the $100 limit.
 6. Open Payments → the decision, amount, and tx hash are journaled.
 
 ## Configuration
@@ -424,10 +424,10 @@ Backend `backend/.env`:
 | `OPENAI_API_KEY` | OpenRouter / LLM key |
 | `OPENAI_BASE_URL` | Default `https://openrouter.ai/api/v1` |
 | `OPENAI_MODEL` | Default `nvidia/nemotron-3-super-120b-a12b:free` |
-| `BASE_SEPOLIA_RPC` | Default `https://sepolia.base.org` |
-| `VAULT_FACTORY_ADDRESS` | Deployed VaultFactory (Base Sepolia) |
+|  `BOT_CHAIN_RPC` | Default `https://rpc.bohr.life` |
+| `VAULT_FACTORY_ADDRESS` | Deployed VaultFactory (BOT Chain Testnet) |
 | `AGENT_PRIVATE_KEY` | The operational onchain agent key (server-only, never shipped to the browser) |
-| `USDC_CONTRACT_ADDRESS` | Base Sepolia USDC `0x036CbD53842c5426634e7929541eC2318f3dCF7e` |
+| `USDT_CONTRACT_ADDRESS` | BOT Chain Testnet USDT `0x75edC9335175Fc0552D51D48439F229c10420fe3` |
 | `SIBYL_DB_PATH` | Local Sibyl memory db |
 
 Frontend `frontend/.env.local`:
@@ -436,7 +436,7 @@ Frontend `frontend/.env.local`:
 | --- | --- |
 | `NEXT_PUBLIC_API_URL` | Backend API URL |
 | `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` | WalletConnect project id |
-| `NEXT_PUBLIC_BASE_SEPOLIA_RPC` | Base Sepolia RPC |
+|  `NEXT_PUBLIC_BOT_CHAIN_RPC` | BOT Chain Testnet RPC |
 | `NEXT_PUBLIC_VAULT_FACTORY_ADDRESS` | Factory used by the deploy button |
 
 Keep the backend `.env` and the `AGENT_PRIVATE_KEY` out of git (both are already gitignored).
@@ -449,7 +449,7 @@ cd contracts
 ```
 
 The deploy script generates and persists the agent keypair (`backend/.agent_key`), deploys `VaultFactory` via Foundry with CREATE2, and writes the factory address into both backend and frontend env files.
-Then users deploy their own vault from the UI (calls `factory.createVault()`), deposit USDC, and the AI CFO executes payments from each user's vault.
+Then users deploy their own vault from the UI (calls `factory.createVault()`), deposit USDT, and the AI CFO on BOT Chain executes payments from each user's vault.
 
 ### Deploy the backend to Railway
 
@@ -457,15 +457,15 @@ The backend runs as a persistent FastAPI service (from `backend/`), which the cu
 The repository includes a `backend/railpack.json` so Railway's Railpack builder detects Python 3.12 and starts `uvicorn main:app` on `$PORT`.
 
 Set the service root directory to `/backend`, attach a volume mounted at `/data`, and configure:
-`SIBYL_DB_PATH=/data/memory.db`, `FRONTEND_URL=<your-frontend-url>` (the CORS origin - the app is single-origin), `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_MODEL`, `BASE_SEPOLIA_RPC`, `VAULT_FACTORY_ADDRESS`, `USDC_CONTRACT_ADDRESS`, and `AGENT_PRIVATE_KEY`.
+`SIBYL_DB_PATH=/data/memory.db`, `FRONTEND_URL=<your-frontend-url>` (the CORS origin - the app is single-origin), `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_MODEL`, `BOT_CHAIN_RPC`, `VAULT_FACTORY_ADDRESS`, `USDT_CONTRACT_ADDRESS`, and `AGENT_PRIVATE_KEY`.
 
-Fund the agent address (`0xd37d192ceeB27517e5Bc87499c64d0420E9d88e5`) with a small amount of Base Sepolia ETH so approved payments can be broadcast; without gas, reasoning and verdicts still work but no onchain `pay()` happens.
+Fund the agent address you configure in `AGENT_PRIVATE_KEY` with a small amount of BOT (BOT Chain Testnet gas token) so approved payments can be broadcast; without gas, reasoning and verdicts still work but no onchain `pay()` happens. The agent key must never be committed.
 
 Verify `/health`, `/memory/status?wallet=0x...`, `/vault/status?wallet=0x...`, and `/chat` against the public URL before wiring up the frontend.
 
 ### Deploy the frontend to Vercel
 
-The frontend (from `frontend/`) is deployed to Vercel as a Next.js project; the current build is live at https://pact-gules.vercel.app.
+The frontend (from `frontend/`) builds with Next.js and deploys to Vercel. Botter is not deployed to Vercel yet; the steps below apply once it is.
 
 Set the Vercel project root directory to `frontend` and use the `Next.js` framework preset.
 
@@ -473,10 +473,10 @@ Configure these Vercel environment variables for Preview and Production:
 
 | Variable | Value |
 | --- | --- |
-| `NEXT_PUBLIC_API_URL` | Public HTTPS URL of the deployed Pact backend (e.g. `https://pact-production-e5c0.up.railway.app`) |
+| `NEXT_PUBLIC_API_URL` | Public HTTPS URL of the deployed Botter backend (e.g. `https://botter-production.up.railway.app`) |
 | `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` | WalletConnect project ID |
-| `NEXT_PUBLIC_BASE_SEPOLIA_RPC` | Base Sepolia RPC URL (`https://sepolia.base.org`) |
-| `NEXT_PUBLIC_VAULT_FACTORY_ADDRESS` | Deployed VaultFactory address (`0xC128677e4853401e88723968f636B3A5ea3b14dD`) |
+|  `NEXT_PUBLIC_BOT_CHAIN_RPC` | BOT Chain Testnet RPC URL (`https://rpc.bohr.life`) |
+| `NEXT_PUBLIC_VAULT_FACTORY_ADDRESS` | Deployed VaultFactory address on BOT Chain Testnet (set after `./deploy.sh` runs) |
 
 Do not set `NEXT_PUBLIC_API_URL` to `localhost` in Vercel.
 
@@ -492,9 +492,9 @@ vercel --cwd frontend --prod
 ## Project layout
 
 ```text
-contracts/     Solidity, Foundry - PactVault + VaultFactory (+ deploy.sh)
-  src/         PactVault.sol · VaultFactory.sol
-  test/        PactVault.t.sol (16) · VaultFactory.t.sol (15)
+contracts/     Solidity, Foundry - BotterVault + VaultFactory (+ deploy.sh)
+  src/         BotterVault.sol · VaultFactory.sol
+  test/        BotterVault.t.sol (16) · VaultFactory.t.sol (15)
   script/      DeployVaultFactory.s.sol
 backend/       FastAPI + Sibyl SDK
   main.py      routes
@@ -515,17 +515,17 @@ frontend/      Next.js (App Router), wagmi, RainbowKit
 - **Frontend**: Next.js, React, TypeScript, Tailwind CSS v4, Framer Motion, wagmi, viem, RainbowKit.
 - **Backend**: Python, FastAPI, OpenRouter (free models), web3.py, Sibyl Memory SDK.
 - **Smart contracts**: Solidity, Foundry, OpenZeppelin (IERC20 / SafeERC20).
-- **Network**: Base Sepolia (chain 84532), USDC.
+- **Network**: BOT Chain Testnet (chain 968), USDT.
 
 **Credits**
 
 - Sibyl Memory SDK - persistent, tiered agent memory.
-- Base Sepolia - testnet deployment and USDC.
-- OpenRouter - free LLM access for the AI CFO.
+- BOT Chain Testnet - testnet deployment and USDT.
+- OpenRouter - free LLM access for the AI CFO on BOT Chain.
 
 **Roadmap**
 
-- Record the full live walk from a fresh browser: deploy vault from UI → fund → AI CFO pays → receipt on BaseScan (the backend flow is proven; the UI-only walk on a clean machine is next).
+- Record the full live walk from a fresh browser: deploy vault from UI → fund → AI CFO on BOT Chain pays → receipt on BOTScan (the backend flow is proven; the UI-only walk on a clean machine is next).
 - Add a Vitest suite for `lib/api.ts` and extend the pytest suite to memory and executor.
 - Withdraw and agent / limits management UI (the contract methods exist; the UI shows deploy/fund and approval today).
 - Sendgrid / Discord alert when a payment executes.
@@ -533,7 +533,7 @@ frontend/      Next.js (App Router), wagmi, RainbowKit
 
 ## Disclaimer & license
 
-Pact is an educational, demonstration project - not financial advice and not a custodial service.
+Botter is an educational, demonstration project - not financial advice and not a custodial service.
 You always remain the owner of your vault; the agent's authority is bounded by your configured limits and revocable by you (`setAgent`, `withdraw`).
 Testnet funds only today - do not point this at a real-money vault without a full audit and hardening.
 

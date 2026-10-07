@@ -1,4 +1,4 @@
-"""PactMemory - persistent agent memory backed by Sibyl Memory SDK.
+"""BotterMemory - persistent agent memory backed by Sibyl Memory SDK.
 
 Architecture:
   WARM entities → rules, goals, trusted/blocked merchants, policy facts
@@ -6,7 +6,7 @@ Architecture:
   COLD journal  → approvals, payments, transaction history
 
 Tenant isolation:
-  Each wallet gets its own memory namespace: pact_<lowercase_address>
+  Each wallet gets its own memory namespace: botter_<lowercase_address>
 """
 
 from __future__ import annotations
@@ -27,18 +27,18 @@ class MemoryUnavailable(RuntimeError):
 def _normalize_wallet(wallet: str) -> str:
     """Normalize a wallet address to a stable tenant ID.
 
-    0xAbCd... → pact_0xabcd...
+    0xAbCd... → botter_0xabcd...
     """
     clean = wallet.strip().lower()
     if clean.startswith("0x"):
         clean = clean[2:]
-    return f"pact_{clean}"
+    return f"botter_{clean}"
 
 
-class PactMemory:
-    """Persistent financial memory for Pact, built on Sibyl Memory SDK.
+class BotterMemory:
+    """Persistent financial memory for Botter, built on Sibyl Memory SDK.
 
-    Maps Pact's domain onto Sibyl's five-tier model:
+    Maps Botter's domain onto Sibyl's five-tier model:
       WARM  → rules, goals, trusted/blocked merchants, policy facts
       HOT   → current session state
       COLD  → payment events, approvals, transaction history
@@ -554,4 +554,4 @@ class PactMemory:
 
 
 # Singleton
-memory = PactMemory()
+memory = BotterMemory()

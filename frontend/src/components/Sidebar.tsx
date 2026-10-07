@@ -62,9 +62,9 @@ export function Sidebar() {
         <div className="border-b border-border p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <Image src="/logo.svg" alt="Pact" width={30} height={30} className="rounded-lg" />
+              <Image src="/logo.svg" alt="Botter" width={30} height={30} className="rounded-lg" />
               <div>
-                <h1 className="text-[15px] font-medium tracking-[-0.02em] text-foreground font-display">Pact</h1>
+                <h1 className="text-[15px] font-medium tracking-[-0.02em] text-foreground font-display">Botter</h1>
                 <p className="text-[9px] text-muted-foreground">Your rules. Remembered.</p>
               </div>
             </div>

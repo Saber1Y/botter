@@ -1,4 +1,4 @@
-"""Pydantic models for Pact API."""
+"""Pydantic models for Botter API."""
 from pydantic import BaseModel
 from typing import Optional
 from enum import Enum
@@ -47,7 +47,7 @@ class ChatResponse(BaseModel):
 class PaymentRequest(BaseModel):
     recipient: str
     amount: str
-    token: str = "USDC"
+    token: str = "USDT"
 
 
 class PaymentResponse(BaseModel):

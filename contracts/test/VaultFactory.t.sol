@@ -3,11 +3,11 @@ pragma solidity ^0.8.20;
 
 import {Test} from "forge-std/Test.sol";
 import {VaultFactory} from "../src/VaultFactory.sol";
-import {PactVault} from "../src/PactVault.sol";
+import {BotterVault} from "../src/BotterVault.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /// @dev Minimal mock USDC for testing (6 decimals)
-contract MockUSDC {
+contract MockUSDT {
     string public name = "USD Coin";
     string public symbol = "USDC";
     uint8 public decimals = 6;
@@ -47,7 +47,7 @@ contract MockUSDC {
 
 contract VaultFactoryTest is Test {
     VaultFactory public factory;
-    MockUSDC public usdc;
+    MockUSDT public token;
 
     address public factoryOwner = makeAddr("factoryOwner");
     address public agent = makeAddr("agent");
@@ -60,11 +60,11 @@ contract VaultFactoryTest is Test {
 
     function setUp() public {
         vm.prank(factoryOwner);
-        usdc = new MockUSDC();
+        token = new MockUSDT();
 
         vm.prank(factoryOwner);
         factory = new VaultFactory(
-            address(usdc),
+            address(token),
             agent,
             DEFAULT_MAX_PER_TX,
             DEFAULT_DAILY_LIMIT
@@ -80,7 +80,7 @@ contract VaultFactoryTest is Test {
         address vaultAddr = factory.getVault(alice);
         assertTrue(vaultAddr != address(0), "vault should exist");
 
-        PactVault vault = PactVault(vaultAddr);
+        BotterVault vault = BotterVault(vaultAddr);
         assertEq(vault.owner(), alice, "owner should be alice");
         assertEq(vault.agent(), agent, "agent should match");
     }
@@ -149,13 +149,13 @@ contract VaultFactoryTest is Test {
         address vaultAddr = factory.getVault(alice);
 
         // Mint USDC to alice and deposit
-        usdc.mint(alice, 1000e6);
+        token.mint(alice, 1000e6);
         vm.prank(alice);
-        usdc.approve(vaultAddr, 1000e6);
+        token.approve(vaultAddr, 1000e6);
         vm.prank(alice);
-        PactVault(vaultAddr).deposit(1000e6);
+        BotterVault(vaultAddr).deposit(1000e6);
 
-        assertEq(PactVault(vaultAddr).getBalance(), 1000e6);
+        assertEq(BotterVault(vaultAddr).getBalance(), 1000e6);
     }
 
     function test_agent_can_pay_from_user_vault() public {
@@ -165,19 +165,19 @@ contract VaultFactoryTest is Test {
         address vaultAddr = factory.getVault(alice);
 
         // Fund vault
-        usdc.mint(alice, 1000e6);
+        token.mint(alice, 1000e6);
         vm.prank(alice);
-        usdc.approve(vaultAddr, 1000e6);
+        token.approve(vaultAddr, 1000e6);
         vm.prank(alice);
-        PactVault(vaultAddr).deposit(1000e6);
+        BotterVault(vaultAddr).deposit(1000e6);
 
         // Agent pays
         bytes32 paymentId = keccak256(abi.encodePacked("test-payment-1"));
         vm.prank(agent);
-        PactVault(vaultAddr).pay(recipient, 100e6, paymentId);
+        BotterVault(vaultAddr).pay(recipient, 100e6, paymentId);
 
-        assertEq(usdc.balanceOf(recipient), 100e6);
-        assertEq(PactVault(vaultAddr).getBalance(), 900e6);
+        assertEq(token.balanceOf(recipient), 100e6);
+        assertEq(BotterVault(vaultAddr).getBalance(), 900e6);
     }
 
     function test_user_can_withdraw_from_own_vault() public {
@@ -187,18 +187,18 @@ contract VaultFactoryTest is Test {
         address vaultAddr = factory.getVault(alice);
 
         // Fund vault
-        usdc.mint(alice, 1000e6);
+        token.mint(alice, 1000e6);
         vm.prank(alice);
-        usdc.approve(vaultAddr, 1000e6);
+        token.approve(vaultAddr, 1000e6);
         vm.prank(alice);
-        PactVault(vaultAddr).deposit(1000e6);
+        BotterVault(vaultAddr).deposit(1000e6);
 
         // Alice withdraws
         vm.prank(alice);
-        PactVault(vaultAddr).withdraw(200e6);
+        BotterVault(vaultAddr).withdraw(200e6);
 
-        assertEq(PactVault(vaultAddr).getBalance(), 800e6);
-        assertEq(usdc.balanceOf(alice), 200e6);
+        assertEq(BotterVault(vaultAddr).getBalance(), 800e6);
+        assertEq(token.balanceOf(alice), 200e6);
     }
 
     function test_user_cannot_withdraw_from_other_vault() public {
@@ -208,16 +208,16 @@ contract VaultFactoryTest is Test {
         address aliceVault = factory.getVault(alice);
 
         // Fund vault
-        usdc.mint(alice, 1000e6);
+        token.mint(alice, 1000e6);
         vm.prank(alice);
-        usdc.approve(aliceVault, 1000e6);
+        token.approve(aliceVault, 1000e6);
         vm.prank(alice);
-        PactVault(aliceVault).deposit(1000e6);
+        BotterVault(aliceVault).deposit(1000e6);
 
         // Bob tries to withdraw from Alice's vault
         vm.prank(bob);
-        vm.expectRevert(PactVault.NotOwner.selector);
-        PactVault(aliceVault).withdraw(100e6);
+        vm.expectRevert(BotterVault.NotOwner.selector);
+        BotterVault(aliceVault).withdraw(100e6);
     }
 
     // --- Admin Tests ---
@@ -259,4 +259,74 @@ contract VaultFactoryTest is Test {
         vm.expectRevert(VaultFactory.NotOwner.selector);
         factory.transferOwnership(makeAddr("newOwner"));
     }
+
+    // --- Deterministic Address Tests ---
+
+    function test_createVault_address_is_deterministic() public {
+        bytes memory initCode = abi.encodePacked(
+            type(BotterVault).creationCode,
+            abi.encode(
+                alice,
+                address(token),
+                agent,
+                DEFAULT_MAX_PER_TX,
+                DEFAULT_DAILY_LIMIT
+            )
+        );
+        bytes32 salt = keccak256(abi.encodePacked(alice));
+        address predicted = vm.computeCreate2Address(
+            salt,
+            keccak256(initCode),
+            address(factory)
+        );
+
+        vm.prank(alice);
+        factory.createVault();
+
+        assertEq(
+            factory.getVault(alice),
+            predicted,
+            "vault address must match deterministic CREATE2 address"
+        );
+        assertEq(
+            factory.userSalts(alice),
+            salt,
+            "salt must not depend on block state"
+        );
+    }
+
+    // --- Constructor Validation Tests ---
+
+    function test_constructor_reverts_zero_token() public {
+        vm.expectRevert(VaultFactory.InvalidAddress.selector);
+        new VaultFactory(address(0), agent, DEFAULT_MAX_PER_TX, DEFAULT_DAILY_LIMIT);
+    }
+
+    function test_constructor_reverts_zero_agent() public {
+        vm.expectRevert(VaultFactory.InvalidAddress.selector);
+        new VaultFactory(address(token), address(0), DEFAULT_MAX_PER_TX, DEFAULT_DAILY_LIMIT);
+    }
+
+    function test_constructor_reverts_max_above_daily() public {
+        vm.expectRevert(VaultFactory.InvalidLimits.selector);
+        new VaultFactory(address(token), agent, 2000e6, DEFAULT_DAILY_LIMIT);
+    }
+
+    function test_constructor_reverts_zero_max_per_tx() public {
+        vm.expectRevert(VaultFactory.InvalidLimits.selector);
+        new VaultFactory(address(token), agent, 0, DEFAULT_DAILY_LIMIT);
+    }
+
+    function test_setDefaults_reverts_max_above_daily() public {
+        vm.prank(factoryOwner);
+        vm.expectRevert(VaultFactory.InvalidLimits.selector);
+        factory.setDefaults(DEFAULT_DAILY_LIMIT + 1, DEFAULT_DAILY_LIMIT);
+    }
+
+    function test_setDefaults_reverts_zero_max_per_tx() public {
+        vm.prank(factoryOwner);
+        vm.expectRevert(VaultFactory.InvalidLimits.selector);
+        factory.setDefaults(0, DEFAULT_DAILY_LIMIT);
+    }
+
 }

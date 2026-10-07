@@ -67,7 +67,7 @@ function MemoryCard({
       {source && (
         <div className="mt-2 flex items-center gap-1">
           <CheckCircle2 className="h-3 w-3 text-accent/50" />
-          <span className="text-[10px] text-muted-foreground">Remembered by Pact</span>
+          <span className="text-[10px] text-muted-foreground">Remembered by Botter</span>
         </div>
       )}
     </motion.div>
@@ -167,7 +167,7 @@ export default function MemoryPage() {
           <h1 className="text-xl font-bold tracking-tight text-foreground">Memory</h1>
         </div>
         <p className="text-[13px] text-muted-foreground sm:ml-11">
-          Everything Pact remembers about how you manage money.
+          Everything Botter remembers about how you manage money.
         </p>
       </motion.div>
 
@@ -238,7 +238,7 @@ export default function MemoryPage() {
           </div>
           <div className="text-[15px] font-medium text-foreground/40 mb-1">No memories yet</div>
           <div className="text-[13px] text-muted-foreground">
-            Start by telling Pact about your financial rules and goals.
+            Start by telling Botter about your financial rules and goals.
           </div>
         </motion.div>
       )}

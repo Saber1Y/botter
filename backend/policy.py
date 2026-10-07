@@ -1,4 +1,4 @@
-"""Policy engine for Pact - validates agent decisions against memory and rules."""
+"""Policy engine for Botter - validates agent decisions against memory and rules."""
 from enum import Enum
 from typing import Optional
 from pydantic import BaseModel
@@ -20,7 +20,7 @@ class PolicyDecision(BaseModel):
 class PaymentRequest(BaseModel):
     recipient: str
     amount: str
-    token: str = "USDC"
+    token: str = "USDT"
     merchant: str = ""
 
 

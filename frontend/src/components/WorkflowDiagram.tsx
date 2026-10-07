@@ -3,8 +3,8 @@
 import { Webhook, GitBranch, Lock, Send, Brain, CheckCircle2 } from "lucide-react";
 import { motion } from "framer-motion";
 
-/* ─── Pact workflow diagram ───
- * Mirrors a workflow-builder graph: Intent → Policy → Vault → { Send USDC, Journal }
+/* ─── Botter workflow diagram ───
+ * Mirrors a workflow-builder graph: Intent → Policy → Vault → { Send USDT, Journal }
  * Hand-built SVG connectors + absolutely-positioned HTML nodes, in a fixed
  * logical 1240x460 space that scales responsively (overflow-x on small screens).
  */
@@ -40,7 +40,7 @@ const NODES: NodeDef[] = [
     height: 118,
     icon: <Webhook className="h-5 w-5" strokeWidth={1.75} />,
     label: "Intent",
-    sublabel: "pay 0xAlice 60 USDC",
+    sublabel: "pay 0xAlice 60 USDT",
     tint: {
       box: "",
       iconWrap: "bg-emerald-50 text-emerald-600 border border-emerald-200",
@@ -93,7 +93,7 @@ const NODES: NodeDef[] = [
     width: 215,
     height: 118,
     icon: <Send className="h-5 w-5" strokeWidth={1.75} />,
-    label: "Send USDC",
+    label: "Send USDT",
     sublabel: "Approved payment",
     tint: {
       box: "",

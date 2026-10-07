@@ -1,4 +1,4 @@
-"""LLM Agent for Pact - orchestrates the memory -> reasoning -> policy loop."""
+"""LLM Agent for Botter - orchestrates the memory -> reasoning -> policy loop."""
 import json
 import asyncio
 import hashlib
@@ -10,7 +10,7 @@ from policy import Decision, PaymentRequest, MemoryContext, PolicyDecision, eval
 from executor import get_executor
 
 
-SYSTEM_PROMPT = """You are Pact, an AI financial agent powered by persistent memory.
+SYSTEM_PROMPT = """You are Botter, an AI financial agent powered by persistent memory.
 
 Your role is to help users manage their finances by:
 1. Understanding their financial rules, goals, and preferences
@@ -28,7 +28,7 @@ When a user gives you a financial instruction, you MUST:
   "payment": {
     "recipient": "0x...",
     "amount": "100",
-    "token": "USDC",
+    "token": "USDT",
     "merchant": "Acme"
   } | null,
   "rule": {
@@ -50,8 +50,8 @@ Important rules:
 - Be concise but helpful"""
 
 
-class PactAgent:
-    """LLM-powered agent for Pact."""
+class BotterAgent:
+    """LLM-powered agent for Botter."""
 
     def __init__(self):
         settings = get_settings()
@@ -320,7 +320,7 @@ Respond with a JSON object containing your intent, response, and any actions to 
         request = PaymentRequest(
             recipient=str(decision.get("recipient", "")),
             amount=str(decision.get("amount", "0")),
-            token=str(decision.get("token", "USDC")),
+            token=str(decision.get("token", "USDT")),
             merchant=str(decision.get("merchant", "") or ""),
         )
         executor = get_executor()
@@ -391,4 +391,4 @@ Respond with a JSON object containing your intent, response, and any actions to 
 
 
 # Singleton instance
-agent = PactAgent()
+agent = BotterAgent()

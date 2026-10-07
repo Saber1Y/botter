@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {PactVault} from "./PactVault.sol";
+import {BotterVault} from "./BotterVault.sol";
 
 /// @title VaultFactory
-/// @notice Deploys and tracks per-user PactVault instances.
+/// @notice Deploys and tracks per-user BotterVault instances.
 /// @dev Uses CREATE2 for deterministic vault addresses. Each user gets one vault.
-///      The factory owner (Pact backend) sets the agent and default limits.
+///      The factory owner (Botter backend) sets the agent and default limits.
 contract VaultFactory {
     // --- State ---
 
     address public agent;
-    address public usdc;
+    address public token;
 
     uint256 public defaultMaxPerTx;
     uint256 public defaultDailyLimit;
@@ -40,6 +40,7 @@ contract VaultFactory {
 
     error VaultAlreadyExists();
     error InvalidAddress();
+    error InvalidLimits();
     error NotOwner();
 
     // --- Modifiers ---
@@ -54,14 +55,17 @@ contract VaultFactory {
     // --- Constructor ---
 
     constructor(
-        address _usdc,
+        address _token,
         address _agent,
         uint256 _defaultMaxPerTx,
         uint256 _defaultDailyLimit
     ) {
-        if (_usdc == address(0) || _agent == address(0)) revert InvalidAddress();
+        if (_token == address(0) || _agent == address(0)) revert InvalidAddress();
+        if (_defaultMaxPerTx == 0 || _defaultMaxPerTx > _defaultDailyLimit) {
+            revert InvalidLimits();
+        }
         owner = msg.sender;
-        usdc = _usdc;
+        token = _token;
         agent = _agent;
         defaultMaxPerTx = _defaultMaxPerTx;
         defaultDailyLimit = _defaultDailyLimit;
@@ -69,18 +73,18 @@ contract VaultFactory {
 
     // --- External Functions ---
 
-    /// @notice Deploy a PactVault for the calling user.
+    /// @notice Deploy a BotterVault for the calling user.
     /// @dev Reverts if user already has a vault. Uses CREATE2 for deterministic address.
     function createVault() external {
         if (vaults[msg.sender] != address(0)) revert VaultAlreadyExists();
 
-        bytes32 salt = keccak256(abi.encodePacked(msg.sender, block.timestamp));
+        bytes32 salt = keccak256(abi.encodePacked(msg.sender));
         userSalts[msg.sender] = salt;
 
-        PactVault vault = new PactVault{salt: salt}(
+        BotterVault vault = new BotterVault{salt: salt}(
             msg.sender,        // owner = the user
-            usdc,              // USDC contract
-            agent,             // Pact agent
+            token,              // USDT contract
+            agent,             // Botter agent
             defaultMaxPerTx,   // max per tx
             defaultDailyLimit  // daily limit
         );
@@ -123,6 +127,9 @@ contract VaultFactory {
         uint256 _defaultMaxPerTx,
         uint256 _defaultDailyLimit
     ) external onlyOwner {
+        if (_defaultMaxPerTx == 0 || _defaultMaxPerTx > _defaultDailyLimit) {
+            revert InvalidLimits();
+        }
         defaultMaxPerTx = _defaultMaxPerTx;
         defaultDailyLimit = _defaultDailyLimit;
         emit LimitsUpdated(_defaultMaxPerTx, _defaultDailyLimit);

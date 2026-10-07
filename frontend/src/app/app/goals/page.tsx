@@ -101,7 +101,7 @@ export default function GoalsPage() {
             <h1 className="text-xl font-bold tracking-tight text-foreground">Goals</h1>
           </div>
           <p className="text-[13px] text-muted-foreground sm:ml-11">
-            Track your financial goals. Pact considers these when making decisions.
+            Track your financial goals. Botter considers these when making decisions.
           </p>
         </div>
         <button
@@ -240,7 +240,7 @@ export default function GoalsPage() {
 
               <div className="mt-3 flex items-center gap-1.5 text-[11px] text-muted-foreground">
                 <Sparkles className="h-3 w-3 text-accent/40" />
-                Pact is prioritizing this goal
+                Botter is prioritizing this goal
               </div>
             </motion.div>
           );
@@ -253,7 +253,7 @@ export default function GoalsPage() {
             </div>
             <div className="text-[15px] font-medium text-foreground/40 mb-1">No goals yet</div>
             <div className="text-[13px] text-muted-foreground mb-4">
-              Create a goal to help Pact understand your financial priorities.
+              Create a goal to help Botter understand your financial priorities.
             </div>
             <button
               onClick={() => setShowCreate(true)}

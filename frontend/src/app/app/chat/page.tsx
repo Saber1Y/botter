@@ -87,13 +87,13 @@ function DecisionCard({ data }: { data: ChatMessage }) {
         <div className="flex items-center gap-3">
           {data.payment.tx_hash && (
             <a
-              href={`https://sepolia.basescan.org/tx/${data.payment.tx_hash}`}
+              href={`https://scan.bohr.life/tx/${data.payment.tx_hash}`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1 text-[11px] text-accent hover:text-accent/80 transition-colors"
             >
               <ExternalLink className="h-3 w-3" />
-              View on BaseScan
+              View on BOTScan
             </a>
           )}
           {data.payment.memory_references && data.payment.memory_references.length > 0 && (
@@ -319,7 +319,7 @@ export default function ChatPage() {
           </div>
           <div>
             <h1 className="text-[14px] font-semibold text-foreground">AI CFO</h1>
-            <p className="text-[11px] text-muted-foreground">Ask Pact anything about your finances</p>
+            <p className="text-[11px] text-muted-foreground">Ask Botter anything about your finances</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -345,7 +345,7 @@ export default function ChatPage() {
       {!sibylAvailable && (
         <div className="mx-4 mt-3 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-[11px] text-amber-800 sm:mx-6">
           <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600" />
-          <span>Sibyl memory is unavailable. Pact has paused autonomous decisions until your financial context is restored.</span>
+          <span>Sibyl memory is unavailable. Botter has paused autonomous decisions until your financial context is restored.</span>
         </div>
       )}
 
@@ -604,7 +604,7 @@ export default function ChatPage() {
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask Pact anything..."
+            placeholder="Ask Botter anything..."
             className="flex-1 rounded-xl border border-border bg-card px-4 py-2.5 text-[13px] text-foreground placeholder-muted-foreground transition-all focus:outline-none focus:border-accent/30 focus:ring-2 focus:ring-accent/10"
            disabled={loading || !address || !sibylAvailable}
            autoComplete="off"
