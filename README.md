@@ -1,8 +1,10 @@
 # Botter
 
+![Botter](frontend/public/logo.svg)
+
 ![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)
-![Tests](https://img.shields.io/badge/tests-31%20passing-brightgreen)
-![Onchain](https://img.shields.io/badge/onchain-Base%20Sepolia-blue)
+![Tests](https://img.shields.io/badge/tests-59%20passing-brightgreen)
+![Onchain](https://img.shields.io/badge/onchain-BOT%20Chain-blue)
 ![Loop](https://img.shields.io/badge/loop-memory--driven%20policy-blueviolet)
 ![Stack](https://img.shields.io/badge/stack-Foundry%20+%20FastAPI%20+%20Next.js%20+%20Sibyl-orange)
 
@@ -346,12 +348,15 @@ The honest table - what is genuinely working, run against real infrastructure, v
 | Live hosted deployments | Pending - Botter is not yet deployed to Vercel or Railway |
 | Onchain `pay()` execution from the flow | Verified end-to-end on BOT Chain Testnet: vault `0x3BeabD1D08B671888f4073D2F29eFc002434DFFE` created, 500 tUSDT deposited, 50 tUSDT paid by the agent (vault 450 / spent 50 / recipient 50), replay of the same `paymentId` reverted, and a non-agent `pay()` reverted. Factory deployed in tx `0x45cbb93b07dce8fa703e907475cde4c2f3c0a61478c97fee4bb3e32502cbb560` |
 | Voice input in chat | Real - browser Web Speech API, no extra dependency |
-| Vault deploy from UI (wagmi `writeContract`) | Real code, not yet exercised in a full live run |
-| CI for the backend Python and frontend TypeScript | Not yet established |
+| Vault deploy from UI (wagmi `writeContract`) | Real - exercised live on BOT Chain Testnet. The real Deploy vault click broadcasts a signed `createVault()` (e.g. tx `0ac43a1290c699c6e0c96c8b75893bb0d572f11b484f1c23516bdd4deedede51`) and the emitted vault is owned by the signing browser user. Verified vaults: `0x1A722Ed108c83bCa15B06B7175533b5F566b5366`, `0xD845a03F88D32Aeae54830dFc3E87f01A8FA697a`, `0x8ddD4D958c720c994AF99af485Ee5B4E6d358852` |
+| In-UI deposit (approve + deposit) | Real code (`VaultDeposit`), live run pending a tUSDT balance on a test wallet (mint is access-controlled and the faucet dispenses only tBOT) |
+| Backend pytest (verdicts + executor) | Real - 12 passing, run in CI |
+| CI (GitHub Actions: backend pytest, Foundry test, frontend lint + build) | Established - runs on push/PR (`cloud: [backend, contracts, frontend]`) |
 
-The contracts are deployed and fully unit-tested.
+The contracts are deployed and fully unit-tested (47 Foundry tests).
 The backend and frontend are real, are deployed live, and the full spend→receipt loop (store goal, recall it, hold a payment, approve it, execute onchain, verify the receipt) has been exercised against BOT Chain Testnet.
-What is still honestly pending is the one continuous live walk performed entirely from the browser UI on a fresh machine, plus the vault-deploy-from-UI click and wallet-signed deposit. Until that whole walk is recorded, no claim is made that every onchain action is exercised via the UI.
+A full browser-UI walk has now been performed on a fresh machine: connect, deploy your vault from the real Deploy button (signed, onchain, owner = you), land on the fund prompt, and use the AI CFO chat against the live backend - the flow renders and responds in the UI.
+Still honestly pending: the in-UI deposit (approve + deposit) and a browser-wallet-signed payment, both blocked only on putting a tUSDT balance on a test wallet (mint is access-controlled and the faucet dispenses tBOT only).
 
 ## Tests
 
@@ -368,8 +373,8 @@ forge build
 forge test      # 47 passed
 ```
 
-The backend policy engine has a pytest suite (`backend/test_policy.py` - 5 passing, plus `backend/test_executor.py` - 7 passing) covering the deterministic verdicts and exact token-unit conversion.
-The frontend has no test runner yet - both points are open contributions (see Roadmap).
+The backend policy engine has a pytest suite covering the deterministic verdicts and exact token-unit conversion (`backend/test_policy.py` + `backend/test_executor.py`, 12 passing, run in CI).
+The frontend has no test runner yet - an open contribution (see Roadmap).
 
 ## Run it locally
 
@@ -445,7 +450,7 @@ Keep the backend `.env` and the `AGENT_PRIVATE_KEY` out of git (both are already
 
 ```bash
 cd contracts
-./deploy.sh <deployer-private-key>   # needs Sepolia ETH
+./deploy.sh <deployer-private-key>   # needs BOT Chain testnet ETH
 ```
 
 The deploy script generates and persists the agent keypair (`backend/.agent_key`), deploys `VaultFactory` via Foundry with CREATE2, and writes the factory address into both backend and frontend env files.
@@ -494,7 +499,7 @@ vercel --cwd frontend --prod
 ```text
 contracts/     Solidity, Foundry - BotterVault + VaultFactory (+ deploy.sh)
   src/         BotterVault.sol · VaultFactory.sol
-  test/        BotterVault.t.sol (16) · VaultFactory.t.sol (15)
+  test/        BotterVault.t.sol (25) · VaultFactory.t.sol (22)
   script/      DeployVaultFactory.s.sol
 backend/       FastAPI + Sibyl SDK
   main.py      routes
@@ -502,10 +507,11 @@ backend/       FastAPI + Sibyl SDK
   policy.py    deterministic verdict
   memory.py    WARM/HOT/COLD memory over Sibyl
   executor.py  per-user vault payment execution
+  test_policy.py · test_executor.py  12 passing pytest
 frontend/      Next.js (App Router), wagmi, RainbowKit
   src/app/     landing · dashboard · chat · memory · goals · payments
-  src/components/  sidebar · toast · skeleton
-  src/lib/     api.ts · abis.ts · wagmi.ts
+  src/components/  sidebar · vault gate · vault deposit · toast · skeleton
+  src/lib/     api.ts · abis.ts (factory + vault + ERC20) · wagmi.ts
 ```
 
 ## Tech stack · Credits · Roadmap
@@ -525,7 +531,7 @@ frontend/      Next.js (App Router), wagmi, RainbowKit
 
 **Roadmap**
 
-- Record the full live walk from a fresh browser: deploy vault from UI → fund → AI CFO on BOT Chain pays → receipt on BOTScan (the backend flow is proven; the UI-only walk on a clean machine is next).
+- Exercise the in-UI deposit (approve + deposit) and a browser-wallet-signed payment on a test wallet holding tUSDT (the only remaining blocker), then fold the walk into the screenshots.
 - Add a Vitest suite for `lib/api.ts` and extend the pytest suite to memory and executor.
 - Withdraw and agent / limits management UI (the contract methods exist; the UI shows deploy/fund and approval today).
 - Sendgrid / Discord alert when a payment executes.
