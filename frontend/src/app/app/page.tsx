@@ -24,6 +24,7 @@ import {
   Fingerprint,
 } from "lucide-react";
 import { StatCardSkeleton, TableRowSkeleton } from "@/components/Skeleton";
+import { VaultDeposit } from "@/components/VaultDeposit";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 16 },
@@ -923,9 +924,11 @@ function VaultFundBanner({
             Fund your vault
           </p>
           <p className="text-[12px] text-muted-foreground truncate">
-            Send USDT to{" "}
-            <code className="font-mono text-[11px]">{vaultAddress.slice(0, 6)}...{vaultAddress.slice(-4)}</code>
+            Deposit USDT from your wallet to give Botter room to pay
           </p>
+          <code className="mt-1 inline-block font-mono text-[11px] text-muted-foreground/70">
+            {vaultAddress.slice(0, 6)}...{vaultAddress.slice(-4)}
+          </code>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <a
@@ -941,9 +944,12 @@ function VaultFundBanner({
             onClick={onFunded}
             className="shrink-0 rounded-lg bg-foreground px-4 py-2 text-[12px] font-medium text-background transition-all hover:bg-accent"
           >
-            I&apos;ve deposited
+            I&apos;ve deposited elsewhere
           </button>
         </div>
+      </div>
+      <div className="relative mt-4">
+        <VaultDeposit vaultAddress={vaultAddress} onDeposited={onFunded} />
       </div>
     </div>
   );

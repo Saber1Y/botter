@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { api, VaultStatus } from "@/lib/api";
 import { VAULT_FACTORY_ABI } from "@/lib/abis";
+import { VaultDeposit } from "@/components/VaultDeposit";
 import { motion } from "framer-motion";
 import { Loader2, ExternalLink } from "lucide-react";
 
@@ -150,13 +151,13 @@ function FundVaultPrompt({
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        className="max-w-sm w-full mx-4"
+        className="max-w-md w-full mx-4"
       >
         <h1 className="text-xl font-bold tracking-tight text-foreground mb-1">
           Fund your vault
         </h1>
-        <p className="text-[13px] text-muted-foreground mb-6 leading-relaxed">
-          Send USDT on BOT Chain Testnet to your vault address, then click below.
+        <p className="text-[13px] text-muted-foreground mb-5 leading-relaxed">
+          Deposit USDT into your vault so Botter can execute approved payments up to your limits.
         </p>
 
         <div className="mb-4 rounded-xl border border-border bg-muted/50 p-3">
@@ -168,22 +169,27 @@ function FundVaultPrompt({
           </p>
         </div>
 
-        <a
-          href={`https://scan.bohr.life/address/${vaultAddress}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mb-5 flex items-center gap-1.5 text-[12px] text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ExternalLink className="h-3 w-3" />
-          View on BOTScan
-        </a>
+        <div className="mb-3">
+          <VaultDeposit vaultAddress={vaultAddress} onDeposited={onFunded} />
+        </div>
 
-        <button
-          onClick={onFunded}
-          className="w-full rounded-xl bg-foreground px-5 py-2.5 text-[13px] font-medium text-background transition-all hover:opacity-90"
-        >
-          I&apos;ve deposited USDT
-        </button>
+        <div className="flex items-center justify-between">
+          <a
+            href={`https://scan.bohr.life/address/${vaultAddress}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 text-[12px] text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ExternalLink className="h-3 w-3" />
+            View on BOTScan
+          </a>
+          <button
+            onClick={onFunded}
+            className="text-[12px] font-medium text-accent hover:text-accent/80 transition-colors"
+          >
+            I&apos;ve deposited elsewhere - refresh
+          </button>
+        </div>
       </motion.div>
     </div>
   );
