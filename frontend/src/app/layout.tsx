@@ -26,7 +26,8 @@ export const metadata: Metadata = {
   description:
     "Botter is an AI financial agent powered by persistent memory. It remembers your spending rules, goals, and preferences before it acts. Set the rules once. Botter remembers them every time.",
   icons: {
-    icon: "/favicon.svg",
+    icon: [{ rel: "icon", url: "/favicon.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
   },
 };
 
