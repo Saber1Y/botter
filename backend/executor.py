@@ -114,7 +114,11 @@ class PaymentExecutor:
         self.w3 = Web3(Web3.HTTPProvider(settings.bot_chain_rpc))
         self.w3.middleware_onion.inject(ExtraDataToPOAMiddleware, layer=0)
         self.chain_id = settings.bot_chain_id
-        self.agent_account = Account.from_key(settings.agent_private_key)
+        self.agent_account = (
+            Account.from_key(settings.agent_private_key)
+            if settings.agent_private_key
+            else None
+        )
         self.token_address = settings.token_contract_address
 
         # Factory contract (for vault lookup)
@@ -168,7 +172,13 @@ class PaymentExecutor:
         amount: float,
         payment_id: str,
     ) -> dict:
-        """Execute a payment from a user's vault on BOT Chain Testnet."""
+        """Execute a payment from a user's vault on BOT Chain."""
+        agent_account = self.agent_account
+        if agent_account is None:
+            raise RuntimeError(
+                "Payment signing is disabled because no agent key is configured."
+            )
+
         vault = self._get_vault_contract(vault_address)
 
         # Convert to USDT units (6 decimals) without float rounding error
@@ -187,15 +197,15 @@ class PaymentExecutor:
             amount_wei,
             payment_id_bytes,
         ).build_transaction({
-            "from": self.agent_account.address,
-            "nonce": self.w3.eth.get_transaction_count(self.agent_account.address, "pending"),
+            "from": agent_account.address,
+            "nonce": self.w3.eth.get_transaction_count(agent_account.address, "pending"),
             "gas": 200000,
             "gasPrice": self.w3.eth.gas_price,
             "chainId": self.chain_id
         })
 
         # Sign and send
-        signed_tx = self.w3.eth.account.sign_transaction(tx, self.agent_account.key)
+        signed_tx = self.w3.eth.account.sign_transaction(tx, agent_account.key)
         tx_hash = self.w3.eth.send_raw_transaction(signed_tx.raw_transaction)
 
         # Wait for receipt

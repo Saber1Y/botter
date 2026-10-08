@@ -9,18 +9,18 @@ class Settings(BaseSettings):
     openai_base_url: str = "https://openrouter.ai/api/v1"
     openai_model: str = "nvidia/nemotron-3-super-120b-a12b:free"
 
-    # BOT Chain Testnet
-    bot_chain_rpc: str = "https://rpc.bohr.life"
-    bot_chain_id: int = 968
-    vault_factory_address: str = "0x0000000000000000000000000000000000000000"
+    # BOT Chain Mainnet
+    bot_chain_rpc: str = "https://rpc.botchain.ai"
+    bot_chain_id: int = 677
+    vault_factory_address: str = "0xfebcdda771561bc92d290c993e07aa8552083a61"
     agent_private_key: str = ""
-    token_contract_address: str = "0x75edC9335175Fc0552D51D48439F229c10420fe3"
+    token_contract_address: str = "0xaBabc7Ddc03e501d190C676BF3d92ef0e6e87a3C"
 
     # Sibyl Memory
     sibyl_db_path: str = "~/.sibyl-memory/memory.db"
 
     # Frontend
-    frontend_url: str = "http://localhost:3000"
+    frontend_url: str = "https://botterr.vercel.app,http://localhost:3000"
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
