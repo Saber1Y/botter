@@ -38,9 +38,15 @@ app = FastAPI(
 
 # CORS
 settings = get_settings()
+frontend_origins = {
+    origin.strip()
+    for origin in settings.frontend_url.split(",")
+    if origin.strip()
+}
+frontend_origins.update({"https://botterr.vercel.app", "http://localhost:3000"})
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.frontend_url],
+    allow_origins=sorted(frontend_origins),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
